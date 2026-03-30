@@ -7,8 +7,9 @@ const navItems = [
   { href: '/', label: 'HOME', icon: '🏠' },
   { href: '/browse', label: 'BROWSE', icon: '🔍' },
   { href: '/map', label: 'MAP', icon: '🗺️' },
-  { href: '/profile', label: 'PROFILE', icon: '👤' },
+  { href: '/orders', label: 'ORDERS', icon: '📦' },
   { href: '/chat', label: 'CHAT', icon: '💬' },
+  { href: '/profile', label: 'PROFILE', icon: '👤' },
 ]
 
 export default function BottomNav() {
