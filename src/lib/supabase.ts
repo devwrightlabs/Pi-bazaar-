@@ -1,5 +1,15 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Listing, Conversation, Message, TypingIndicator, UserProfile, UserPreferences } from './types'
+import type {
+  Listing,
+  Conversation,
+  Message,
+  TypingIndicator,
+  UserProfile,
+  UserPreferences,
+  EscrowTransaction,
+  ShippingAddress,
+  EscrowTimelineEvent,
+} from './types'
 
 export type Database = {
   public: {
@@ -33,6 +43,21 @@ export type Database = {
         Row: UserPreferences
         Insert: Omit<UserPreferences, 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Omit<UserPreferences, 'id'>>
+      }
+      escrow_transactions: {
+        Row: EscrowTransaction
+        Insert: Omit<EscrowTransaction, 'id' | 'created_at' | 'updated_at'>
+        Update: Partial<Omit<EscrowTransaction, 'id'>>
+      }
+      shipping_addresses: {
+        Row: ShippingAddress
+        Insert: Omit<ShippingAddress, 'id' | 'created_at'>
+        Update: Partial<Omit<ShippingAddress, 'id'>>
+      }
+      escrow_timeline: {
+        Row: EscrowTimelineEvent
+        Insert: Omit<EscrowTimelineEvent, 'id' | 'created_at'>
+        Update: Partial<Omit<EscrowTimelineEvent, 'id'>>
       }
     }
   }

@@ -64,6 +64,51 @@ export interface UserPreferences {
   updated_at: string
 }
 
+export interface EscrowTransaction {
+  id: string
+  listing_id: string
+  buyer_id: string
+  seller_id: string
+  amount_pi: number
+  escrow_fee_pi: number
+  net_amount_pi: number
+  status: 'pending_payment' | 'payment_received' | 'shipped' | 'delivered' | 'completed' | 'disputed' | 'refunded' | 'auto_released'
+  product_type: 'physical' | 'digital'
+  pi_payment_id: string
+  tracking_number: string | null
+  shipping_carrier: string | null
+  delivery_proof: string | null
+  buyer_confirmed_at: string | null
+  seller_shipped_at: string | null
+  auto_release_at: string
+  dispute_reason: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ShippingAddress {
+  id: string
+  user_id: string
+  full_name: string
+  address_line_1: string
+  address_line_2: string | null
+  city: string
+  state_province: string
+  postal_code: string
+  country: string
+  phone: string | null
+  is_default: boolean
+  created_at: string
+}
+
+export interface EscrowTimelineEvent {
+  id: string
+  escrow_id: string
+  event: string
+  description: string
+  created_at: string
+}
+
 export type ModalVariant = 'alert' | 'confirm' | 'info'
 
 export interface ModalProps {

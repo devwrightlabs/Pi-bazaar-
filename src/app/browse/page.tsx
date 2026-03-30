@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { Listing } from '@/lib/types'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
@@ -11,6 +11,7 @@ const CATEGORIES = ['All', 'Electronics', 'Clothing', 'Home', 'Garden', 'Outdoor
 
 function BrowseContent() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const categoryParam = searchParams.get('category') ?? ''
   const seasonParam = searchParams.get('season') ?? ''
 
@@ -125,6 +126,13 @@ function BrowseContent() {
                   <p className="font-bold mt-1" style={{ color: 'var(--color-gold)' }}>
                     {listing.price_pi} Pi
                   </p>
+                  <button
+                    onClick={() => router.push(`/checkout/${listing.id}`)}
+                    className="mt-2 w-full py-1.5 rounded-lg text-xs font-semibold"
+                    style={{ backgroundColor: '#F0C040', color: '#000' }}
+                  >
+                    Buy Now
+                  </button>
                 </div>
               </div>
             ))}
