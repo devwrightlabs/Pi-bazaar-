@@ -1,3 +1,5 @@
+'use client'
+
 import dynamic from 'next/dynamic'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
 import ErrorBoundary from '@/components/ErrorBoundary'
