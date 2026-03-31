@@ -144,7 +144,6 @@ export default function CreateListingPage() {
 
       if (error) throw error
 
-      const listingId = (data as { id: string }).id
       openModal({
         title: 'Listing published!',
         message: 'Your listing is now live on PiBazaar.',
