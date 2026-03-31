@@ -5,11 +5,13 @@ export interface Listing {
   description: string
   price_pi: number
   category: string
+  condition?: 'new' | 'like_new' | 'good' | 'fair'
   images: string[]
   location_lat: number
   location_lng: number
   city: string
   country: string
+  allow_offers?: boolean
   is_active: boolean
   is_boosted: boolean
   created_at: string
@@ -62,6 +64,41 @@ export interface UserPreferences {
   theme_name: string
   created_at: string
   updated_at: string
+}
+
+export interface CreateListingForm {
+  title: string
+  description: string
+  price_pi: number
+  category: string
+  condition: 'new' | 'like_new' | 'good' | 'fair'
+  images: string[]
+  location_city: string
+  location_country: string
+  allow_offers: boolean
+  fast_seller_agreed: boolean
+}
+
+export interface ScrapedListing {
+  title: string
+  description: string
+  price_usd: number
+  images: string[]
+}
+
+export interface PiPriceResponse {
+  price_usd: number
+  timestamp: string
+}
+
+export interface AISuggestRequest {
+  title: string
+  category: string
+  condition: string
+}
+
+export interface AISuggestResponse {
+  description: string
 }
 
 export interface EscrowTransaction {

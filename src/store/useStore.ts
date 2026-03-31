@@ -1,5 +1,18 @@
 import { create } from 'zustand'
-import type { Listing, Conversation, Message, UserProfile, EscrowTransaction, ShippingAddress, EscrowTimelineEvent } from '@/lib/types'
+import type { Listing, Conversation, Message, UserProfile, CreateListingForm, EscrowTransaction, ShippingAddress, EscrowTimelineEvent } from '@/lib/types'
+
+const DEFAULT_FORM: CreateListingForm = {
+  title: '',
+  description: '',
+  price_pi: 0,
+  category: '',
+  condition: 'new',
+  images: [],
+  location_city: '',
+  location_country: '',
+  allow_offers: true,
+  fast_seller_agreed: false,
+}
 
 interface AppState {
   // Auth
@@ -25,6 +38,13 @@ interface AppState {
   setUserLocation: (location: [number, number] | null) => void
   mapRadius: number
   setMapRadius: (radius: number) => void
+
+  // Create Listing
+  createListingForm: CreateListingForm
+  saveDraft: (form: Partial<CreateListingForm>) => void
+  clearDraft: () => void
+  piPriceUsd: number | null
+  setPiPriceUsd: (price: number | null) => void
 
   // Escrow / Orders
   escrowTransactions: EscrowTransaction[]
@@ -91,6 +111,13 @@ export const useStore = create<AppState>((set) => ({
   setUserLocation: (location) => set({ userLocation: location }),
   mapRadius: 50,
   setMapRadius: (radius) => set({ mapRadius: radius }),
+
+  createListingForm: DEFAULT_FORM,
+  saveDraft: (form) =>
+    set((state) => ({ createListingForm: { ...state.createListingForm, ...form } })),
+  clearDraft: () => set({ createListingForm: DEFAULT_FORM }),
+  piPriceUsd: null,
+  setPiPriceUsd: (price) => set({ piPriceUsd: price }),
 
   // Escrow
   escrowTransactions: [],

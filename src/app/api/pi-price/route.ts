@@ -1,14 +1,62 @@
 import { NextResponse } from 'next/server'
 
-export async function GET() {
+// In-memory cache: { price_usd, fetchedAt }
+let cachedPrice: { price_usd: number; fetchedAt: number } | null = null
+const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
+
+async function fetchPiPrice(): Promise<number | null> {
   try {
-    const res = await fetch('https://api.minepi.com/v2/prices/pi', { next: { revalidate: 60 } })
-    if (!res.ok) throw new Error('Upstream price fetch failed')
-    const data = (await res.json()) as { price?: number }
-    const price = typeof data.price === 'number' ? data.price : null
-    return NextResponse.json({ price })
+    // Use CoinGecko public API for Pi Network price
+    const res = await fetch(
+      'https://api.coingecko.com/api/v3/simple/price?ids=pi-network&vs_currencies=usd',
+      { next: { revalidate: 300 }, signal: AbortSignal.timeout(8000) }
+    )
+    if (res.status === 429) {
+      // Rate limited — return null so caller falls back to cached value
+      return null
+    }
+    if (!res.ok) return null
+    const data = (await res.json()) as Record<string, { usd?: number }>
+    return data?.['pi-network']?.usd ?? null
   } catch {
-    // Return null price on failure — callers handle the null case
-    return NextResponse.json({ price: null })
+    return null
   }
+}
+
+export async function GET() {
+  const now = Date.now()
+
+  // Return cached value if fresh
+  if (cachedPrice && now - cachedPrice.fetchedAt < CACHE_TTL_MS) {
+    return NextResponse.json({
+      price_usd: cachedPrice.price_usd,
+      price: cachedPrice.price_usd,
+      timestamp: new Date(cachedPrice.fetchedAt).toISOString(),
+    })
+  }
+
+  const price = await fetchPiPrice()
+
+  if (price === null) {
+    if (cachedPrice) {
+      // Return stale cache rather than failing
+      return NextResponse.json({
+        price_usd: cachedPrice.price_usd,
+        price: cachedPrice.price_usd,
+        timestamp: new Date(cachedPrice.fetchedAt).toISOString(),
+        stale: true,
+      })
+    }
+    return NextResponse.json(
+      { error: 'Rate unavailable', price: null },
+      { status: 503 }
+    )
+  }
+
+  cachedPrice = { price_usd: price, fetchedAt: now }
+  return NextResponse.json({
+    price_usd: price,
+    price,
+    timestamp: new Date(now).toISOString(),
+  })
 }
