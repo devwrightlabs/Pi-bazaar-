@@ -179,8 +179,8 @@ src/
 ### Installation
 
 ```bash
-git clone https://github.com/devwrightlabs/Pi-bazaar-.git
-cd Pi-bazaar-
+git clone https://github.com/devwrightlabs/Pibazaar.git
+cd Pibazaar
 npm install
 
 
