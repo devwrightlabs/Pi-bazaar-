@@ -50,6 +50,33 @@ export const ScrapeListingSchema = z.object({
 })
 export type ScrapeListingParsed = z.infer<typeof ScrapeListingSchema>
 
+// ─── Recommendations ──────────────────────────────────────────
+export const RecommendationRequestSchema = z
+  .object({
+    user_id: z.string().uuid('user_id must be a valid UUID'),
+    latitude: z.number().min(-90).max(90),
+    longitude: z.number().min(-180).max(180),
+    radius_km: z.number().min(1).max(500).default(50),
+    preferred_categories: z.array(z.string().max(100)).max(20).default([]),
+    price_min: z.number().min(0).optional(),
+    price_max: z.number().positive().optional(),
+    limit: z.number().int().min(1).max(100).default(20),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      typeof data.price_min === 'number' &&
+      typeof data.price_max === 'number' &&
+      data.price_max < data.price_min
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['price_max'],
+        message: 'price_max must be greater than or equal to price_min',
+      })
+    }
+  })
+export type RecommendationRequestParsed = z.infer<typeof RecommendationRequestSchema>
+
 // ─── Shared Zod parse helper ─────────────────────────────────
 // Returns { success: true, data } or { success: false, error: string }
 export function safeParse<T>(schema: z.ZodType<T>, raw: unknown):

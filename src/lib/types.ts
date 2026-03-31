@@ -157,3 +157,32 @@ export interface ModalProps {
   onCancel?: () => void
   onClose: () => void
 }
+
+export interface MatchScore {
+  listing_id: string
+  score: number
+  distance_km: number | null
+  category_match: boolean
+  is_boosted: boolean
+}
+
+export interface RecommendationRequest {
+  user_id: string
+  latitude: number
+  longitude: number
+  radius_km: number
+  preferred_categories: string[]
+  price_min?: number
+  price_max?: number
+  limit?: number
+}
+
+export interface RecommendationResponse {
+  recommendations: (Listing & { match_score: MatchScore })[]
+  total_found: number
+  applied_filters: {
+    radius_km: number
+    categories: string[]
+    price_range: { min?: number; max?: number }
+  }
+}
