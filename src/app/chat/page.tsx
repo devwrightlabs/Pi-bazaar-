@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import type { Conversation } from '@/lib/types'
@@ -13,22 +13,30 @@ export default function ChatPage() {
   const { currentUser } = useStore()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchConversations = useCallback(async () => {
+    if (!currentUser) return
+    setLoading(true)
+    setError(null)
+    const { data, error: fetchError } = await supabase
+      .from('conversations')
+      .select('*')
+      .or(`participant_1.eq.${currentUser.id},participant_2.eq.${currentUser.id}`)
+      .order('last_message_at', { ascending: false })
+    if (fetchError) {
+      console.error('Failed to fetch conversations:', fetchError)
+      setError('Failed to load conversations. Please try again.')
+    } else {
+      setConversations((data as Conversation[]) ?? [])
+    }
+    setLoading(false)
+  }, [currentUser])
 
   useEffect(() => {
     if (!currentUser) {
       setLoading(false)
       return
-    }
-    const fetchConversations = async () => {
-      const { data, error } = await supabase
-        .from('conversations')
-        .select('*')
-        .or(`participant_1.eq.${currentUser.id},participant_2.eq.${currentUser.id}`)
-        .order('last_message_at', { ascending: false })
-      if (!error) {
-        setConversations((data as Conversation[]) ?? [])
-      }
-      setLoading(false)
     }
     void fetchConversations()
 
@@ -47,7 +55,7 @@ export default function ChatPage() {
       .subscribe()
 
     return () => { void supabase.removeChannel(channel) }
-  }, [currentUser])
+  }, [currentUser, fetchConversations])
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -85,6 +93,23 @@ export default function ChatPage() {
             </div>
           ) : loading ? (
             <LoadingSkeleton rows={5} />
+          ) : error ? (
+            <div className="text-center py-16">
+              <div className="text-5xl mb-4">⚠️</div>
+              <p className="font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+                Something went wrong
+              </p>
+              <p className="text-sm mb-4" style={{ color: 'var(--color-subtext)' }}>
+                {error}
+              </p>
+              <button
+                onClick={() => void fetchConversations()}
+                className="px-6 py-3 rounded-xl font-semibold text-sm"
+                style={{ backgroundColor: 'var(--color-gold)', color: '#000' }}
+              >
+                Try Again
+              </button>
+            </div>
           ) : conversations.length === 0 ? (
             <div className="text-center py-16">
               <div className="text-5xl mb-4">💬</div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { Listing } from '@/lib/types'
@@ -17,41 +17,45 @@ function BrowseContent() {
 
   const [listings, setListings] = useState<Listing[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'All')
   const [searchQuery, setSearchQuery] = useState('')
 
-  useEffect(() => {
-    const fetchListings = async () => {
-      setLoading(true)
-      try {
-        let query = supabase
-          .from('listings')
-          .select('*')
-          .eq('is_active', true)
-          .order('is_boosted', { ascending: false })
-          .order('created_at', { ascending: false })
+  const fetchListings = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      let query = supabase
+        .from('listings')
+        .select('*')
+        .eq('is_active', true)
+        .order('is_boosted', { ascending: false })
+        .order('created_at', { ascending: false })
 
-        if (selectedCategory !== 'All') {
-          query = query.ilike('category', `%${selectedCategory}%`)
-        }
-        if (seasonParam) {
-          query = query.ilike('category', `%${seasonParam}%`)
-        }
-        if (searchQuery) {
-          query = query.ilike('title', `%${searchQuery}%`)
-        }
-
-        const { data, error } = await query.limit(50)
-        if (error) throw error
-        setListings((data as Listing[]) ?? [])
-      } catch (err) {
-        console.error('Failed to fetch listings:', err)
-      } finally {
-        setLoading(false)
+      if (selectedCategory !== 'All') {
+        query = query.ilike('category', `%${selectedCategory}%`)
       }
+      if (seasonParam) {
+        query = query.ilike('category', `%${seasonParam}%`)
+      }
+      if (searchQuery) {
+        query = query.ilike('title', `%${searchQuery}%`)
+      }
+
+      const { data, error: fetchError } = await query.limit(50)
+      if (fetchError) throw fetchError
+      setListings((data as Listing[]) ?? [])
+    } catch (err) {
+      console.error('Failed to fetch listings:', err)
+      setError('Failed to load listings. Please try again.')
+    } finally {
+      setLoading(false)
     }
-    void fetchListings()
   }, [selectedCategory, searchQuery, seasonParam])
+
+  useEffect(() => {
+    void fetchListings()
+  }, [fetchListings])
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -99,6 +103,23 @@ function BrowseContent() {
 
         {loading ? (
           <LoadingSkeleton rows={5} />
+        ) : error ? (
+          <div className="text-center py-16">
+            <div className="text-5xl mb-4">⚠️</div>
+            <p className="font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+              Something went wrong
+            </p>
+            <p className="text-sm mb-4" style={{ color: 'var(--color-subtext)' }}>
+              {error}
+            </p>
+            <button
+              onClick={() => void fetchListings()}
+              className="px-6 py-3 rounded-xl font-semibold text-sm"
+              style={{ backgroundColor: 'var(--color-gold)', color: '#000' }}
+            >
+              Try Again
+            </button>
+          </div>
         ) : listings.length === 0 ? (
           <div className="text-center py-16">
             <div className="text-5xl mb-4">🔍</div>

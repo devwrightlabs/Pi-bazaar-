@@ -16,9 +16,10 @@ interface MapViewInnerProps {
   zoom: number
   listings: Listing[]
   radius: number
+  onError: (err: unknown) => void
 }
 
-function MapViewInner({ center, zoom, listings, radius }: MapViewInnerProps) {
+function MapViewInner({ center, zoom, listings, radius, onError }: MapViewInnerProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<import('leaflet').Map | null>(null)
   const markersLayerRef = useRef<import('leaflet').LayerGroup | null>(null)
@@ -104,6 +105,7 @@ function MapViewInner({ center, zoom, listings, radius }: MapViewInnerProps) {
         })
       } catch (err) {
         console.error('Map init error:', err)
+        onError(err)
       }
     }
 
@@ -259,6 +261,7 @@ export default function MapView() {
             zoom={DEFAULT_ZOOM}
             listings={listings}
             radius={radius}
+            onError={(err) => setMapError(err instanceof Error ? err.message : 'Map failed to initialize')}
           />
         </div>
       </ErrorBoundary>

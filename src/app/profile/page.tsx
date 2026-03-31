@@ -10,13 +10,15 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [connecting, setConnecting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleConnect = async () => {
     setConnecting(true)
+    setError(null)
     try {
       const auth = await authenticateWithPi()
       if (auth) {
-        const { data, error } = await supabase
+        const { data, error: upsertError } = await supabase
           .from('user_profiles')
           .upsert({
             pi_uid: auth.user.uid,
@@ -24,12 +26,14 @@ export default function ProfilePage() {
           })
           .select()
           .single()
-        if (!error && data) {
+        if (upsertError) throw upsertError
+        if (data) {
           setProfile(data as UserProfile)
         }
       }
     } catch (err) {
       console.error('Connect failed:', err)
+      setError('Failed to connect Pi Wallet. Please try again.')
     } finally {
       setConnecting(false)
     }
@@ -94,6 +98,11 @@ export default function ProfilePage() {
               >
                 {connecting ? 'Connecting...' : 'Connect Pi Wallet'}
               </button>
+              {error && (
+                <p className="mt-3 text-sm" style={{ color: 'var(--color-error)' }}>
+                  {error}
+                </p>
+              )}
             </div>
           )}
         </ErrorBoundary>

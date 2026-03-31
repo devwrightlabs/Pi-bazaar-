@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useStore } from '@/store/useStore'
 import type { EscrowTransaction } from '@/lib/types'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
@@ -13,15 +13,26 @@ export default function OrdersPage() {
   const { currentUser, escrowTransactions, fetchOrders } = useStore()
   const [tab, setTab] = useState<Tab>('purchases')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const loadOrders = useCallback(() => {
+    if (!currentUser) return
+    setLoading(true)
+    setError(null)
+    fetchOrders(currentUser.id)
+      .catch(() => {
+        setError('Failed to load orders. Please try again.')
+      })
+      .finally(() => setLoading(false))
+  }, [currentUser, fetchOrders])
 
   useEffect(() => {
     if (!currentUser) {
       setLoading(false)
       return
     }
-    setLoading(true)
-    fetchOrders(currentUser.id).finally(() => setLoading(false))
-  }, [currentUser, fetchOrders])
+    loadOrders()
+  }, [currentUser, loadOrders])
 
   const purchases = escrowTransactions.filter(
     (t: EscrowTransaction) => t.buyer_id === currentUser?.id
@@ -66,6 +77,23 @@ export default function OrdersPage() {
             </div>
           ) : loading ? (
             <LoadingSkeleton rows={4} />
+          ) : error ? (
+            <div className="text-center py-16">
+              <div className="text-5xl mb-4">⚠️</div>
+              <p className="font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+                Something went wrong
+              </p>
+              <p className="text-sm mb-4" style={{ color: 'var(--color-subtext)' }}>
+                {error}
+              </p>
+              <button
+                onClick={loadOrders}
+                className="px-6 py-3 rounded-xl font-semibold text-sm"
+                style={{ backgroundColor: 'var(--color-gold)', color: '#000' }}
+              >
+                Try Again
+              </button>
+            </div>
           ) : displayed.length === 0 ? (
             <div className="text-center py-16">
               <div className="text-5xl mb-4">{'\u{1f6d2}'}</div>
