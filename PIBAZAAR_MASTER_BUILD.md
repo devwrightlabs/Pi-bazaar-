@@ -21,6 +21,7 @@ Caching: Vercel Edge Cache plus Supabase query caching
 Image Optimization: Next.js Image component with lazy loading
 CSV Export: Papa Parse library for transaction exports
 URL Scraping: Cheerio for eBay Amazon listing import
+Validation: Zod for all runtime input validation on client and server
 
 ## SECTION 3 — DESIGN SYSTEM
 Background: #0A0A0F
@@ -128,3 +129,43 @@ Settings tab includes:
 - Users can customize every color in the app
 - Custom colors stored in Supabase and applied globally
 - Respect user's color choice always
+
+## SECTION 10 — ZERO-CRASH INFRASTRUCTURE
+
+This section is MANDATORY. No new feature development may proceed until the codebase fully complies with every rule below. These are non-negotiable stability requirements.
+
+### Rule 1 — React Error Boundaries on Every Component
+- Every page-level component MUST be wrapped in the shared ErrorBoundary component
+- Every complex child component (map, chat, forms, payment flows) MUST have its own ErrorBoundary wrapper
+- ErrorBoundary MUST render a styled fallback UI matching the dark theme — never a blank screen
+- ErrorBoundary MUST include a retry or reload action button
+- The global layout (RootLayout) MUST wrap {children} in a top-level ErrorBoundary as a final safety net
+- Components that fetch data or use browser APIs (geolocation, Pi SDK, WebSocket) are HIGH PRIORITY for individual boundaries
+
+### Rule 2 — Strict Row Level Security (RLS) on All Supabase Tables
+- Every Supabase table MUST have RLS enabled — no exceptions
+- Every table MUST have explicit SELECT INSERT UPDATE DELETE policies — never rely on default allow
+- Users MUST only be able to read their own private data (messages, orders, addresses, payment records)
+- Users MUST only be able to update or delete their own records
+- Listings can be publicly readable but only editable by the seller who created them
+- Escrow transactions MUST only be accessible to the buyer and seller involved
+- Admin-only tables (disputes, fraud flags) MUST restrict access to service role only
+- All RLS policies MUST be documented in a SUPABASE_RLS_POLICIES.md file in the repo root
+
+### Rule 3 — Zod Validation on All Inputs
+- Every API route that accepts a request body MUST validate it with a Zod schema before processing
+- Every client-side form MUST validate inputs with Zod before submission
+- Zod schemas MUST be defined in a shared file: src/lib/schemas.ts
+- Schemas MUST match the TypeScript interfaces in types.ts — single source of truth
+- Validation errors MUST be surfaced to the user via styled inline error messages — never console.log only
+- URL parameters and query strings in API routes MUST be validated with Zod
+- All Zod schemas MUST be exported and reusable between client and server
+
+### Rule 4 — Pi SDK Try-Catch with User-Friendly UI Fallbacks
+- Every Pi SDK call (authenticate, createPayment, openShareDialog) MUST be wrapped in try-catch
+- On Pi SDK failure the app MUST show a user-friendly error via GlobalModal — never console.error only
+- If Pi SDK is not available (window.Pi is undefined) the app MUST show a graceful fallback UI explaining the user needs the Pi Browser
+- Payment failures MUST show a retry option with clear messaging about what went wrong
+- Authentication failures MUST redirect to a styled error state — never a blank screen or silent failure
+- All Pi SDK error handling MUST be centralized in src/lib/pi-sdk.ts — no raw Pi SDK calls anywhere else in the codebase
+- The pi-sdk.ts wrapper MUST return typed results with explicit error states that callers can handle in their UI
