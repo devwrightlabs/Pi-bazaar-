@@ -23,6 +23,11 @@ export function scoreListings(
   priceMin?: number,
   priceMax?: number,
 ): (Listing & { match_score: MatchScore })[] {
+  // Fix #2: Guard against invalid radiusKm to prevent Infinity/NaN scores
+  if (!Number.isFinite(radiusKm) || radiusKm <= 0) {
+    return []
+  }
+
   const now = Date.now()
   const msPerDay = 24 * 60 * 60 * 1000
   const freshnessWindowMs = 30 * msPerDay
@@ -40,9 +45,10 @@ export function scoreListings(
     // Geo proximity: up to 40 points
     const geoScore = 40 * (1 - distanceKm / radiusKm)
 
-    // Category match: 30 if matched, 15 if no preferences set (neutral), 0 if preferences set but no match
+    // Fix #3: category_match is true only when the user has preferences AND the listing matches.
+    // Neutral scoring (no preferences) is kept separate from a real match.
+    const categoryMatch = preferredCategories.length > 0 && preferredCategories.includes(listing.category)
     let categoryScore: number
-    const categoryMatch = preferredCategories.length === 0 || preferredCategories.includes(listing.category)
     if (preferredCategories.length === 0) {
       categoryScore = 15
     } else {
@@ -52,19 +58,32 @@ export function scoreListings(
     // Boosted bonus: 15 points
     const boostedScore = listing.is_boosted ? 15 : 0
 
-    // Freshness: up to 15 points — full 15 in last 24h, linear decay to 0 over 30 days
-    const ageMs = now - new Date(listing.created_at).getTime()
-    const ageMs24h = msPerDay
+    // Fix #4: Handle invalid dates, clamp negative ages (future dates), and clamp scores to bounds
+    const createdAtMs = new Date(listing.created_at).getTime()
+    const oneDayMs = msPerDay
     let freshnessScore: number
-    if (ageMs <= ageMs24h) {
-      freshnessScore = 15
-    } else if (ageMs >= freshnessWindowMs) {
+    if (!Number.isFinite(createdAtMs)) {
+      // Invalid or unparsable date: treat as stale (no freshness boost)
       freshnessScore = 0
     } else {
-      freshnessScore = 15 * (1 - (ageMs - ageMs24h) / (freshnessWindowMs - ageMs24h))
-    }
+      // Normalize negative ages (future dates) to 0 so freshness never exceeds 15
+      const ageMsRaw = now - createdAtMs
+      const ageMs = Math.max(0, ageMsRaw)
 
-    const totalScore = geoScore + categoryScore + boostedScore + freshnessScore
+      if (ageMs <= oneDayMs) {
+        freshnessScore = 15
+      } else if (ageMs >= freshnessWindowMs) {
+        freshnessScore = 0
+      } else {
+        freshnessScore = 15 * (1 - (ageMs - oneDayMs) / (freshnessWindowMs - oneDayMs))
+      }
+    }
+    // Clamp freshness score to the intended [0, 15] range
+    freshnessScore = Math.max(0, Math.min(15, freshnessScore))
+
+    const unclampedTotalScore = geoScore + categoryScore + boostedScore + freshnessScore
+    // Max possible score: 40 (geo) + 30 (category) + 15 (boosted) + 15 (freshness) = 100
+    const totalScore = Math.max(0, Math.min(100, unclampedTotalScore))
 
     const matchScore: MatchScore = {
       listing_id: listing.id,

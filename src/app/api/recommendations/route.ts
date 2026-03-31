@@ -25,13 +25,17 @@ export async function POST(req: NextRequest) {
     const limit: number = parsed.data.limit ?? 20
 
     // Approximate geo bounding box for DB pre-filter
-    // 111 km is the approximate number of kilometers per degree of latitude (and longitude at the equator)
-    const latDelta = radius_km / 111
-    const lngDelta = radius_km / (111 * Math.cos((latitude * Math.PI) / 180))
-    const minLat = latitude - latDelta
-    const maxLat = latitude + latDelta
-    const minLng = longitude - lngDelta
-    const maxLng = longitude + lngDelta
+    // 111 km per degree of latitude (and longitude at the equator)
+    const KM_PER_DEGREE = 111
+    const latDelta = radius_km / KM_PER_DEGREE
+    // Fix #5: Clamp cos(latitude) to a minimum epsilon to avoid Infinity/very large deltas near poles
+    const cosLat = Math.max(Math.abs(Math.cos((latitude * Math.PI) / 180)), 1e-6)
+    const lngDelta = radius_km / (KM_PER_DEGREE * cosLat)
+    // Clamp lat/lng bounds to valid ranges to avoid query errors
+    const minLat = Math.max(-90, latitude - latDelta)
+    const maxLat = Math.min(90, latitude + latDelta)
+    const minLng = Math.max(-180, longitude - lngDelta)
+    const maxLng = Math.min(180, longitude + lngDelta)
 
     let query = supabase
       .from('listings')
@@ -49,7 +53,11 @@ export async function POST(req: NextRequest) {
       query = query.lte('price_pi', price_max)
     }
 
-    query = query.limit(DB_PREFETCH_LIMIT)
+    // Fix #6: Add explicit ordering before limit for deterministic and representative prefetch
+    query = query
+      .order('is_boosted', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(DB_PREFETCH_LIMIT)
 
     const { data, error } = await query
 
