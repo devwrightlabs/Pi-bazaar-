@@ -1,77 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { supabase } from '@/lib/supabase'
-import type { Listing } from '@/lib/types'
 import SeasonalBanner from '@/components/SeasonalBanner'
-import LoadingSkeleton from '@/components/LoadingSkeleton'
 import ErrorBoundary from '@/components/ErrorBoundary'
-
-function ListingCard({ listing }: { listing: Listing }) {
-  return (
-    <div
-      className="rounded-xl overflow-hidden"
-      style={{ backgroundColor: 'var(--color-card-bg)' }}
-    >
-      <div className="relative h-40 bg-gray-800">
-        {listing.images[0] ? (
-          <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-4xl">📦</div>
-        )}
-        {listing.is_boosted && (
-          <span
-            className="absolute top-2 left-2 text-xs font-bold px-2 py-1 rounded-full"
-            style={{ backgroundColor: 'var(--color-gold)', color: '#000' }}
-          >
-            BOOSTED
-          </span>
-        )}
-      </div>
-      <div className="p-3">
-        <h3 className="font-semibold text-sm truncate" style={{ color: 'var(--color-text)' }}>
-          {listing.title}
-        </h3>
-        <p className="font-bold mt-1" style={{ color: 'var(--color-gold)' }}>
-          {listing.price_pi} Pi
-        </p>
-        <p className="text-xs mt-1" style={{ color: 'var(--color-subtext)' }}>
-          {listing.city}
-        </p>
-      </div>
-    </div>
-  )
-}
+import MarketplaceFeed from '@/components/marketplace/MarketplaceFeed'
 
 export default function HomePage() {
-  const [listings, setListings] = useState<Listing[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchListings = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const { data, error: fetchError } = await supabase
-        .from('listings')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false })
-        .limit(20)
-      if (fetchError) throw fetchError
-      setListings((data as Listing[]) ?? [])
-    } catch (err) {
-      console.error('Failed to fetch listings:', err)
-      setError('Failed to load listings. Please try again.')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    void fetchListings()
-  }, [fetchListings])
-
   return (
     <main className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
       <div className="px-4 pt-6 pb-4">
@@ -101,46 +34,11 @@ export default function HomePage() {
           </div>
         </ErrorBoundary>
 
-        <section>
-          <h2
-            className="text-lg font-semibold mb-4"
-            style={{ fontFamily: 'Sora, sans-serif', color: 'var(--color-text)' }}
-          >
-            Recent Listings
-          </h2>
-          {loading ? (
-            <LoadingSkeleton rows={4} />
-          ) : error ? (
-            <div className="text-center py-12">
-              <div className="text-5xl mb-4">⚠️</div>
-              <p className="font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
-                Something went wrong
-              </p>
-              <p className="text-sm mb-4" style={{ color: 'var(--color-subtext)' }}>
-                {error}
-              </p>
-              <button
-                onClick={() => void fetchListings()}
-                className="px-6 py-3 rounded-xl font-semibold text-sm"
-                style={{ backgroundColor: 'var(--color-gold)', color: '#000' }}
-              >
-                Try Again
-              </button>
-            </div>
-          ) : listings.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-5xl mb-4">🛍️</div>
-              <p style={{ color: 'var(--color-subtext)' }}>No listings yet</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              {listings.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
-              ))}
-            </div>
-          )}
-        </section>
+        <ErrorBoundary>
+          <MarketplaceFeed />
+        </ErrorBoundary>
       </div>
     </main>
   )
 }
+

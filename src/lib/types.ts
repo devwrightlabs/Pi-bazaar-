@@ -175,11 +175,13 @@ export interface RecommendationRequest {
   price_min?: number
   price_max?: number
   limit?: number
+  offset?: number
 }
 
 export interface RecommendationResponse {
   recommendations: (Listing & { match_score: MatchScore })[]
   total_found: number
+  has_more: boolean
   applied_filters: {
     radius_km: number
     categories: string[]

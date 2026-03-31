@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
     const radius_km: number = parsed.data.radius_km ?? 50
     const preferred_categories: string[] = parsed.data.preferred_categories ?? []
     const limit: number = parsed.data.limit ?? 20
+    const offset: number = parsed.data.offset ?? 0
 
     // Approximate geo bounding box for DB pre-filter
     // 111 km per degree of latitude (and longitude at the equator)
@@ -78,11 +79,12 @@ export async function POST(req: NextRequest) {
       price_max,
     )
 
-    const recommendations = scored.slice(0, limit)
+    const recommendations = scored.slice(offset, offset + limit)
 
     const responseBody: RecommendationResponse = {
       recommendations,
       total_found: scored.length,
+      has_more: offset + recommendations.length < scored.length,
       applied_filters: {
         radius_km,
         categories: preferred_categories,
