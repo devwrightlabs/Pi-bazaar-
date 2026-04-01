@@ -33,17 +33,15 @@ export default function ProductCard({ item }: ProductCardProps) {
     const conditionLabel = item.condition ? CONDITION_LABELS[item.condition] : null
     const distanceText =
       distanceKm !== null ? `${distanceKm.toFixed(1)} km away` : 'Unknown distance'
-    const details = [
+    const detailsParts = [
       item.description,
-      '',
       `Price: π ${item.price_pi}`,
       conditionLabel ? `Condition: ${conditionLabel}` : null,
       `Location: ${item.city}, ${item.country}`,
       `Distance: ${distanceText}`,
-    ]
-      .filter(Boolean)
-      .join('\n')
+    ].filter((part): part is string => Boolean(part))
 
+    const details = detailsParts.join(' • ')
     openModal({
       title: item.title,
       message: details,
