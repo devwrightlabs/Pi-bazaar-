@@ -39,7 +39,7 @@ export default function ConversationCard({
           {otherUserAvatar ? (
             <img src={otherUserAvatar} alt={otherUserName} className="w-full h-full object-cover" />
           ) : (
-            <span>👤</span>
+            <span></span>
           )}
         </div>
         <div className="flex-1 min-w-0">

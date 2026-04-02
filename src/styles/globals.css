@@ -4,6 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===================================================================
+   THEME TOKENS — Dark (default fallback on :root)
+   =================================================================== */
 :root {
   --color-background: #0A0A0F;
   --color-secondary-bg: #1A1A2E;
@@ -13,8 +16,51 @@
   --color-subtext: #888888;
   --color-success: #22C55E;
   --color-error: #EF4444;
+  --color-border: rgba(255, 255, 255, 0.05);
+  --color-control-bg: rgba(255, 255, 255, 0.1);
+  --color-control-active: rgba(255, 255, 255, 0.15);
+  --color-backdrop: rgba(0, 0, 0, 0.5);
 }
 
+/* ===================================================================
+   DARK THEME (explicit selector — mirrors :root defaults)
+   =================================================================== */
+[data-theme="dark"] {
+  --color-background: #0A0A0F;
+  --color-secondary-bg: #1A1A2E;
+  --color-card-bg: #16213E;
+  --color-gold: #F0C040;
+  --color-text: #FFFFFF;
+  --color-subtext: #888888;
+  --color-success: #22C55E;
+  --color-error: #EF4444;
+  --color-border: rgba(255, 255, 255, 0.05);
+  --color-control-bg: rgba(255, 255, 255, 0.1);
+  --color-control-active: rgba(255, 255, 255, 0.15);
+  --color-backdrop: rgba(0, 0, 0, 0.5);
+}
+
+/* ===================================================================
+   LIGHT THEME
+   =================================================================== */
+[data-theme="light"] {
+  --color-background: #F5F5F7;
+  --color-secondary-bg: #E8E8ED;
+  --color-card-bg: #FFFFFF;
+  --color-gold: #D4A017;
+  --color-text: #1A1A1A;
+  --color-subtext: #6B7280;
+  --color-success: #16A34A;
+  --color-error: #DC2626;
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-control-bg: rgba(0, 0, 0, 0.06);
+  --color-control-active: rgba(0, 0, 0, 0.1);
+  --color-backdrop: rgba(0, 0, 0, 0.4);
+}
+
+/* ===================================================================
+   GLOBAL RESETS
+   =================================================================== */
 * {
   box-sizing: border-box;
   padding: 0;
@@ -28,6 +74,7 @@ body {
   background-color: var(--color-background);
   color: var(--color-text);
   font-family: 'DM Sans', sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -39,10 +86,23 @@ a {
   text-decoration: none;
 }
 
+/* ===================================================================
+   UTILITY — Scrollbar Hide
+   =================================================================== */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* ===================================================================
+   UTILITY — Line Clamp (for ProductCard title)
+   =================================================================== */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

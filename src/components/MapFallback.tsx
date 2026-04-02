@@ -40,7 +40,6 @@ export default function MapFallback({ onLocationFound, onRetryLocation }: Props)
       className="flex flex-col items-center justify-center p-6 rounded-2xl text-center"
       style={{ backgroundColor: 'var(--color-card-bg)' }}
     >
-      <div className="text-4xl mb-4">📍</div>
       <h3
         className="text-lg font-semibold mb-2"
         style={{ fontFamily: 'Sora, sans-serif', color: 'var(--color-text)' }}
@@ -87,7 +86,7 @@ export default function MapFallback({ onLocationFound, onRetryLocation }: Props)
             backgroundColor: 'transparent',
           }}
         >
-          🔄 Retry Location Access
+          Retry Location Access
         </button>
       </div>
     </div>

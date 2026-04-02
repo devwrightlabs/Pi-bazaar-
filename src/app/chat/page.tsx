@@ -73,14 +73,14 @@ export default function ChatPage() {
               style={{ backgroundColor: 'var(--color-gold)', color: '#000' }}
               aria-label="New message"
             >
-              ✏️
+              +
             </button>
           </Link>
         </div>
         <ErrorBoundary>
           {!currentUser ? (
             <div className="text-center py-16">
-              <div className="text-5xl mb-4">💬</div>
+              
               <p style={{ color: 'var(--color-subtext)' }}>Connect your Pi Wallet to access messages</p>
               <Link href="/profile">
                 <button
@@ -95,7 +95,7 @@ export default function ChatPage() {
             <LoadingSkeleton rows={5} />
           ) : error ? (
             <div className="text-center py-16">
-              <div className="text-5xl mb-4">⚠️</div>
+              
               <p className="font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
                 Something went wrong
               </p>
@@ -112,7 +112,7 @@ export default function ChatPage() {
             </div>
           ) : conversations.length === 0 ? (
             <div className="text-center py-16">
-              <div className="text-5xl mb-4">💬</div>
+              
               <p style={{ color: 'var(--color-subtext)' }}>No conversations yet</p>
               <Link href="/chat/new">
                 <button

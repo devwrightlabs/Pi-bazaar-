@@ -17,6 +17,10 @@ const config: Config = {
         'text-sub': 'var(--color-subtext)',
         success: 'var(--color-success)',
         error: 'var(--color-error)',
+        border: 'var(--color-border)',
+        'control-bg': 'var(--color-control-bg)',
+        'control-active': 'var(--color-control-active)',
+        backdrop: 'var(--color-backdrop)',
       },
       fontFamily: {
         heading: ['Sora', 'sans-serif'],

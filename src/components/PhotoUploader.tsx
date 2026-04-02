@@ -226,7 +226,7 @@ export default function PhotoUploader({ photos, onPhotosChange }: Props) {
             backgroundColor: dragOver ? 'rgba(240,192,64,0.05)' : 'var(--color-background)',
           }}
         >
-          <span className="text-3xl mb-2">📷</span>
+          <span className="text-3xl mb-2"></span>
           <p className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>
             {dragOver ? 'Drop photos here' : 'Drag photos here or tap to browse'}
           </p>

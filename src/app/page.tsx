@@ -6,24 +6,18 @@ import MarketplaceFeed from '@/components/marketplace/MarketplaceFeed'
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+    <main className="min-h-screen bg-background">
       <div className="px-4 pt-6 pb-4">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1
-              className="text-2xl font-bold"
-              style={{ fontFamily: 'Sora, sans-serif', color: 'var(--color-text)' }}
-            >
+            <h1 className="text-2xl font-bold font-heading text-text-primary">
               PiBazaar
             </h1>
-            <p className="text-sm" style={{ color: 'var(--color-subtext)' }}>
+            <p className="text-sm text-text-sub">
               Your Pi marketplace
             </p>
           </div>
-          <div
-            className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: 'var(--color-gold)' }}
-          >
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gold">
             <span className="font-bold text-black text-lg">P</span>
           </div>
         </div>
@@ -33,11 +27,11 @@ export default function HomePage() {
             <SeasonalBanner />
           </div>
         </ErrorBoundary>
-
-        <ErrorBoundary>
-          <MarketplaceFeed />
-        </ErrorBoundary>
       </div>
+
+      <ErrorBoundary>
+        <MarketplaceFeed />
+      </ErrorBoundary>
     </main>
   )
 }

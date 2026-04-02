@@ -68,7 +68,7 @@ export default function ChatInput({ onSend, onTyping, disabled = false }: Props)
         style={{ backgroundColor: 'var(--color-gold)' }}
         aria-label="Send message"
       >
-        📤
+        Send
       </button>
     </div>
   )

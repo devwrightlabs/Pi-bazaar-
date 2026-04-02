@@ -28,7 +28,7 @@ export default function ListingPreviewCard({ form, sellerName = 'You' }: Props) 
         {coverPhoto ? (
           <img src={coverPhoto} alt={form.title || 'Listing'} className="w-full h-full object-cover" />
         ) : (
-          <div className="text-5xl opacity-30">📷</div>
+          <div className="text-5xl opacity-30 bg-secondary-bg w-full h-full" />
         )}
         {form.condition && (
           <span

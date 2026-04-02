@@ -4,12 +4,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const navItems = [
-  { href: '/', label: 'HOME', icon: '🏠' },
-  { href: '/browse', label: 'BROWSE', icon: '🔍' },
-  { href: '/map', label: 'MAP', icon: '🗺️' },
-  { href: '/orders', label: 'ORDERS', icon: '📦' },
-  { href: '/chat', label: 'CHAT', icon: '💬' },
-  { href: '/profile', label: 'PROFILE', icon: '👤' },
+  { href: '/', label: 'HOME' },
+  { href: '/browse', label: 'BROWSE' },
+  { href: '/map', label: 'MAP' },
+  { href: '/orders', label: 'ORDERS' },
+  { href: '/chat', label: 'CHAT' },
+  { href: '/profile', label: 'PROFILE' },
 ]
 
 export default function BottomNav() {
@@ -35,7 +35,6 @@ export default function BottomNav() {
             href={item.href}
             className="flex flex-col items-center gap-1 min-w-[56px] py-1"
           >
-            <span className="text-xl">{item.icon}</span>
             <span
               className="text-[10px] font-semibold tracking-wider"
               style={{ color: isActive ? 'var(--color-gold)' : 'var(--color-subtext)' }}
@@ -73,7 +72,6 @@ export default function BottomNav() {
             href={item.href}
             className="flex flex-col items-center gap-1 min-w-[56px] py-1"
           >
-            <span className="text-xl">{item.icon}</span>
             <span
               className="text-[10px] font-semibold tracking-wider"
               style={{ color: isActive ? 'var(--color-gold)' : 'var(--color-subtext)' }}

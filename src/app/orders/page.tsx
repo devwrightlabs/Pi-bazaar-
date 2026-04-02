@@ -72,14 +72,14 @@ export default function OrdersPage() {
 
           {!currentUser ? (
             <div className="text-center py-16">
-              <div className="text-5xl mb-4">{'\u{1f512}'}</div>
+              
               <p style={{ color: 'var(--color-subtext)' }}>Sign in to view your orders.</p>
             </div>
           ) : loading ? (
             <LoadingSkeleton rows={4} />
           ) : error ? (
             <div className="text-center py-16">
-              <div className="text-5xl mb-4">⚠️</div>
+              
               <p className="font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
                 Something went wrong
               </p>
@@ -96,7 +96,7 @@ export default function OrdersPage() {
             </div>
           ) : displayed.length === 0 ? (
             <div className="text-center py-16">
-              <div className="text-5xl mb-4">{'\u{1f6d2}'}</div>
+              
               <p className="font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
                 No orders yet
               </p>

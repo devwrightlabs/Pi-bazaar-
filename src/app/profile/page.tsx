@@ -63,7 +63,7 @@ export default function ProfilePage() {
                 {profile.avatar_url ? (
                   <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover" />
                 ) : (
-                  <span>👤</span>
+                  <span></span>
                 )}
               </div>
               <h2
@@ -80,7 +80,13 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <div className="text-6xl mb-6">👤</div>
+              <div
+                className="text-6xl mb-6"
+                style={{ color: 'var(--color-gold)' }}
+                aria-hidden="true"
+              >
+                π
+              </div>
               <h2
                 className="text-xl font-bold mb-3"
                 style={{ fontFamily: 'Sora, sans-serif', color: '#ffffff' }}

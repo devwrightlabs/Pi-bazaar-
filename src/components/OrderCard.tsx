@@ -30,7 +30,7 @@ export default function OrderCard({ order, listingTitle, listingImage }: OrderCa
           {listingImage ? (
             <img src={listingImage} alt={listingTitle ?? 'Order'} className="w-full h-full object-cover" />
           ) : (
-            <span>📦</span>
+            <span></span>
           )}
         </div>
         <div className="flex-1 min-w-0">

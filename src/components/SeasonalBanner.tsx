@@ -2,16 +2,16 @@
 
 import { useRouter } from 'next/navigation'
 
-function getCurrentSeason(): { name: string; category: string; emoji: string; gradient: string } {
+function getCurrentSeason(): { name: string; category: string; gradient: string } {
   const month = new Date().getMonth() + 1 // 1-12
   if (month >= 3 && month <= 5) {
-    return { name: 'Spring', category: 'garden', emoji: '🌸', gradient: 'linear-gradient(135deg, #22C55E, #86EFAC)' }
+    return { name: 'Spring', category: 'garden', gradient: 'linear-gradient(135deg, #22C55E, #86EFAC)' }
   } else if (month >= 6 && month <= 8) {
-    return { name: 'Summer', category: 'outdoor', emoji: '☀️', gradient: 'linear-gradient(135deg, #F0C040, #FDE68A)' }
+    return { name: 'Summer', category: 'outdoor', gradient: 'linear-gradient(135deg, #F0C040, #FDE68A)' }
   } else if (month >= 9 && month <= 11) {
-    return { name: 'Autumn', category: 'home-decor', emoji: '🍂', gradient: 'linear-gradient(135deg, #EF4444, #FCA5A5)' }
+    return { name: 'Autumn', category: 'home-decor', gradient: 'linear-gradient(135deg, #EF4444, #FCA5A5)' }
   } else {
-    return { name: 'Winter', category: 'electronics', emoji: '❄️', gradient: 'linear-gradient(135deg, #3B82F6, #93C5FD)' }
+    return { name: 'Winter', category: 'electronics', gradient: 'linear-gradient(135deg, #3B82F6, #93C5FD)' }
   }
 }
 
@@ -37,11 +37,11 @@ export default function SeasonalBanner() {
             className="text-2xl font-bold text-black"
             style={{ fontFamily: 'Sora, sans-serif' }}
           >
-            {season.emoji} {season.name} Sale
+            {season.name} Sale
           </h2>
           <p className="text-sm text-black/70 mt-1">Tap to browse {season.name.toLowerCase()} listings</p>
         </div>
-        <span className="text-4xl">{season.emoji}</span>
+        <span className="text-4xl font-bold text-black">{season.name}</span>
       </div>
     </button>
   )

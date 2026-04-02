@@ -89,7 +89,9 @@ export default function UserSearch({ onSelectUser, excludeUserId }: Props) {
                 {user.avatar_url ? (
                   <img src={user.avatar_url} alt={user.username} className="w-full h-full object-cover" />
                 ) : (
-                  <span>👤</span>
+                  <span className="text-sm font-semibold" style={{ color: 'var(--color-text)' }}>
+                    {user.username?.charAt(0).toUpperCase() || '?'}
+                  </span>
                 )}
               </div>
               <div>

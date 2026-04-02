@@ -208,7 +208,7 @@ export default function MapView() {
         className="flex flex-col items-center justify-center min-h-[400px] rounded-2xl p-6 text-center"
         style={{ backgroundColor: 'var(--color-card-bg)' }}
       >
-        <div className="text-4xl mb-4">🗺️</div>
+
         <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
           Map unavailable
         </h3>
@@ -238,7 +238,7 @@ export default function MapView() {
             className="flex flex-col items-center justify-center min-h-[400px] rounded-2xl p-6 text-center"
             style={{ backgroundColor: 'var(--color-card-bg)' }}
           >
-            <div className="text-4xl mb-4">🗺️</div>
+    
             <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--color-text)', fontFamily: 'Sora, sans-serif' }}>
               Map failed to load
             </h3>

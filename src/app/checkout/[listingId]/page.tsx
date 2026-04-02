@@ -132,7 +132,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
               {listing.images[0] ? (
                 <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-3xl">📦</div>
+                <div className="w-full h-full bg-secondary-bg"></div>
               )}
             </div>
             <div className="flex-1 min-w-0">

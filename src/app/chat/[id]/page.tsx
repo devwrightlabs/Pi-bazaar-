@@ -200,7 +200,7 @@ export default function ChatRoomPage() {
             <LoadingSkeleton rows={5} />
           ) : messages.length === 0 ? (
             <div className="text-center py-16">
-              <div className="text-4xl mb-3">👋</div>
+              
               <p style={{ color: 'var(--color-subtext)' }}>Start the conversation!</p>
             </div>
           ) : (

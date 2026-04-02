@@ -105,7 +105,7 @@ function BrowseContent() {
           <LoadingSkeleton rows={5} />
         ) : error ? (
           <div className="text-center py-16">
-            <div className="text-5xl mb-4">⚠️</div>
+            
             <p className="font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
               Something went wrong
             </p>
@@ -122,7 +122,7 @@ function BrowseContent() {
           </div>
         ) : listings.length === 0 ? (
           <div className="text-center py-16">
-            <div className="text-5xl mb-4">🔍</div>
+            
             <p style={{ color: 'var(--color-subtext)' }}>No listings found</p>
           </div>
         ) : (
@@ -137,7 +137,7 @@ function BrowseContent() {
                   {listing.images[0] ? (
                     <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-4xl">📦</div>
+                    <div className="w-full h-full bg-gray-800"></div>
                   )}
                 </div>
                 <div className="p-3">
