@@ -18,12 +18,22 @@ export default function SwipeFeed({ listings }: SwipeFeedProps) {
     const container = containerRef.current
     if (!container) return
 
+    // Prevent repeatedly triggering smooth scroll while near the bottom.
+    let hasNudged = false
+
     function handleScroll() {
       if (!container) return
       const { scrollTop, scrollHeight, clientHeight } = container
       const distanceFromBottom = scrollHeight - scrollTop - clientHeight
+
       if (distanceFromBottom < clientHeight * 1.5) {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+        if (!hasNudged) {
+          hasNudged = true
+          window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
+        }
+      } else {
+        // User moved away from the bottom; allow a future nudge.
+        hasNudged = false
       }
     }
 
