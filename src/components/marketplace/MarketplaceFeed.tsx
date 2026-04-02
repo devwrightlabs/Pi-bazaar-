@@ -35,9 +35,11 @@ function FeedContent({ initialListings = [] }: MarketplaceFeedProps) {
       <ControlBar />
 
       {/* Category navigation */}
-      <div className="px-4 mt-3 mb-4">
-        <CategoryNav activeCategory={activeCategory} onSelect={setCategory} />
-      </div>
+      {viewMode !== 'swipe' && (
+        <div className="px-4 mt-3 mb-4">
+          <CategoryNav activeCategory={activeCategory} onSelect={setCategory} />
+        </div>
+      )}
 
       {/* Initial loading state */}
       {loading && listings.length === 0 && (
