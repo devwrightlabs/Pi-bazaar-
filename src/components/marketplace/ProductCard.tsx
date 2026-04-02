@@ -60,7 +60,7 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
     return (
       <div className="rounded-2xl border border-border bg-card-bg overflow-hidden flex flex-col">
         {/* Hero image */}
-        <div className="relative w-full overflow-hidden" style={{ aspectRatio: '3/4' }}>
+        <div className="relative w-full overflow-hidden aspect-[3/4]">
           {hasImage ? (
             <Image
               src={imageUrl}
