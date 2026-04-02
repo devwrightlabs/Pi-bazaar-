@@ -106,13 +106,3 @@ a {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-
-/* ===================================================================
-   UTILITY — Snap Scroll (for SwipeFeed)
-   =================================================================== */
-.snap-y {
-  scroll-snap-type: y mandatory;
-}
-.snap-start {
-  scroll-snap-align: start;
-}
