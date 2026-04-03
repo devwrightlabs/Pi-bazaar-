@@ -10,8 +10,8 @@ export default function HomePage() {
   const [refreshKey, setRefreshKey] = useState(0)
 
   const handleRefresh = useCallback(async () => {
-    await new Promise<void>((r) => setTimeout(r, 800))
     setRefreshKey((k) => k + 1)
+    await new Promise<void>((r) => setTimeout(r, 800))
   }, [])
 
   return (
