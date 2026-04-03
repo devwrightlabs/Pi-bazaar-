@@ -1,6 +1,6 @@
 'use client'
 
-import { useUIStore, type ViewMode, type ThemeMode } from '@/store/useUIStore'
+import { useUIStore, type ViewMode } from '@/store/useUIStore'
 
 function GridIcon() {
   return (
@@ -63,11 +63,6 @@ const VIEW_BUTTONS: { mode: ViewMode; label: string; Icon: () => JSX.Element }[]
   { mode: 'swipe', label: 'Swipe view', Icon: SwipeIcon },
 ]
 
-const THEME_BUTTONS: { mode: ThemeMode; label: string; Icon: () => JSX.Element }[] = [
-  { mode: 'dark', label: 'Dark theme', Icon: MoonIcon },
-  { mode: 'light', label: 'Light theme', Icon: SunIcon },
-]
-
 export default function ControlBar() {
   const viewMode = useUIStore((s) => s.viewMode)
   const themeMode = useUIStore((s) => s.themeMode)
@@ -103,26 +98,13 @@ export default function ControlBar() {
       </div>
 
       {/* Theme switcher */}
-      <div className="flex items-center gap-1">
-        {THEME_BUTTONS.map(({ mode, label, Icon }) => {
-          const isActive = themeMode === mode
-          return (
-            <button
-              key={mode}
-              onClick={() => setThemeMode(mode)}
-              aria-label={label}
-              aria-pressed={isActive}
-              className={`p-2 rounded-lg transition-colors ${
-                isActive
-                  ? 'text-gold bg-control-active'
-                  : 'text-text-sub bg-transparent hover:bg-control-bg'
-              }`}
-            >
-              <Icon />
-            </button>
-          )
-        })}
-      </div>
+      <button
+        onClick={() => setThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
+        aria-label={themeMode === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+        className="p-2 rounded-lg transition-colors text-gold bg-control-active"
+      >
+        {themeMode === 'dark' ? <SunIcon /> : <MoonIcon />}
+      </button>
     </div>
   )
 }

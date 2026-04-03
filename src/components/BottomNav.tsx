@@ -36,7 +36,7 @@ export default function BottomNav() {
             className="flex flex-col items-center gap-1 min-w-[56px] py-1"
           >
             <span
-              className="text-[10px] font-semibold tracking-wider"
+              className="text-[11px] font-semibold tracking-wider"
               style={{ color: isActive ? 'var(--color-gold)' : 'var(--color-subtext)' }}
             >
               {item.label}
@@ -46,7 +46,7 @@ export default function BottomNav() {
       })}
 
       {/* Center Sell button */}
-      <Link href="/create" className="flex flex-col items-center gap-1 -mt-4">
+      <Link href="/create" className="flex flex-col items-center gap-0.5 -mt-4">
         <div
           className="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-lg border-4"
           style={{
@@ -57,7 +57,7 @@ export default function BottomNav() {
           <span style={{ color: '#0A0A0F', fontWeight: 900, fontSize: '28px', lineHeight: 1 }}>+</span>
         </div>
         <span
-          className="text-[10px] font-bold tracking-wider"
+          className="text-[11px] font-bold tracking-wider"
           style={{ color: pathname.startsWith('/create') ? 'var(--color-gold)' : 'var(--color-subtext)' }}
         >
           SELL
@@ -73,7 +73,7 @@ export default function BottomNav() {
             className="flex flex-col items-center gap-1 min-w-[56px] py-1"
           >
             <span
-              className="text-[10px] font-semibold tracking-wider"
+              className="text-[11px] font-semibold tracking-wider"
               style={{ color: isActive ? 'var(--color-gold)' : 'var(--color-subtext)' }}
             >
               {item.label}

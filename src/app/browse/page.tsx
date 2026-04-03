@@ -116,6 +116,7 @@ function BrowseContent() {
               {cat}
             </button>
           ))}
+          <div className="flex-shrink-0 w-4" aria-hidden="true" />
         </div>
 
         {loading ? (
