@@ -41,7 +41,7 @@ export default function SeasonalBanner() {
           </h2>
           <p className="text-sm text-black/70 mt-1">Tap to browse {season.name.toLowerCase()} listings</p>
         </div>
-        <span className="text-4xl" aria-hidden="true">{season.emoji}</span>
+        <span className="text-4xl text-black" aria-hidden="true">{season.emoji}</span>
       </div>
     </button>
   )
