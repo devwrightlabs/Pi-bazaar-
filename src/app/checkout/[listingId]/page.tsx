@@ -102,7 +102,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
     { id: 'pickup', label: 'Local Pickup', est: 'Arrange with seller' },
   ] as const
 
-  if (loading) return <LoadingSkeleton rows={6} />
+  if (loading) return <LoadingSkeleton rows={6} variant="rows" />
   if (!listing) {
     return (
       <div className="p-6 text-center">
@@ -253,11 +253,11 @@ export default function CheckoutPage({ params }: PageProps) {
     params.then(({ listingId: id }) => setListingId(id))
   }, [params])
 
-  if (!listingId) return <LoadingSkeleton rows={6} />
+  if (!listingId) return <LoadingSkeleton rows={6} variant="rows" />
 
   return (
     <ErrorBoundary>
-      <Suspense fallback={<LoadingSkeleton rows={6} />}>
+      <Suspense fallback={<LoadingSkeleton rows={6} variant="rows" />}>
         <CheckoutContent listingId={listingId} />
       </Suspense>
     </ErrorBoundary>

@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import type { UserProfile } from '@/lib/types'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import VerifiedBadge from '@/components/VerifiedBadge'
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -50,7 +51,7 @@ export default function ProfilePage() {
         </h1>
         <ErrorBoundary>
           {connecting ? (
-            <LoadingSkeleton rows={3} />
+            <LoadingSkeleton rows={3} variant="rows" />
           ) : profile ? (
             <div
               className="rounded-2xl p-6 text-center"
@@ -72,6 +73,9 @@ export default function ProfilePage() {
               >
                 @{profile.username}
               </h2>
+              <div className="flex justify-center mb-2">
+                <VerifiedBadge size="md" />
+              </div>
               {profile.bio && (
                 <p className="text-sm" style={{ color: 'var(--color-subtext)' }}>
                   {profile.bio}

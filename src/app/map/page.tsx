@@ -6,7 +6,7 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 
 const MapView = dynamic(() => import('@/components/MapView'), {
   ssr: false,
-  loading: () => <LoadingSkeleton rows={4} />,
+  loading: () => <LoadingSkeleton rows={4} variant="rows" />,
 })
 
 export default function MapPage() {

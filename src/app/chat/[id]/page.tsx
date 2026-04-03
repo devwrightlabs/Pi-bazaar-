@@ -197,7 +197,7 @@ export default function ChatRoomPage() {
       <div className="flex-1 overflow-y-auto px-4 py-4" style={{ paddingBottom: '80px' }}>
         <ErrorBoundary>
           {loading ? (
-            <LoadingSkeleton rows={5} />
+            <LoadingSkeleton rows={5} variant="rows" />
           ) : messages.length === 0 ? (
             <div className="text-center py-16">
               

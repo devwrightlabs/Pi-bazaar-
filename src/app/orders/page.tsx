@@ -76,7 +76,7 @@ export default function OrdersPage() {
               <p style={{ color: 'var(--color-subtext)' }}>Sign in to view your orders.</p>
             </div>
           ) : loading ? (
-            <LoadingSkeleton rows={4} />
+            <LoadingSkeleton rows={4} variant="rows" />
           ) : error ? (
             <div className="text-center py-16">
               

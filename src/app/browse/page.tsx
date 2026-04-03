@@ -6,6 +6,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import type { Listing } from '@/lib/types'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import PullToRefresh from '@/components/PullToRefresh'
 
 const CATEGORIES = ['All', 'Electronics', 'Clothing', 'Home', 'Garden', 'Outdoor', 'Sports', 'Books', 'Art']
 
@@ -76,7 +77,8 @@ function BrowseContent() {
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
-      <div className="px-4 pt-6 pb-4">
+      <PullToRefresh onRefresh={fetchListings}>
+        <div className="px-4 pt-6 pb-4">
         <h1
           className="text-2xl font-bold mb-4"
           style={{ fontFamily: 'Sora, sans-serif', color: 'var(--color-text)' }}
@@ -120,7 +122,7 @@ function BrowseContent() {
         </div>
 
         {loading ? (
-          <LoadingSkeleton rows={5} />
+          <LoadingSkeleton rows={6} variant="grid" />
         ) : error ? (
           <div className="text-center py-16">
             
@@ -177,7 +179,8 @@ function BrowseContent() {
             ))}
           </div>
         )}
-      </div>
+        </div>
+      </PullToRefresh>
     </main>
   )
 }
@@ -185,7 +188,7 @@ function BrowseContent() {
 export default function BrowsePage() {
   return (
     <ErrorBoundary>
-      <Suspense fallback={<LoadingSkeleton rows={5} />}>
+      <Suspense fallback={<LoadingSkeleton rows={6} variant="grid" />}>
         <BrowseContent />
       </Suspense>
     </ErrorBoundary>
