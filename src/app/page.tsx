@@ -17,8 +17,13 @@ export default function HomePage() {
               Your Pi marketplace
             </p>
           </div>
-          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gold">
-            <span className="font-bold text-black text-lg">P</span>
+          <div className="relative">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gold">
+              <span className="font-bold text-black text-lg">P</span>
+            </div>
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold text-white" style={{ backgroundColor: 'var(--color-error)' }}>
+              3
+            </span>
           </div>
         </div>
 

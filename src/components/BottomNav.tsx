@@ -24,7 +24,7 @@ export default function BottomNav() {
       className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around px-2 py-3 border-t"
       style={{
         backgroundColor: 'var(--color-secondary-bg)',
-        borderColor: 'rgba(255,255,255,0.08)',
+        borderColor: 'var(--color-border)',
       }}
     >
       {leftItems.map((item) => {

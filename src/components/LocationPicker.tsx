@@ -54,14 +54,16 @@ export default function LocationPicker({ city, country, onCityChange, onCountryC
             className="w-full bg-transparent outline-none text-sm"
             style={{ color: 'var(--color-text)' }}
           />
-          <button
-            type="button"
-            onClick={() => setEditing(false)}
-            className="text-xs font-medium"
-            style={{ color: 'var(--color-gold)' }}
-          >
-            Done
-          </button>
+          <div className="border-t pt-2 mt-2 flex justify-end" style={{ borderColor: 'var(--color-border)' }}>
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="text-xs font-medium"
+              style={{ color: 'var(--color-gold)' }}
+            >
+              Done
+            </button>
+          </div>
         </div>
       )}
     </div>
