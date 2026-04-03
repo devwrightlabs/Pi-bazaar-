@@ -199,7 +199,7 @@ export default function MapView() {
   }
 
   if (locationLoading || listingsLoading) {
-    return <LoadingSkeleton rows={4} />
+    return <LoadingSkeleton rows={4} variant="rows" />
   }
 
   if (mapError) {

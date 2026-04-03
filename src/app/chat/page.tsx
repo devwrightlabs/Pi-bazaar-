@@ -92,7 +92,7 @@ export default function ChatPage() {
               </Link>
             </div>
           ) : loading ? (
-            <LoadingSkeleton rows={5} />
+            <LoadingSkeleton rows={5} variant="rows" />
           ) : error ? (
             <div className="text-center py-16">
               

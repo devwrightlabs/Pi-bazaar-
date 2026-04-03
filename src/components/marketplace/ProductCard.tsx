@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { useStore } from '@/store/useStore'
 import type { Listing, MatchScore } from '@/lib/types'
+import VerifiedBadge from '@/components/VerifiedBadge'
 
 type RecommendedListing = Listing & { match_score: MatchScore }
 
@@ -115,6 +116,7 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
               {sellerInitial}
             </div>
             <span className="text-sm text-text-sub">{item.city}</span>
+            <VerifiedBadge size="sm" />
           </div>
         </div>
 
@@ -195,6 +197,8 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
           <p className="text-2xl font-bold text-gold mt-1">π {item.price_pi}</p>
 
           <p className="text-xs text-text-sub">{item.city}</p>
+
+          <VerifiedBadge size="sm" />
 
           {/* Actions */}
           <div className="flex gap-2 mt-2">
@@ -277,7 +281,8 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
         <p className="text-xs text-text-sub">{item.city}</p>
 
         {/* Seller avatar */}
-        <div className="flex justify-end mt-1">
+        <div className="flex items-center justify-end gap-1.5 mt-1">
+          <VerifiedBadge size="sm" />
           <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-gold text-black">
             {sellerInitial}
           </div>

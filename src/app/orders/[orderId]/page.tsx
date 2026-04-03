@@ -35,7 +35,7 @@ function OrderDetailContent({ orderId }: OrderDetailContentProps) {
     fetchOrderDetail(orderId).finally(() => setLoading(false))
   }, [orderId, fetchOrderDetail])
 
-  if (loading) return <LoadingSkeleton rows={6} />
+  if (loading) return <LoadingSkeleton rows={6} variant="rows" />
   if (!currentOrder) {
     return (
       <div className="p-6 text-center">
@@ -341,7 +341,7 @@ export default function OrderDetailPage({ params }: PageProps) {
     params.then(({ orderId: id }) => setOrderId(id))
   }, [params])
 
-  if (!orderId) return <LoadingSkeleton rows={6} />
+  if (!orderId) return <LoadingSkeleton rows={6} variant="rows" />
 
   return (
     <ErrorBoundary>

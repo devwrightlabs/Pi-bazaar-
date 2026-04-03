@@ -67,7 +67,7 @@ export default function UserSearch({ onSelectUser, excludeUserId }: Props) {
           border: '1px solid rgba(255,255,255,0.1)',
         }}
       />
-      {loading && <LoadingSkeleton rows={2} />}
+      {loading && <LoadingSkeleton rows={2} variant="rows" />}
       {!loading && searched && results.length === 0 && (
         <p className="text-center text-sm py-4" style={{ color: 'var(--color-subtext)' }}>
           No users found
