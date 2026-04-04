@@ -51,21 +51,21 @@ CREATE POLICY "Anyone can view profiles"
   ON public.user_profiles FOR SELECT
   USING (true);
 
--- Temporary compatibility policies for the current client flow:
--- the app writes user_profiles after Pi authentication but without a
--- Supabase Auth session, so auth.uid() is NULL and auth-based RLS would
--- reject valid inserts/updates. Tighten these policies once Pi identities
--- are mapped to Supabase Auth users or writes move to a trusted server path.
+-- The client currently cannot prove ownership with a Supabase Auth session,
+-- so do not allow direct public/anon writes to user_profiles. Restrict
+-- inserts/updates to a trusted server-side path (service_role) until Pi
+-- identities are mapped to Supabase Auth users or writes move behind a
+-- SECURITY DEFINER function that validates Pi identity.
 
--- Allow profile inserts as long as the Pi user id is present.
-CREATE POLICY "Users can insert own profile"
+-- Only trusted server-side code may insert profiles.
+CREATE POLICY "Service role can insert profiles"
   ON public.user_profiles FOR INSERT
-  WITH CHECK (nullif(trim(pi_uid), '') IS NOT NULL);
+  TO service_role
+  WITH CHECK (true);
 
--- Allow profile updates while the client flow has no Supabase Auth session.
--- This preserves the current upsert behavior; replace with auth.uid()-based
--- ownership checks after adding Supabase Auth integration.
-CREATE POLICY "Users can update own profile"
+-- Only trusted server-side code may update profiles.
+CREATE POLICY "Service role can update profiles"
   ON public.user_profiles FOR UPDATE
-  USING (nullif(trim(pi_uid), '') IS NOT NULL)
-  WITH CHECK (nullif(trim(pi_uid), '') IS NOT NULL);
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
