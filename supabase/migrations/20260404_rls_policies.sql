@@ -40,13 +40,21 @@ CREATE POLICY "Anyone can view profiles"
   ON public.user_profiles FOR SELECT
   USING (true);
 
--- Users can insert their own profile.
+-- Temporary compatibility policies for the current client flow:
+-- the app writes user_profiles after Pi authentication but without a
+-- Supabase Auth session, so auth.uid() is NULL and auth-based RLS would
+-- reject valid inserts/updates. Tighten these policies once Pi identities
+-- are mapped to Supabase Auth users or writes move to a trusted server path.
+
+-- Allow profile inserts as long as the Pi user id is present.
 CREATE POLICY "Users can insert own profile"
   ON public.user_profiles FOR INSERT
-  WITH CHECK (auth.uid()::text = pi_uid);
+  WITH CHECK (nullif(trim(pi_uid), '') IS NOT NULL);
 
--- Users can only update their own profile data.
+-- Allow profile updates while the client flow has no Supabase Auth session.
+-- This preserves the current upsert behavior; replace with auth.uid()-based
+-- ownership checks after adding Supabase Auth integration.
 CREATE POLICY "Users can update own profile"
   ON public.user_profiles FOR UPDATE
-  USING (auth.uid()::text = pi_uid)
-  WITH CHECK (auth.uid()::text = pi_uid);
+  USING (nullif(trim(pi_uid), '') IS NOT NULL)
+  WITH CHECK (nullif(trim(pi_uid), '') IS NOT NULL);
