@@ -73,7 +73,21 @@ export type OrderRow = {
   updated_at: string
 }
 
-export type OrderInsert = Omit<OrderRow, 'id' | 'created_at' | 'updated_at'>
+export type OrderInsert = Omit<
+  OrderRow,
+  | 'id'
+  | 'created_at'
+  | 'updated_at'
+  | 'pi_payment_id'
+  | 'shipping_address_id'
+  | 'tracking_number'
+  | 'notes'
+> & {
+  pi_payment_id?: string | null
+  shipping_address_id?: string | null
+  tracking_number?: string | null
+  notes?: string | null
+}
 export type OrderUpdate = Partial<Omit<OrderRow, 'id'>>
 
 // ─── Database type ───────────────────────────────────────────────────────────
