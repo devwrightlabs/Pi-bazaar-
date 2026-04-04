@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 import type {
-  Listing,
   Conversation,
   Message,
   TypingIndicator,
@@ -15,61 +14,71 @@ import {
   supabaseUrl,
   supabaseAnonKey,
 } from './env'
+import type { Database as CoreDatabase } from './database.types'
+
+/** Converts an interface to a plain type alias, satisfying Supabase's Record<string, unknown> row constraint. */
+type AsRow<T> = { [K in keyof T]: T[K] }
 
 export type Database = {
   public: {
     Tables: {
-      listings: {
-        Row: Listing
-        Insert: Omit<Listing, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<Listing, 'id'>>
-      }
+      users: CoreDatabase['public']['Tables']['users']
+      listings: CoreDatabase['public']['Tables']['listings']
+      orders: CoreDatabase['public']['Tables']['orders']
       conversations: {
-        Row: Conversation
-        Insert: Omit<Conversation, 'id' | 'created_at'>
-        Update: Partial<Omit<Conversation, 'id'>>
+        Row: AsRow<Conversation>
+        Insert: AsRow<Omit<Conversation, 'id' | 'created_at'>>
+        Update: AsRow<Partial<Omit<Conversation, 'id'>>>
+        Relationships: []
       }
       messages: {
-        Row: Message
-        Insert: Omit<Message, 'id' | 'created_at'>
-        Update: Partial<Omit<Message, 'id'>>
+        Row: AsRow<Message>
+        Insert: AsRow<Omit<Message, 'id' | 'created_at'>>
+        Update: AsRow<Partial<Omit<Message, 'id'>>>
+        Relationships: []
       }
       typing_indicators: {
-        Row: TypingIndicator
-        Insert: Omit<TypingIndicator, 'id'>
-        Update: Partial<Omit<TypingIndicator, 'id'>>
+        Row: AsRow<TypingIndicator>
+        Insert: AsRow<Omit<TypingIndicator, 'id'>>
+        Update: AsRow<Partial<Omit<TypingIndicator, 'id'>>>
+        Relationships: []
       }
       user_profiles: {
-        Row: UserProfile
-        Insert: Omit<UserProfile, 'id' | 'created_at'>
-        Update: Partial<Omit<UserProfile, 'id'>>
+        Row: AsRow<UserProfile>
+        Insert: AsRow<Omit<UserProfile, 'id' | 'created_at' | 'avatar_url' | 'bio'> & { avatar_url?: string | null; bio?: string | null }>
+        Update: AsRow<Partial<Omit<UserProfile, 'id'>>>
+        Relationships: []
       }
       user_preferences: {
-        Row: UserPreferences
-        Insert: Omit<UserPreferences, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<UserPreferences, 'id'>>
+        Row: AsRow<UserPreferences>
+        Insert: AsRow<Omit<UserPreferences, 'id' | 'created_at' | 'updated_at'>>
+        Update: AsRow<Partial<Omit<UserPreferences, 'id'>>>
+        Relationships: []
       }
       escrow_transactions: {
-        Row: EscrowTransaction
-        Insert: Omit<EscrowTransaction, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<EscrowTransaction, 'id'>>
+        Row: AsRow<EscrowTransaction>
+        Insert: AsRow<Omit<EscrowTransaction, 'id' | 'created_at' | 'updated_at'>>
+        Update: AsRow<Partial<Omit<EscrowTransaction, 'id'>>>
+        Relationships: []
       }
       shipping_addresses: {
-        Row: ShippingAddress
-        Insert: Omit<ShippingAddress, 'id' | 'created_at'>
-        Update: Partial<Omit<ShippingAddress, 'id'>>
+        Row: AsRow<ShippingAddress>
+        Insert: AsRow<Omit<ShippingAddress, 'id' | 'created_at'>>
+        Update: AsRow<Partial<Omit<ShippingAddress, 'id'>>>
+        Relationships: []
       }
       escrow_timeline: {
-        Row: EscrowTimelineEvent
-        Insert: Omit<EscrowTimelineEvent, 'id' | 'created_at'>
-        Update: Partial<Omit<EscrowTimelineEvent, 'id'>>
+        Row: AsRow<EscrowTimelineEvent>
+        Insert: AsRow<Omit<EscrowTimelineEvent, 'id' | 'created_at'>>
+        Update: AsRow<Partial<Omit<EscrowTimelineEvent, 'id'>>>
+        Relationships: []
       }
     }
+    Views: Record<string, never>
+    Functions: Record<string, never>
   }
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
 
 export { isSupabaseConfigured }
-
-
