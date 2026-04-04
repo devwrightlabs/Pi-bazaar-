@@ -1,7 +1,8 @@
 -- Create the public listing-images storage bucket.
 -- A public bucket allows buyers to view product photos without authentication.
 INSERT INTO storage.buckets (id, name, public)
-VALUES ('listing-images', 'listing-images', true);
+VALUES ('listing-images', 'listing-images', true)
+ON CONFLICT (id) DO NOTHING;
 
 -- ============================================================
 -- Storage RLS policies on storage.objects
