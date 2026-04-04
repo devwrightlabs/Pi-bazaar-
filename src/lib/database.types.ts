@@ -24,7 +24,7 @@ export type ListingRow = {
   description: string
   price_pi: number
   category: string
-  condition: 'new' | 'like_new' | 'good' | 'fair' | null
+  condition?: 'new' | 'like_new' | 'good' | 'fair'
   images: string[]
   location_lat: number
   location_lng: number
