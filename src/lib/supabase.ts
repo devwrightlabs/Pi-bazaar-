@@ -16,7 +16,7 @@ import {
 } from './env'
 import type { Database as CoreDatabase } from './database.types'
 
-/** Converts an interface to a plain type alias, satisfying Supabase's Record<string, unknown> row constraint. */
+/** Materializes a type's properties into an explicit object shape for use with Supabase row generics. */
 type AsRow<T> = { [K in keyof T]: T[K] }
 
 export type Database = {
