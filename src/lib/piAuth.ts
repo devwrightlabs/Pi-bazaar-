@@ -92,9 +92,9 @@ export async function authenticate(): Promise<PiUser | null> {
 
   try {
     // Step 1 — Authenticate with the Pi browser to get an accessToken.
-    const piAuthResult: PiAuthResult = await (window.Pi as unknown as PiSDKWithInit).authenticate(
+    const piAuthResult = await (window.Pi as unknown as PiSDKWithInit).authenticate(
       ['username', 'payments'],
-      (payment: PiPayment) => {
+      (payment) => {
         // Handle any incomplete payment found during auth.
         console.warn('[piAuth] Incomplete payment detected:', payment.identifier)
       }
