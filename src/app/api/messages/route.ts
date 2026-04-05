@@ -75,13 +75,18 @@ export async function GET(req: NextRequest) {
 
     // 4. Mark incoming unread messages as read before returning so the update
     //    is not lost in serverless runtimes.
-    const { error: markReadError } = await supabaseAdmin
+    let markReadQuery = supabaseAdmin
       .from('messages')
       .update({ is_read: true })
       .eq('sender_id', otherPiUid)
       .eq('receiver_id', myPiUid)
       .eq('is_read', false)
 
+    if (productId) {
+      markReadQuery = markReadQuery.eq('product_id', productId)
+    }
+
+    const { error: markReadError } = await markReadQuery
     if (markReadError) {
       console.error('[messages/GET] Mark-read error:', markReadError)
     }
