@@ -43,8 +43,8 @@ CREATE TABLE IF NOT EXISTS public.products (
 CREATE TABLE IF NOT EXISTS public.escrow_transactions (
   id              UUID           PRIMARY KEY DEFAULT gen_random_uuid(),
   product_id      UUID           NOT NULL REFERENCES public.products(id) ON DELETE RESTRICT,
-  buyer_id        TEXT           NOT NULL,
-  seller_id       TEXT           NOT NULL,
+  buyer_id        TEXT           NOT NULL REFERENCES public.users(pi_uid) ON DELETE RESTRICT,
+  seller_id       TEXT           NOT NULL REFERENCES public.users(pi_uid) ON DELETE RESTRICT,
   amount_pi       NUMERIC(20, 7) NOT NULL CHECK (amount_pi > 0),
   -- Status may only be changed by trusted server-side service-role code.
   status          TEXT           NOT NULL DEFAULT 'pending'
