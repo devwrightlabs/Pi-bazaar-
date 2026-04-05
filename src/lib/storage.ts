@@ -196,15 +196,30 @@ export async function deleteProductImage(
   piUid: string,
   supabaseClient: SupabaseClient
 ): Promise<void> {
-  // Extract path from a URL of the form:
+  // Extract the storage path from supported Supabase public URL formats:
   // https://<project>.supabase.co/storage/v1/object/public/product-images/{piUid}/{filename}
-  const marker = `/object/public/${STORAGE_BUCKET}/`
-  const markerIndex = imageUrl.indexOf(marker)
-  if (markerIndex === -1) {
+  // https://<project>.supabase.co/storage/v1/render/image/public/product-images/{piUid}/{filename}
+  let pathname: string
+  try {
+    pathname = new URL(imageUrl).pathname
+  } catch {
+    throw new Error('Invalid image URL.')
+  }
+
+  const supportedPrefixes = [
+    `/storage/v1/object/public/${STORAGE_BUCKET}/`,
+    `/storage/v1/render/image/public/${STORAGE_BUCKET}/`,
+  ]
+
+  const matchedPrefix = supportedPrefixes.find((prefix) => pathname.startsWith(prefix))
+  if (!matchedPrefix) {
     throw new Error('Invalid image URL: does not belong to the product-images bucket.')
   }
 
-  const filePath = imageUrl.slice(markerIndex + marker.length)
+  const filePath = pathname.slice(matchedPrefix.length)
+  if (!filePath) {
+    throw new Error('Invalid image URL: missing storage path.')
+  }
 
   // Ownership check: the path must start with the user's pi_uid folder.
   if (!filePath.startsWith(`${piUid}/`)) {
