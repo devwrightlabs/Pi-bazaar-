@@ -166,6 +166,8 @@ export async function POST(req: NextRequest) {
 
     // 8. If refunded, restore the product to 'active'.
     if (action === 'refunded') {
+      // `product_id` is the Phase 2 canonical column; `listing_id` is kept in
+      // sync by a DB trigger for backward compatibility with legacy records.
       const productId = typedEscrow.product_id ?? typedEscrow.listing_id
       if (productId) {
         const { error: productError } = await supabaseAdmin

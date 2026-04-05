@@ -27,6 +27,7 @@ const PAYMENT_AMOUNT_TOLERANCE = 0.0000001
 
 // Allowlist pattern for Pi Network payment identifiers.
 // Pi payment IDs are alphanumeric strings with optional dashes/underscores.
+// The hyphen is placed at the end of the character class to be unambiguously literal.
 const SAFE_PAYMENT_ID_RE = /^[A-Za-z0-9_-]{1,128}$/
 
 // ─── Pi API helper ────────────────────────────────────────────────────────────
@@ -201,6 +202,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 7. Update escrow to 'funded' and product to 'sold'.
+    // Note: the schema keeps both `product_id` and `listing_id` in sync via a
+    // trigger for backward compatibility with older application code. We prefer
+    // `product_id` (the Phase 2 canonical column) but fall back to `listing_id`
+    // for records created by earlier routes that only set `listing_id`.
     const productId = typedEscrow.product_id ?? typedEscrow.listing_id
 
     const [escrowUpdate, productUpdate] = await Promise.all([
