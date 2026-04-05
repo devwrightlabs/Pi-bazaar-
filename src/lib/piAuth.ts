@@ -111,8 +111,14 @@ export async function authenticate(): Promise<PiUser | null> {
     })
 
     if (!response.ok) {
-      const errorBody = await response.json().catch(() => ({})) as { error?: string }
-      console.error('[piAuth] Token verification failed:', response.status, errorBody.error)
+      let errorMessage: string | undefined
+      try {
+        const errorBody = await response.json() as { error?: string }
+        errorMessage = errorBody.error
+      } catch {
+        // Response body is not JSON — log the status code only.
+      }
+      console.error('[piAuth] Token verification failed:', response.status, errorMessage)
       return null
     }
 

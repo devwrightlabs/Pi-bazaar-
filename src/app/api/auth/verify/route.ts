@@ -105,6 +105,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+    const JWT_EXPIRY_SECONDS = 3600 // 1 hour
     const now = Math.floor(Date.now() / 1000)
 
     const customToken = jwt.sign(
@@ -115,7 +116,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         aud: 'authenticated',      // Required audience
         iss: supabaseUrl,          // Issuer — Supabase project URL
         iat: now,
-        exp: now + 60 * 60,        // 1 hour expiry
+        exp: now + JWT_EXPIRY_SECONDS,
       },
       jwtSecret
     )

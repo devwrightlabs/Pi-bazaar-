@@ -45,6 +45,11 @@ export function setSupabaseAuth(token: string): void {
   })
 }
 
-// Convenience default export — the initial unauthenticated client.
-// Use getSupabaseClient() if you need the latest authorised instance.
+/**
+ * Default export — the initial unauthenticated Supabase client instance.
+ *
+ * ⚠️  This reference becomes stale after `setSupabaseAuth()` is called.
+ *    In components that run after authentication, use `getSupabaseClient()`
+ *    to always get the latest authorised instance.
+ */
 export const supabase = supabaseInstance
