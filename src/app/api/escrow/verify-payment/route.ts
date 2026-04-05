@@ -202,34 +202,64 @@ export async function POST(req: NextRequest) {
     }
 
     // 7. Update escrow to 'funded' and product to 'sold'.
+    // Guard against replaying the same Pi payment across multiple escrows.
+    const duplicatePaymentLookup = await supabaseAdmin
+      .from('escrow_transactions')
+      .select('id')
+      .eq('pi_payment_id', payment_id)
+      .neq('id', escrow_id)
+      .limit(1)
+
+    if (duplicatePaymentLookup.error) {
+      console.error(
+        '[escrow/verify-payment] Duplicate payment lookup error:',
+        duplicatePaymentLookup.error
+      )
+      return NextResponse.json({ error: 'Failed to verify payment uniqueness' }, { status: 500 })
+    }
+
+    if ((duplicatePaymentLookup.data?.length ?? 0) > 0) {
+      return NextResponse.json(
+        { error: 'Payment has already been used for another escrow' },
+        { status: 409 }
+      )
+    }
+
     // Note: the schema keeps both `product_id` and `listing_id` in sync via a
     // trigger for backward compatibility with older application code. We prefer
     // `product_id` (the Phase 2 canonical column) but fall back to `listing_id`
     // for records created by earlier routes that only set `listing_id`.
     const productId = typedEscrow.product_id ?? typedEscrow.listing_id
 
-    const [escrowUpdate, productUpdate] = await Promise.all([
-      supabaseAdmin
-        .from('escrow_transactions')
-        .update({
-          pi_payment_id: payment_id,
-          status: 'funded',
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', escrow_id),
-      productId
-        ? supabaseAdmin
-            .from('products')
-            .update({ status: 'sold', updated_at: new Date().toISOString() })
-            .eq('id', productId)
-        : Promise.resolve({ error: null }),
-    ])
+    const escrowUpdate = await supabaseAdmin
+      .from('escrow_transactions')
+      .update({
+        pi_payment_id: payment_id,
+        status: 'funded',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', escrow_id)
+      .eq('status', 'pending')
+      .select('id')
 
     if (escrowUpdate.error) {
       console.error('[escrow/verify-payment] Escrow update error:', escrowUpdate.error)
       return NextResponse.json({ error: 'Failed to update escrow record' }, { status: 500 })
     }
 
+    if ((escrowUpdate.data?.length ?? 0) !== 1) {
+      return NextResponse.json(
+        { error: 'Escrow was already processed or is no longer pending' },
+        { status: 409 }
+      )
+    }
+
+    const productUpdate = productId
+      ? await supabaseAdmin
+          .from('products')
+          .update({ status: 'sold', updated_at: new Date().toISOString() })
+          .eq('id', productId)
+      : { error: null }
     if (productUpdate.error) {
       console.error('[escrow/verify-payment] Product update error:', productUpdate.error)
       // Non-fatal: escrow is funded; log and continue.
