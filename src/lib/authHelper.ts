@@ -22,7 +22,7 @@ import type { NextRequest } from 'next/server'
 export interface AuthPayload {
   /** The authenticated user's Pi Network UID — matches users.pi_uid in the DB. */
   pi_uid: string
-  /** Standard JWT subject — the Supabase user UUID. */
+  /** Standard JWT subject — the app user row UUID, matching public.users.id. */
   sub: string
   /** Supabase role claim, typically 'authenticated'. */
   role: string
