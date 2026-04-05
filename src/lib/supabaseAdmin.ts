@@ -12,20 +12,12 @@
 
 import { createClient } from '@supabase/supabase-js'
 
-const PLACEHOLDER_URL = 'https://placeholder.supabase.co'
-const PLACEHOLDER_KEY = 'placeholder-service-role-key'
+const supabaseUrl = process.env.SUPABASE_URL
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-const supabaseUrl = process.env.SUPABASE_URL || PLACEHOLDER_URL
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || PLACEHOLDER_KEY
-
-if (
-  supabaseUrl === PLACEHOLDER_URL ||
-  serviceRoleKey === PLACEHOLDER_KEY
-) {
-  // Warn loudly at startup so misconfigured deployments are caught early.
-  console.error(
-    '[PiBazaar] supabaseAdmin: Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. ' +
-      'All admin Supabase operations will fail.'
+if (!supabaseUrl || !serviceRoleKey) {
+  throw new Error(
+    '[PiBazaar] supabaseAdmin: Missing required environment variables SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.'
   )
 }
 
