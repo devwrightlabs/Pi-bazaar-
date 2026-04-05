@@ -73,19 +73,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 })
     }
 
-    // 4. Mark incoming unread messages as read (fire-and-forget — don't block the response).
-    supabaseAdmin
+    // 4. Mark incoming unread messages as read before returning so the update
+    //    is not lost in serverless runtimes.
+    const { error: markReadError } = await supabaseAdmin
       .from('messages')
       .update({ is_read: true })
       .eq('sender_id', otherPiUid)
       .eq('receiver_id', myPiUid)
       .eq('is_read', false)
-      .then(({ error }) => {
-        if (error) {
-          console.error('[messages/GET] Mark-read error:', error)
-        }
-      })
 
+    if (markReadError) {
+      console.error('[messages/GET] Mark-read error:', markReadError)
+    }
     const total = count ?? 0
     const response: ConversationResponse = {
       messages: (messages ?? []) as MessageRecord[],
