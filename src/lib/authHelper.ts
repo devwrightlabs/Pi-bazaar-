@@ -1,98 +1,73 @@
 /**
- * Auth Helper — Server-Side JWT Verification
+ * Auth Helper — SERVER-SIDE ONLY
  *
- * Provides a shared utility for API routes to verify the custom Supabase JWT
- * issued by /api/auth/verify and extract the authenticated user's pi_uid.
+ * Shared JWT verification utility for all secure API routes.
+ * Extracts and verifies the custom Supabase JWT from the Authorization header,
+ * returning the decoded payload (including the `pi_uid` claim) or null.
  *
- * The JWT is signed with SUPABASE_JWT_SECRET (server-side only) and contains
- * a `pi_uid` custom claim that is read by RLS policies via `auth.jwt() ->> 'pi_uid'`.
- *
- * SECURITY:
- *   - All identity extraction happens server-side from a verified JWT.
- *   - No client-provided user IDs are trusted for authentication decisions.
- *   - The pi_uid returned here is used as the seller_id / buyer_id in DB writes.
- *
- * Required environment variable (server-side only):
- *   SUPABASE_JWT_SECRET — the secret used to sign/verify custom JWTs
+ * The JWT is signed by our /api/auth/verify route using SUPABASE_JWT_SECRET,
+ * so the `pi_uid` claim is tamper-proof and safe to use for authorization.
  */
 
 import jwt from 'jsonwebtoken'
 import type { NextRequest } from 'next/server'
 
+// ─── Types ────────────────────────────────────────────────────────────────────
+
 export interface AuthPayload {
-  /** The authenticated user's Pi Network UID — matches users.pi_uid in the DB. */
-  pi_uid: string
-  /** Standard JWT subject — the app user row UUID, matching public.users.id. */
-  sub: string
-  /** Supabase role claim, typically 'authenticated'. */
-  role: string
+  sub: string           // Supabase user UUID
+  pi_uid: string        // Pi Network user UID — used by RLS policies
+  role: string          // 'authenticated'
   aud: string
   iss: string
   iat: number
   exp: number
 }
 
+// ─── Helper ───────────────────────────────────────────────────────────────────
+
 /**
- * Extracts and verifies the custom JWT from the Authorization header.
+ * Verifies the custom Supabase JWT from the `Authorization: Bearer <token>`
+ * header of the given request.
  *
- * @param req - The incoming Next.js request.
- * @returns The decoded {@link AuthPayload} if valid, or `null` if missing/invalid.
+ * @returns The decoded `AuthPayload` (including `pi_uid`) if valid, or `null`
+ *          if the header is missing, malformed, expired, or has an invalid
+ *          signature.
  */
-export function verifyAuthToken(req: NextRequest): AuthPayload | null {
-  const authHeader = req.headers.get('authorization') ?? ''
-  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : ''
+export function verifyAuthToken(request: NextRequest): AuthPayload | null {
+  const authHeader = request.headers.get('Authorization')
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return null
+  }
+
+  const token = authHeader.slice(7).trim()
 
   if (!token) {
     return null
   }
 
   const jwtSecret = process.env.SUPABASE_JWT_SECRET
-  if (!jwtSecret) {
-    console.error('[authHelper] SUPABASE_JWT_SECRET is not set')
-    return null
-  }
 
-  const supabaseUrl = process.env.SUPABASE_URL
-  if (!supabaseUrl) {
-    console.error('[authHelper] SUPABASE_URL is not set')
+  if (!jwtSecret) {
+    console.error('[authHelper] SUPABASE_JWT_SECRET is not configured')
     return null
   }
 
   try {
-    const decoded = jwt.verify(token, jwtSecret, {
-      algorithms: ['HS256'],
-      audience: 'authenticated',
-      issuer: supabaseUrl,
-    })
+    const decoded = jwt.verify(token, jwtSecret) as AuthPayload
 
-    if (!decoded || typeof decoded !== 'object') {
-      console.error('[authHelper] JWT payload has invalid format')
+    if (!decoded.pi_uid) {
+      console.warn('[authHelper] JWT is missing required pi_uid claim')
       return null
     }
 
-    const payload = decoded as AuthPayload
-
-    if (typeof payload.pi_uid !== 'string' || !payload.pi_uid) {
-      console.error('[authHelper] JWT is missing pi_uid claim')
-      return null
-    }
-
-    if (typeof payload.sub !== 'string' || !payload.sub) {
-      console.error('[authHelper] JWT is missing sub claim')
-      return null
-    }
-
-    if (typeof payload.role !== 'string' || payload.role !== 'authenticated') {
-      console.error('[authHelper] JWT has unexpected role claim:', payload.role)
-      return null
-    }
-
-    return payload
+    return decoded
   } catch (err) {
-    // Token expired, malformed, or invalid signature — treat as unauthenticated
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('[authHelper] JWT verification failed:', (err as Error).message)
-    }
+    // Token is expired, tampered with, or otherwise invalid — do not log the
+    // full error to avoid leaking token content; a short label is sufficient.
+    const label = err instanceof Error ? err.name : 'unknown'
+    console.warn(`[authHelper] JWT verification failed: ${label}`)
     return null
   }
 }

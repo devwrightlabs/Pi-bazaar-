@@ -142,7 +142,7 @@ export async function uploadProductImage(
   const filePath = `${piUid}/${crypto.randomUUID()}.${ext}`
 
   const { error: uploadError } = await supabaseClient.storage
-    .from(STORAGE_BUCKET)
+    .from(PRODUCT_IMAGES_BUCKET)
     .upload(filePath, file, {
       contentType: file.type,
       cacheControl: '3600',
@@ -155,7 +155,7 @@ export async function uploadProductImage(
 
   const {
     data: { publicUrl },
-  } = supabaseClient.storage.from(STORAGE_BUCKET).getPublicUrl(filePath)
+  } = supabaseClient.storage.from(PRODUCT_IMAGES_BUCKET).getPublicUrl(filePath)
 
   return publicUrl
 }
@@ -207,8 +207,8 @@ export async function deleteProductImage(
   }
 
   const supportedPrefixes = [
-    `/storage/v1/object/public/${STORAGE_BUCKET}/`,
-    `/storage/v1/render/image/public/${STORAGE_BUCKET}/`,
+    `/storage/v1/object/public/${PRODUCT_IMAGES_BUCKET}/`,
+    `/storage/v1/render/image/public/${PRODUCT_IMAGES_BUCKET}/`,
   ]
 
   const matchedPrefix = supportedPrefixes.find((prefix) => pathname.startsWith(prefix))
@@ -226,7 +226,7 @@ export async function deleteProductImage(
     throw new Error('Forbidden: you can only delete images from your own folder.')
   }
 
-  const { error } = await supabaseClient.storage.from(STORAGE_BUCKET).remove([filePath])
+  const { error } = await supabaseClient.storage.from(PRODUCT_IMAGES_BUCKET).remove([filePath])
 
   if (error) {
     throw new Error(`Delete failed: ${error.message}`)
