@@ -17,33 +17,30 @@
 import { setSupabaseAuth } from './supabaseClient'
 
 // ─── Pi SDK type declarations ─────────────────────────────────────────────────
-// NOTE: Window.Pi is declared by pi-sdk.ts; we extend it here with the `init`
-// method used by this module without re-declaring the base Window interface.
+// NOTE: Window.Pi and the shared Pi auth flow are defined in `pi-sdk.ts`.
+// This module intentionally keeps only the minimal structural shape needed to
+// call `init`/`authenticate` here, so `pi-sdk.ts` remains the single source of
+// truth for Pi SDK auth types and the supported authentication entry point.
 
 interface PiSDKWithInit {
   init: (config: { version: string; sandbox?: boolean }) => void
   authenticate: (
     scopes: string[],
-    onIncompletePaymentFound: (payment: PiPayment) => void
-  ) => Promise<PiAuthResult>
+    onIncompletePaymentFound: (payment: {
+      identifier: string
+      user_uid: string
+      amount: number
+      memo: string
+      metadata: Record<string, unknown>
+    }) => void
+  ) => Promise<{
+    accessToken: string
+    user: {
+      uid: string
+      username: string
+    }
+  }>
 }
-
-interface PiAuthResult {
-  accessToken: string
-  user: {
-    uid: string
-    username: string
-  }
-}
-
-interface PiPayment {
-  identifier: string
-  user_uid: string
-  amount: number
-  memo: string
-  metadata: Record<string, unknown>
-}
-
 export interface PiUser {
   pi_uid: string
   pi_username: string
