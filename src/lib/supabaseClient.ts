@@ -13,9 +13,18 @@
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
+function getRequiredEnv(name: string): string {
+  const value = process.env[name]?.trim()
 
+  if (!value) {
+    throw new Error(`Missing required Supabase environment variable: ${name}`)
+  }
+
+  return value
+}
+
+const supabaseUrl = getRequiredEnv('NEXT_PUBLIC_SUPABASE_URL')
+const supabaseAnonKey = getRequiredEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
 // Singleton client instance — may be replaced by setSupabaseAuth().
 let supabaseInstance: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey)
 
