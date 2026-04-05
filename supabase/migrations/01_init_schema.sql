@@ -95,7 +95,7 @@ CREATE TRIGGER escrow_transactions_sync_listing_product_ids
 CREATE OR REPLACE FUNCTION public.set_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
-  NEW.updated_at = now();
+  NEW.updated_at := now();
   RETURN NEW;
 END;
 $$;
