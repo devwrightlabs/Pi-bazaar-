@@ -30,6 +30,11 @@ CREATE POLICY "Users can update own listing images"
     bucket_id = 'listing-images'
     AND auth.role() = 'authenticated'
     AND (storage.foldername(name))[1] = auth.uid()::text
+  )
+  WITH CHECK (
+    bucket_id = 'listing-images'
+    AND auth.role() = 'authenticated'
+    AND (storage.foldername(name))[1] = auth.uid()::text
   );
 
 -- Authenticated users can delete files only in their own folder.
