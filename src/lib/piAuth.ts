@@ -142,12 +142,24 @@ export function getAuthToken(): string | null {
 }
 
 /**
- * Clears the stored JWT from memory, effectively logging the user out
- * of client-side Supabase operations.
+ * Resets the shared Supabase client back to an unauthenticated state.
+ *
+ * `setSupabaseAuth()` is also used to configure the authenticated client, so
+ * we clear that state here during logout to avoid continuing to send the
+ * previous bearer token on subsequent queries.
+ */
+function resetSupabaseAuth(): void {
+  setSupabaseAuth('')
+}
+
+/**
+ * Clears the stored JWT from memory and resets Supabase client auth state,
+ * effectively logging the user out of client-side Supabase operations.
  *
  * Note: this does not invalidate the JWT on the server — JWTs are
  * stateless. Refresh/re-auth will be required for new operations.
  */
 export function logout(): void {
   _authToken = null
+  resetSupabaseAuth()
 }
