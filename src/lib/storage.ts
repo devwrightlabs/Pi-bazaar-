@@ -26,8 +26,8 @@ export const STORAGE_BUCKET = 'product-images'
 /** Alias exported under the name expected by consumers of the product upload API. */
 export const MAX_IMAGES_PER_PRODUCT = 10
 
-/** Allowed MIME types for product images. */
-export const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
+/** Allowed MIME types for product images. Reuses the shared image-type allowlist. */
+export const ALLOWED_MIME_TYPES = ALLOWED_IMAGE_TYPES
 
 /**
  * Uploads an image file to the listing-images bucket under the given user's folder.
