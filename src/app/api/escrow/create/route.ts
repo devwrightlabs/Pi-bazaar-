@@ -17,6 +17,9 @@ import { verifyAuthToken } from '@/lib/authHelper'
 import { SHIPPING_COSTS } from '@/types/escrow'
 import type { CreateEscrowRequest, CreateEscrowResponse } from '@/types/escrow'
 
+// Decimal places used when rounding Pi amounts (matches the DB column precision).
+const PI_AMOUNT_PRECISION = 7
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Authenticate buyer via custom JWT.
@@ -58,7 +61,7 @@ export async function POST(req: NextRequest) {
       shipping_method && shipping_method in SHIPPING_COSTS
         ? SHIPPING_COSTS[shipping_method]
         : 0
-    const amountPi = parseFloat((Number(product.price_pi) + shippingCost).toFixed(7))
+    const amountPi = parseFloat((Number(product.price_pi) + shippingCost).toFixed(PI_AMOUNT_PRECISION))
 
     // 5. Check for duplicate active escrow (same product + same buyer).
     const { data: existing } = await supabaseAdmin

@@ -22,14 +22,30 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { verifyAuthToken } from '@/lib/authHelper'
 import type { VerifyPaymentRequest, VerifyPaymentResponse, PiPaymentResponse, EscrowRecord } from '@/types/escrow'
 
+// Floating-point tolerance for comparing Pi payment amounts.
+const PAYMENT_AMOUNT_TOLERANCE = 0.0000001
+
+// Allowlist pattern for Pi Network payment identifiers.
+// Pi payment IDs are alphanumeric strings with optional dashes/underscores.
+const SAFE_PAYMENT_ID_RE = /^[A-Za-z0-9_-]{1,128}$/
+
 // ─── Pi API helper ────────────────────────────────────────────────────────────
 
 function getPiApiKey(): string | null {
   return process.env.PI_API_KEY ?? null
 }
 
+/**
+ * Validates that a payment ID contains only safe characters before embedding
+ * it in a URL, preventing potential path traversal / SSRF attacks.
+ */
+function isSafePaymentId(paymentId: string): boolean {
+  return SAFE_PAYMENT_ID_RE.test(paymentId)
+}
+
 async function fetchPiPayment(paymentId: string, apiKey: string): Promise<PiPaymentResponse> {
-  const res = await fetch(`https://api.minepi.com/v2/payments/${paymentId}`, {
+  const url = new URL(`https://api.minepi.com/v2/payments/${paymentId}`)
+  const res = await fetch(url, {
     headers: { Authorization: `Key ${apiKey}` },
   })
 
@@ -42,7 +58,8 @@ async function fetchPiPayment(paymentId: string, apiKey: string): Promise<PiPaym
 }
 
 async function approvePiPayment(paymentId: string, apiKey: string): Promise<void> {
-  const res = await fetch(`https://api.minepi.com/v2/payments/${paymentId}/approve`, {
+  const url = new URL(`https://api.minepi.com/v2/payments/${paymentId}/approve`)
+  const res = await fetch(url, {
     method: 'POST',
     headers: { Authorization: `Key ${apiKey}` },
   })
@@ -54,7 +71,8 @@ async function approvePiPayment(paymentId: string, apiKey: string): Promise<void
 }
 
 async function completePiPayment(paymentId: string, txid: string, apiKey: string): Promise<void> {
-  const res = await fetch(`https://api.minepi.com/v2/payments/${paymentId}/complete`, {
+  const url = new URL(`https://api.minepi.com/v2/payments/${paymentId}/complete`)
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Key ${apiKey}`,
@@ -86,6 +104,11 @@ export async function POST(req: NextRequest) {
 
     if (!payment_id || !escrow_id) {
       return NextResponse.json({ error: 'payment_id and escrow_id are required' }, { status: 400 })
+    }
+
+    // Validate payment_id format to prevent path traversal / SSRF.
+    if (!isSafePaymentId(payment_id)) {
+      return NextResponse.json({ error: 'Invalid payment_id format' }, { status: 400 })
     }
 
     // 3. Validate the escrow record.
@@ -142,7 +165,7 @@ export async function POST(req: NextRequest) {
 
     // Verify payment amount matches escrow amount (compare with tolerance for floating point).
     const escrowAmount = Number(typedEscrow.amount_pi)
-    if (Math.abs(piPayment.amount - escrowAmount) > 0.0000001) {
+    if (Math.abs(piPayment.amount - escrowAmount) > PAYMENT_AMOUNT_TOLERANCE) {
       console.warn(`[escrow/verify-payment] Amount mismatch: payment=${piPayment.amount}, escrow=${escrowAmount}`)
       return NextResponse.json(
         { error: 'Payment amount does not match escrow amount' },
