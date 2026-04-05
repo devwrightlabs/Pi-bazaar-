@@ -42,18 +42,55 @@ CREATE TABLE IF NOT EXISTS public.products (
 -- ─── escrow_transactions ─────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.escrow_transactions (
   id              UUID           PRIMARY KEY DEFAULT gen_random_uuid(),
-  product_id      UUID           NOT NULL REFERENCES public.products(id) ON DELETE RESTRICT,
-  buyer_id        TEXT           NOT NULL REFERENCES public.users(pi_uid) ON DELETE RESTRICT,
-  seller_id       TEXT           NOT NULL REFERENCES public.users(pi_uid) ON DELETE RESTRICT,
+  -- Keep both naming conventions for compatibility with existing application code.
+  -- `listing_id` matches current API usage; `product_id` preserves the original schema contract.
+  listing_id      UUID           REFERENCES public.products(id) ON DELETE RESTRICT,
+  product_id      UUID           REFERENCES public.products(id) ON DELETE RESTRICT,
+  buyer_id        TEXT           NOT NULL,
+  seller_id       TEXT           NOT NULL,
   amount_pi       NUMERIC(20, 7) NOT NULL CHECK (amount_pi > 0),
   -- Status may only be changed by trusted server-side service-role code.
+  -- Allow both the original escrow lifecycle values and the values already used in the app.
   status          TEXT           NOT NULL DEFAULT 'pending'
-                                 CHECK (status IN ('pending', 'funded', 'released', 'refunded', 'disputed')),
+                                 CHECK (status IN (
+                                   'pending',
+                                   'payment_received',
+                                   'shipped',
+                                   'completed',
+                                   'funded',
+                                   'released',
+                                   'refunded',
+                                   'disputed'
+                                 )),
   pi_payment_id   TEXT,
   created_at      TIMESTAMPTZ    NOT NULL DEFAULT now(),
-  updated_at      TIMESTAMPTZ    NOT NULL DEFAULT now()
+  updated_at      TIMESTAMPTZ    NOT NULL DEFAULT now(),
+  CONSTRAINT escrow_transactions_listing_or_product_required
+    CHECK (listing_id IS NOT NULL OR product_id IS NOT NULL),
+  CONSTRAINT escrow_transactions_listing_product_match
+    CHECK (listing_id IS NULL OR product_id IS NULL OR listing_id = product_id)
 );
 
+-- ─── escrow_transactions compatibility triggers ──────────────────────────────
+CREATE OR REPLACE FUNCTION public.sync_escrow_transaction_listing_product_ids()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.listing_id IS NULL AND NEW.product_id IS NOT NULL THEN
+    NEW.listing_id := NEW.product_id;
+  ELSIF NEW.product_id IS NULL AND NEW.listing_id IS NOT NULL THEN
+    NEW.product_id := NEW.listing_id;
+  ELSIF NEW.listing_id IS NOT NULL AND NEW.product_id IS NOT NULL AND NEW.listing_id <> NEW.product_id THEN
+    RAISE EXCEPTION 'listing_id and product_id must match when both are provided';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS escrow_transactions_sync_listing_product_ids ON public.escrow_transactions;
+CREATE TRIGGER escrow_transactions_sync_listing_product_ids
+  BEFORE INSERT OR UPDATE ON public.escrow_transactions
+  FOR EACH ROW EXECUTE FUNCTION public.sync_escrow_transaction_listing_product_ids();
 -- ─── updated_at triggers ─────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.set_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
