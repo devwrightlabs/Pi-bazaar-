@@ -43,7 +43,7 @@ interface PiSDKWithInit {
 }
 export interface PiUser {
   pi_uid: string
-  pi_username: string
+  pi_username: string | null
 }
 
 // ─── Module-level JWT store ───────────────────────────────────────────────────
