@@ -266,6 +266,7 @@ export async function PUT(req: NextRequest) {
       .from('saved_addresses')
       .update(updates)
       .eq('id', address_id)
+      .eq('user_id', auth.pi_uid)
       .select(SELECT_FIELDS)
       .single()
 
