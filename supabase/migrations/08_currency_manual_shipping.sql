@@ -41,8 +41,14 @@ CREATE POLICY "exchange_rates_delete_service"
   TO service_role
   USING (true);
 
--- ─── Add carrier-agnostic manual tracking columns to escrow_transactions ─────
+-- ─── Converge escrow_transactions to the manual-tracking schema ──────────────
 ALTER TABLE public.escrow_transactions
+  DROP COLUMN IF EXISTS carrier_tracking_id,
+  DROP COLUMN IF EXISTS carrier_webhook_status,
   ADD COLUMN IF NOT EXISTS carrier_name      TEXT,
   ADD COLUMN IF NOT EXISTS tracking_number   TEXT,
   ADD COLUMN IF NOT EXISTS tracking_url      TEXT;
+
+-- Drop the legacy webhook-era partial unique index if it exists from older
+-- Phase 8 migrations so upgraded databases match fresh resets.
+DROP INDEX IF EXISTS public.escrow_transactions_carrier_tracking_id_key;
