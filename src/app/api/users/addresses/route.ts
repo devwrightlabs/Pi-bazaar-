@@ -345,6 +345,7 @@ export async function DELETE(req: NextRequest) {
       .from('saved_addresses')
       .delete()
       .eq('id', address_id)
+      .eq('user_id', auth.pi_uid)
 
     if (deleteError) {
       console.error('[users/addresses/DELETE] Delete error:', deleteError)
