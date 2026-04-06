@@ -105,16 +105,22 @@ export async function middleware(request: NextRequest) {
     const key = getRateLimitKey(request)
     const limit = isCriticalPath(pathname) ? CRITICAL_LIMIT : STANDARD_LIMIT
 
-    if (!isWithinLimit(key, limit, WINDOW_MS)) {
-      return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        {
-          status: 429,
-          headers: {
-            'Retry-After': '60',
-          },
-        }
-      )
+    try {
+      const withinLimit = await isWithinLimit(key, limit, WINDOW_MS)
+
+      if (!withinLimit) {
+        return NextResponse.json(
+          { error: 'Too many requests. Please try again later.' },
+          {
+            status: 429,
+            headers: {
+              'Retry-After': '60',
+            },
+          }
+        )
+      }
+    } catch (error) {
+      console.error('Rate limit check failed:', error)
     }
   }
 
