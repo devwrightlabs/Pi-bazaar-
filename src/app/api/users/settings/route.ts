@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 
     const { data: settings, error } = await supabaseAdmin
       .from('user_settings')
-      .select('id, user_id, preferred_currency, email_notifications, push_notifications, created_at, updated_at')
+      .select('id, user_id, preferred_currency, email_notifications, created_at, updated_at')
       .eq('user_id', auth.pi_uid)
       .maybeSingle()
 
@@ -93,9 +93,6 @@ export async function POST(req: NextRequest) {
     const email_notifications = typeof body.email_notifications === 'boolean'
       ? body.email_notifications
       : true
-    const push_notifications = typeof body.push_notifications === 'boolean'
-      ? body.push_notifications
-      : true
 
     const { data: settings, error: insertError } = await supabaseAdmin
       .from('user_settings')
@@ -103,9 +100,8 @@ export async function POST(req: NextRequest) {
         user_id: auth.pi_uid,
         preferred_currency,
         email_notifications,
-        push_notifications,
       })
-      .select('id, user_id, preferred_currency, email_notifications, push_notifications, created_at, updated_at')
+      .select('id, user_id, preferred_currency, email_notifications, created_at, updated_at')
       .single()
 
     if (insertError) {
@@ -168,13 +164,6 @@ export async function PUT(req: NextRequest) {
       updates.email_notifications = body.email_notifications
     }
 
-    if ('push_notifications' in body) {
-      if (typeof body.push_notifications !== 'boolean') {
-        return NextResponse.json({ error: 'push_notifications must be a boolean' }, { status: 400 })
-      }
-      updates.push_notifications = body.push_notifications
-    }
-
     if (Object.keys(updates).length === 0) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
@@ -183,7 +172,7 @@ export async function PUT(req: NextRequest) {
       .from('user_settings')
       .update(updates)
       .eq('user_id', auth.pi_uid)
-      .select('id, user_id, preferred_currency, email_notifications, push_notifications, created_at, updated_at')
+      .select('id, user_id, preferred_currency, email_notifications, created_at, updated_at')
       .single()
 
     if (updateError || !settings) {

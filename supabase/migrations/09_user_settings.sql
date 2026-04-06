@@ -12,7 +12,6 @@ CREATE TABLE IF NOT EXISTS public.user_settings (
   user_id             TEXT        NOT NULL UNIQUE REFERENCES public.users(pi_uid) ON DELETE CASCADE,
   preferred_currency  TEXT        NOT NULL DEFAULT 'USD',
   email_notifications BOOLEAN     NOT NULL DEFAULT true,
-  push_notifications  BOOLEAN     NOT NULL DEFAULT true,
   created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -33,7 +32,7 @@ CREATE TABLE IF NOT EXISTS public.saved_addresses (
   city            TEXT        NOT NULL,
   state_province  TEXT        NOT NULL,
   postal_code     TEXT        NOT NULL,
-  country         TEXT        NOT NULL,
+  country_code    VARCHAR(2)  NOT NULL,
   phone_number    TEXT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
