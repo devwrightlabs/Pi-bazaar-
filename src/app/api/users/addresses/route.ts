@@ -151,11 +151,23 @@ export async function POST(req: NextRequest) {
       .select(SELECT_FIELDS)
       .single()
 
-    if (insertError || !address) {
+    if (insertError) {
+      if (insertError.code === '23505') {
+        console.warn('[users/addresses/POST] Insert conflict:', insertError)
+        return NextResponse.json(
+          { error: 'Default address was updated concurrently. Please retry.' },
+          { status: 409 }
+        )
+      }
+
       console.error('[users/addresses/POST] Insert error:', insertError)
       return NextResponse.json({ error: 'Failed to create address' }, { status: 500 })
     }
 
+    if (!address) {
+      console.error('[users/addresses/POST] Insert error: missing inserted address')
+      return NextResponse.json({ error: 'Failed to create address' }, { status: 500 })
+    }
     return NextResponse.json({ address }, { status: 201 })
   } catch (err) {
     console.error('[users/addresses/POST] Unhandled error:', err)
