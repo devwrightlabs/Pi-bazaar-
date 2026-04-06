@@ -53,10 +53,6 @@ ALTER TABLE public.escrow_transactions
   ADD COLUMN IF NOT EXISTS tracking_number   TEXT,
   ADD COLUMN IF NOT EXISTS tracking_url      TEXT;
 
--- Drop the legacy webhook-era partial unique index if it exists from older
--- Phase 8 migrations so upgraded databases match fresh resets.
-DROP INDEX IF EXISTS public.escrow_transactions_carrier_tracking_id_key;
-
 -- Explicitly converge the escrow update trigger function back to the
 -- manual-shipping definition so databases that previously ran the deleted
 -- webhook migration do not retain its extra delivered-notification branch.
