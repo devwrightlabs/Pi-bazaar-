@@ -143,18 +143,19 @@ export async function PATCH(req: NextRequest) {
 
     // Scope the update to the authenticated user's notifications only —
     // the user_id predicate prevents marking another user's notifications.
-    const { error } = await supabaseAdmin
+    const { data, error } = await supabaseAdmin
       .from('notifications')
       .update({ is_read: true })
       .eq('user_id', piUid)
       .in('id', validatedIds)
+      .select('id')
 
     if (error) {
       console.error('[notifications/PATCH] Mark-read error:', error)
       return NextResponse.json({ error: 'Failed to mark notifications as read' }, { status: 500 })
     }
 
-    return NextResponse.json({ updated: validatedIds.length })
+    return NextResponse.json({ updated: data?.length ?? 0 })
   } catch (err) {
     console.error('[notifications/PATCH] Unhandled error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
