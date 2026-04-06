@@ -18,10 +18,6 @@ CREATE TABLE IF NOT EXISTS public.exchange_rates (
   last_updated        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Index for fast lookups by currency code
-CREATE INDEX IF NOT EXISTS exchange_rates_currency_idx
-  ON public.exchange_rates (fiat_currency_code);
-
 -- ─── RLS: exchange_rates ─────────────────────────────────────────────────────
 ALTER TABLE public.exchange_rates ENABLE ROW LEVEL SECURITY;
 
