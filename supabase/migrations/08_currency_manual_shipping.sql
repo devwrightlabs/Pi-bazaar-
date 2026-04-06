@@ -20,22 +20,26 @@ CREATE TABLE IF NOT EXISTS public.exchange_rates (
 ALTER TABLE public.exchange_rates ENABLE ROW LEVEL SECURITY;
 
 -- Public read
+DROP POLICY IF EXISTS "exchange_rates_select_public" ON public.exchange_rates;
 CREATE POLICY "exchange_rates_select_public"
   ON public.exchange_rates FOR SELECT
   USING (true);
 
 -- Service role only for writes
+DROP POLICY IF EXISTS "exchange_rates_insert_service" ON public.exchange_rates;
 CREATE POLICY "exchange_rates_insert_service"
   ON public.exchange_rates FOR INSERT
   TO service_role
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "exchange_rates_update_service" ON public.exchange_rates;
 CREATE POLICY "exchange_rates_update_service"
   ON public.exchange_rates FOR UPDATE
   TO service_role
   USING (true)
   WITH CHECK (true);
 
+DROP POLICY IF EXISTS "exchange_rates_delete_service" ON public.exchange_rates;
 CREATE POLICY "exchange_rates_delete_service"
   ON public.exchange_rates FOR DELETE
   TO service_role
