@@ -79,7 +79,9 @@ CREATE TRIGGER notifications_only_update_is_read_trigger
 
 -- ─── Trigger: new message → notify receiver ──────────────────────────────────
 CREATE OR REPLACE FUNCTION public.notify_new_message()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public, pg_catalog
+AS $$
 BEGIN
   INSERT INTO public.notifications (user_id, type, reference_id, message)
   VALUES (
