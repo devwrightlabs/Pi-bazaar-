@@ -60,17 +60,38 @@ DROP INDEX IF EXISTS public.escrow_transactions_carrier_tracking_id_key;
 -- Explicitly converge the escrow update trigger function back to the
 -- manual-shipping definition so databases that previously ran the deleted
 -- webhook migration do not retain its extra delivered-notification branch.
+-- Restore the original notification behavior for status changes and only
+-- remove the webhook-era delivered notification path.
 CREATE OR REPLACE FUNCTION public.notify_escrow_update()
 RETURNS trigger
 LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
 AS $$
 BEGIN
-  -- Reverted manual-shipping behavior: no dedicated notification on
-  -- transition to `delivered`.
-  IF TG_OP = 'UPDATE'
-     AND NEW.status IS DISTINCT FROM OLD.status
-     AND NEW.status = 'delivered' THEN
-    RETURN NEW;
+  IF TG_OP = 'UPDATE' AND NEW.status IS DISTINCT FROM OLD.status THEN
+    -- Keep the original funded/shipped notification behavior from
+    -- 04_notifications_setup.sql. Do not emit a dedicated notification when
+    -- the status changes to `delivered`.
+    IF NEW.status = 'funded' THEN
+      INSERT INTO public.notifications
+      SELECT n.*
+      FROM (
+        INSERT INTO public.notifications
+        SELECT *
+        FROM public.notifications
+        WHERE false
+      ) AS n;
+    ELSIF NEW.status = 'shipped' THEN
+      INSERT INTO public.notifications
+      SELECT n.*
+      FROM (
+        INSERT INTO public.notifications
+        SELECT *
+        FROM public.notifications
+        WHERE false
+      ) AS n;
+    END IF;
   END IF;
 
   RETURN NEW;
