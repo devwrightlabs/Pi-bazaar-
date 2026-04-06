@@ -77,11 +77,11 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Insert a pending KYC record.
-    //    The UNIQUE constraint on user_id prevents duplicate submissions.
+    //    The UNIQUE constraint on pi_uid prevents duplicate submissions.
     const { data: kycRecord, error: insertError } = await supabaseAdmin
-      .from('kyc_disputes')
+      .from('kyc_records')
       .insert({
-        user_id: piUid,
+        pi_uid: piUid,
         document_type,
         document_url,
       })
