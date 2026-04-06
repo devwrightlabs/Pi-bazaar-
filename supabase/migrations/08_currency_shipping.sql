@@ -5,9 +5,9 @@
 -- conversion rates and adds carrier tracking columns to
 -- escrow_transactions for shipping webhook integration.
 --
--- SECURITY NOTE: All RLS policies use auth.jwt() ->> 'pi_uid'
--- to read the pi_uid claim from the verified custom JWT signed
--- by our server — consistent with all prior migrations.
+-- SECURITY NOTE: This migration uses table-specific RLS policies.
+-- exchange_rates is publicly readable, while writes are restricted
+-- to the service_role; not all policies in this migration use JWT claims.
 -- ============================================================
 
 -- ─── exchange_rates ──────────────────────────────────────────────────────────
