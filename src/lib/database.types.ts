@@ -8,17 +8,21 @@ export type UserRow = {
   avatar_url: string | null
   bio: string | null
   is_verified: boolean
+  role: 'user' | 'admin'
+  is_suspended: boolean
   created_at: string
   updated_at: string
 }
 
 export type UserInsert = Omit<
   UserRow,
-  'id' | 'created_at' | 'updated_at' | 'email' | 'avatar_url' | 'bio'
+  'id' | 'created_at' | 'updated_at' | 'email' | 'avatar_url' | 'bio' | 'role' | 'is_suspended'
 > & {
   email?: string | null
   avatar_url?: string | null
   bio?: string | null
+  role?: 'user' | 'admin'
+  is_suspended?: boolean
 }
 export type UserUpdate = Partial<Omit<UserRow, 'id'>>
 
@@ -97,6 +101,20 @@ export type OrderInsert = Omit<
 }
 export type OrderUpdate = Partial<Omit<OrderRow, 'id'>>
 
+// ─── platform_revenue table ──────────────────────────────────────────────────
+
+export type PlatformRevenueRow = {
+  id: string
+  escrow_id: string
+  amount_pi: number
+  collected_at: string
+}
+
+export type PlatformRevenueInsert = Omit<PlatformRevenueRow, 'id' | 'collected_at'> & {
+  collected_at?: string
+}
+export type PlatformRevenueUpdate = Partial<Omit<PlatformRevenueRow, 'id'>>
+
 // ─── Database type ───────────────────────────────────────────────────────────
 
 export type Database = {
@@ -118,6 +136,12 @@ export type Database = {
         Row: OrderRow
         Insert: OrderInsert
         Update: OrderUpdate
+        Relationships: []
+      }
+      platform_revenue: {
+        Row: PlatformRevenueRow
+        Insert: PlatformRevenueInsert
+        Update: PlatformRevenueUpdate
         Relationships: []
       }
     }
