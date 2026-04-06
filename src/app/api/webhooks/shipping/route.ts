@@ -98,6 +98,8 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text()
 
     // 2. Verify webhook signature.
+    // Carriers use different header names (e.g., Shippo: X-Shippo-Signature,
+    // EasyPost: X-EasyPost-Signature). Adjust header name per carrier integration.
     const signature = req.headers.get('x-webhook-signature')
     if (!verifyWebhookSignature(rawBody, signature)) {
       return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 })

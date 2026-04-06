@@ -19,8 +19,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
-// ─── Supported fiat currencies ────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 const SUPPORTED_CURRENCIES = ['usd', 'eur', 'gbp', 'jpy', 'cad', 'aud', 'inr', 'ngn', 'krw', 'vnd'] as const
+const COINGECKO_API_TIMEOUT_MS = 10_000
 
 // ─── Cron secret verification ─────────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ async function fetchPiRates(): Promise<Record<string, number> | null> {
 
   try {
     const res = await fetch(url, {
-      signal: AbortSignal.timeout(10_000),
+      signal: AbortSignal.timeout(COINGECKO_API_TIMEOUT_MS),
       headers: { Accept: 'application/json' },
     })
 
