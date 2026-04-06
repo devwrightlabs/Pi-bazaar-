@@ -13,7 +13,7 @@
 -- ─── exchange_rates ──────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS public.exchange_rates (
   id                  UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  fiat_currency_code  TEXT        NOT NULL UNIQUE,
+  fiat_currency_code  TEXT        NOT NULL UNIQUE CHECK (fiat_currency_code = upper(fiat_currency_code)),
   pi_rate             NUMERIC     NOT NULL CHECK (pi_rate > 0),
   last_updated        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
