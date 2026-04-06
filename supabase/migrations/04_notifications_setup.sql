@@ -101,7 +101,9 @@ CREATE TRIGGER messages_notify_receiver
 
 -- ─── Trigger: escrow status change → notify buyer or seller ──────────────────
 CREATE OR REPLACE FUNCTION public.notify_escrow_update()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public, pg_catalog
+AS $$
 BEGIN
   -- Only fire when the status column actually changes
   IF OLD.status = NEW.status THEN
