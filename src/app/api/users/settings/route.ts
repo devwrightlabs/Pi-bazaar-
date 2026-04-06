@@ -108,11 +108,22 @@ export async function POST(req: NextRequest) {
       .select('id, user_id, preferred_currency, email_notifications, push_notifications, created_at, updated_at')
       .single()
 
-    if (insertError || !settings) {
+    if (insertError) {
+      if (insertError.code === '23505') {
+        return NextResponse.json(
+          { error: 'Settings already exist. Use PUT to update.' },
+          { status: 409 }
+        )
+      }
+
       console.error('[users/settings/POST] Insert error:', insertError)
       return NextResponse.json({ error: 'Failed to create settings' }, { status: 500 })
     }
 
+    if (!settings) {
+      console.error('[users/settings/POST] Insert error: Missing inserted settings row')
+      return NextResponse.json({ error: 'Failed to create settings' }, { status: 500 })
+    }
     return NextResponse.json({ settings }, { status: 201 })
   } catch (err) {
     console.error('[users/settings/POST] Unhandled error:', err)
