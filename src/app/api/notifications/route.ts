@@ -1,5 +1,7 @@
 /**
- * GET   /api/notifications — Fetch all unread notifications for the caller
+ * GET   /api/notifications — Fetch a paginated page of unread notifications
+ *                               for the caller (`page` query param, `limit`
+ *                               default 50, max 100)
  * PATCH /api/notifications — Mark specific (or all) notifications as read
  *
  * Security:
