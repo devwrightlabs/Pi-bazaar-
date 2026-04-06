@@ -1,13 +1,13 @@
 -- ============================================================
 -- Pi Bazaar — Phase 5: Search Indexing
 -- ============================================================
--- Enables trigram-based full-text search on product titles and
--- descriptions, and adds composite indexes for the status and
+-- Enables trigram-based text search acceleration on product titles
+-- and descriptions, and adds composite indexes for the status and
 -- category filters used by the products listing API.
 -- ============================================================
 
 -- ─── pg_trgm extension ───────────────────────────────────────────────────────
--- Required for GIN trigram indexes (similarity / ILIKE / full-text search).
+-- Required for GIN trigram indexes used by similarity and ILIKE queries.
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 -- ─── GIN trigram indexes on products (title & description) ───────────────────
