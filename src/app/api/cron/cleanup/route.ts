@@ -20,6 +20,7 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 // Transactions older than this threshold (in hours) are considered abandoned.
 const STALE_THRESHOLD_HOURS = 24
+const MS_PER_HOUR = 3_600_000 // 60 * 60 * 1000
 
 export async function GET(req: NextRequest) {
   try {
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Calculate the cutoff timestamp (24 hours ago).
-    const cutoff = new Date(Date.now() - STALE_THRESHOLD_HOURS * 60 * 60 * 1000).toISOString()
+    const cutoff = new Date(Date.now() - STALE_THRESHOLD_HOURS * MS_PER_HOUR).toISOString()
 
     // 3. Find and cancel all stale pending escrow transactions.
     const { data: cancelled, error } = await supabaseAdmin

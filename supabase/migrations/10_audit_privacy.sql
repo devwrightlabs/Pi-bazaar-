@@ -13,9 +13,11 @@
 -- ============================================================
 
 -- ─── audit_logs ──────────────────────────────────────────────────────────────
+-- admin_id is intentionally NOT a foreign key so that audit records survive
+-- user deletion (the log must remain immutable and intact).
 CREATE TABLE IF NOT EXISTS public.audit_logs (
   id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-  admin_id    TEXT        NOT NULL REFERENCES public.users(pi_uid),
+  admin_id    TEXT        NOT NULL,
   action_type TEXT        NOT NULL
                           CHECK (action_type IN (
                             'kyc_approved',
@@ -121,9 +123,4 @@ CREATE TRIGGER anonymize_user_on_delete
   BEFORE DELETE ON public.users
   FOR EACH ROW EXECUTE FUNCTION public.anonymize_user_financial_records();
 
--- ─── Drop the FK on audit_logs.admin_id to avoid cascade issues ──────────────
--- The audit_logs FK to users(pi_uid) would block user deletion or cascade-delete
--- audit entries. Instead, we drop the FK and keep admin_id as a plain text field
--- so audit records survive user deletion (immutable log).
-ALTER TABLE public.audit_logs
-  DROP CONSTRAINT IF EXISTS audit_logs_admin_id_fkey;
+
