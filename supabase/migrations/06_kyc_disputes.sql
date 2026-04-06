@@ -23,10 +23,6 @@ CREATE TABLE IF NOT EXISTS public.kyc_records (
   submitted_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Index for fast lookups by user
-CREATE INDEX IF NOT EXISTS kyc_records_user_id_idx
-  ON public.kyc_records (user_id);
-
 -- ─── RLS: kyc_records ────────────────────────────────────────────────────────
 ALTER TABLE public.kyc_records ENABLE ROW LEVEL SECURITY;
 
