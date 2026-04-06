@@ -2,60 +2,57 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/lib/database.types'
 import { supabaseUrl, supabaseAnonKey } from '@/lib/env'
+import { Redis } from '@upstash/redis'
 
-// ─── In-Memory Rate Limiter ──────────────────────────────────────────────────
+// ─── Shared Redis-Backed Rate Limiter ───────────────────────────────────────
 
 /**
  * Sliding-window rate limiter keyed by client identifier (IP or JWT sub).
- * Each bucket stores an array of request timestamps. Expired entries are
- * pruned on every access to prevent unbounded memory growth.
+ * Request timestamps are stored in Redis so limits are enforced consistently
+ * across serverless instances and regions.
  */
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+})
 
-interface RateBucket {
-  timestamps: number[]
-}
+const RATE_LIMIT_SCRIPT = `
+local key = KEYS[1]
+local window_start = tonumber(ARGV[1])
+local now = tonumber(ARGV[2])
+local max_requests = tonumber(ARGV[3])
+local ttl_seconds = tonumber(ARGV[4])
+local member = ARGV[5]
 
-const rateBuckets = new Map<string, RateBucket>()
+redis.call('ZREMRANGEBYSCORE', key, 0, window_start)
 
-// Periodically purge stale buckets to avoid memory leaks in long-running processes.
-const CLEANUP_INTERVAL_MS = 30_000 // 30 seconds
-let lastCleanup = Date.now()
+local current = redis.call('ZCARD', key)
+if current >= max_requests then
+  return 0
+end
 
-function pruneStaleEntries(windowMs: number): void {
-  const now = Date.now()
-  if (now - lastCleanup < CLEANUP_INTERVAL_MS) return
-  lastCleanup = now
-
-  for (const [key, bucket] of rateBuckets) {
-    bucket.timestamps = bucket.timestamps.filter((t) => now - t < windowMs)
-    if (bucket.timestamps.length === 0) {
-      rateBuckets.delete(key)
-    }
-  }
-}
+redis.call('ZADD', key, now, member)
+redis.call('EXPIRE', key, ttl_seconds)
+return 1
+`
 
 /**
  * Returns `true` if the request is within the rate limit.
  */
-function isWithinLimit(key: string, maxRequests: number, windowMs: number): boolean {
+async function isWithinLimit(key: string, maxRequests: number, windowMs: number): Promise<boolean> {
   const now = Date.now()
-  pruneStaleEntries(windowMs)
+  const windowStart = now - windowMs
+  const ttlSeconds = Math.ceil(windowMs / 1000)
+  const redisKey = `rate_limit:${key}`
+  const member = `${now}:${crypto.randomUUID()}`
 
-  let bucket = rateBuckets.get(key)
-  if (!bucket) {
-    bucket = { timestamps: [] }
-    rateBuckets.set(key, bucket)
-  }
+  const allowed = await redis.eval<number>(
+    RATE_LIMIT_SCRIPT,
+    [redisKey],
+    [String(windowStart), String(now), String(maxRequests), String(ttlSeconds), member],
+  )
 
-  // Drop timestamps outside the current window.
-  bucket.timestamps = bucket.timestamps.filter((t) => now - t < windowMs)
-
-  if (bucket.timestamps.length >= maxRequests) {
-    return false
-  }
-
-  bucket.timestamps.push(now)
-  return true
+  return allowed === 1
 }
 
 // ─── Rate Limit Configuration ────────────────────────────────────────────────
