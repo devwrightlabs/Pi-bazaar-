@@ -66,7 +66,7 @@ CREATE OR REPLACE FUNCTION public.notify_escrow_update()
 RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, pg_temp
+SET search_path = public, pg_catalog
 AS $$
 BEGIN
   IF TG_OP = 'UPDATE' AND NEW.status IS DISTINCT FROM OLD.status THEN
