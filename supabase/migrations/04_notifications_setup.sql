@@ -83,13 +83,19 @@ RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
 SET search_path = public, pg_catalog
 AS $$
 BEGIN
-  INSERT INTO public.notifications (user_id, type, reference_id, message)
-  VALUES (
-    NEW.receiver_id,
-    'new_message',
-    NEW.id,
-    'You have a new message.'
-  );
+  IF EXISTS (
+    SELECT 1
+    FROM public.users
+    WHERE pi_uid = NEW.receiver_id
+  ) THEN
+    INSERT INTO public.notifications (user_id, type, reference_id, message)
+    VALUES (
+      NEW.receiver_id,
+      'new_message',
+      NEW.id,
+      'You have a new message.'
+    );
+  END IF;
   RETURN NEW;
 END;
 $$;
