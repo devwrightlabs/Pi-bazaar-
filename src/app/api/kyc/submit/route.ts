@@ -1,0 +1,126 @@
+/**
+ * POST /api/kyc/submit
+ *
+ * Allows an authenticated user to submit KYC (Know Your Customer) documents
+ * for identity verification.
+ *
+ * Security:
+ *   - Caller identity is extracted from the verified JWT (never trusted from
+ *     the request body).
+ *   - All DB writes use supabaseAdmin (service role) to bypass RLS; the
+ *     caller's pi_uid is enforced explicitly in the insert.
+ *   - The user's is_kyc_verified flag is set to false until an admin approves.
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { verifyAuthToken } from '@/lib/authHelper'
+
+// ─── Allowed document types ───────────────────────────────────────────────────
+
+const ALLOWED_DOCUMENT_TYPES = ['passport', 'national_id', 'drivers_license'] as const
+type DocumentType = (typeof ALLOWED_DOCUMENT_TYPES)[number]
+
+function isValidDocumentType(value: string): value is DocumentType {
+  return (ALLOWED_DOCUMENT_TYPES as readonly string[]).includes(value)
+}
+
+// ─── Request body ─────────────────────────────────────────────────────────────
+
+interface KycSubmitRequest {
+  document_type: string
+  document_url: string
+}
+
+// ─── Route handler ────────────────────────────────────────────────────────────
+
+export async function POST(req: NextRequest) {
+  try {
+    // 1. Authenticate caller via custom JWT.
+    const auth = verifyAuthToken(req)
+    if (!auth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const piUid = auth.pi_uid
+
+    // 2. Parse and validate request body.
+    let body: KycSubmitRequest
+    try {
+      body = (await req.json()) as KycSubmitRequest
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
+
+    const { document_type, document_url } = body
+
+    if (!document_type || typeof document_type !== 'string') {
+      return NextResponse.json({ error: 'document_type is required' }, { status: 400 })
+    }
+
+    if (!isValidDocumentType(document_type)) {
+      return NextResponse.json(
+        { error: `Invalid document_type. Allowed: ${ALLOWED_DOCUMENT_TYPES.join(', ')}` },
+        { status: 400 }
+      )
+    }
+
+    if (!document_url || typeof document_url !== 'string') {
+      return NextResponse.json({ error: 'document_url is required' }, { status: 400 })
+    }
+
+    // Basic URL format validation — must start with https://
+    if (!document_url.startsWith('https://')) {
+      return NextResponse.json(
+        { error: 'document_url must be a valid HTTPS URL' },
+        { status: 400 }
+      )
+    }
+
+    // 3. Insert a pending KYC record.
+    //    The UNIQUE constraint on user_id prevents duplicate submissions.
+    const { data: kycRecord, error: insertError } = await supabaseAdmin
+      .from('kyc_records')
+      .insert({
+        user_id: piUid,
+        document_type,
+        document_url,
+        status: 'pending',
+      })
+      .select('id, user_id, document_type, status, submitted_at')
+      .single()
+
+    if (insertError) {
+      // Unique violation — user already has a KYC record
+      if (insertError.code === '23505') {
+        return NextResponse.json(
+          { error: 'A KYC submission already exists for this user' },
+          { status: 409 }
+        )
+      }
+      console.error('[kyc/submit] Insert error:', insertError)
+      return NextResponse.json({ error: 'Failed to submit KYC record' }, { status: 500 })
+    }
+
+    // 4. Set the user's is_kyc_verified to false (pending admin approval).
+    const { error: userUpdateError } = await supabaseAdmin
+      .from('users')
+      .update({ is_kyc_verified: false })
+      .eq('pi_uid', piUid)
+
+    if (userUpdateError) {
+      console.error('[kyc/submit] User update error:', userUpdateError)
+      // Non-fatal: KYC record was created successfully; log and continue.
+    }
+
+    return NextResponse.json(
+      {
+        success: true,
+        kyc: kycRecord,
+      },
+      { status: 201 }
+    )
+  } catch (err) {
+    console.error('[kyc/submit] Unhandled error:', err)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
