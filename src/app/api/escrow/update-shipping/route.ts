@@ -71,6 +71,9 @@ export async function POST(req: NextRequest) {
         if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
           return NextResponse.json({ error: 'tracking_url must be a valid http or https URL' }, { status: 400 })
         }
+        if (parsed.username !== '' || parsed.password !== '') {
+          return NextResponse.json({ error: 'tracking_url must not include embedded credentials' }, { status: 400 })
+        }
         safeTrackingUrl = parsed.toString()
       } catch {
         return NextResponse.json({ error: 'tracking_url must be a valid URL' }, { status: 400 })
