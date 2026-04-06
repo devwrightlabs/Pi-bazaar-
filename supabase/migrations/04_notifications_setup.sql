@@ -162,11 +162,15 @@ SET search_path = public, pg_catalog
 AS $$
 BEGIN
   INSERT INTO public.notifications (user_id, type, reference_id, message)
-  VALUES (
+  SELECT
     NEW.reviewee_id,
     'new_review',
     NEW.id,
     'You have received a new review.'
+  WHERE EXISTS (
+    SELECT 1
+    FROM public.users u
+    WHERE u.pi_uid = NEW.reviewee_id
   );
   RETURN NEW;
 END;
