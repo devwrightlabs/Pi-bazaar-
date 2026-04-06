@@ -10,25 +10,51 @@ import { supabaseUrl, supabaseAnonKey } from '@/lib/env'
  * Request timestamps are stored in memory for the lifetime of the current
  * server instance.
  */
-const rateLimitStore = new Map<string, number[]>()
+type RateLimitEntry = {
+  timestamps: number[]
+  lastSeen: number
+}
+
+const rateLimitStore = new Map<string, RateLimitEntry>()
+const RATE_LIMIT_ENTRY_TTL_MS = 5 * 60_000
+const RATE_LIMIT_CLEANUP_INTERVAL_MS = 60_000
+let nextRateLimitCleanupAt = 0
+
+function pruneRateLimitStore(now: number): void {
+  if (now < nextRateLimitCleanupAt) {
+    return
+  }
+
+  nextRateLimitCleanupAt = now + RATE_LIMIT_CLEANUP_INTERVAL_MS
+  const expirationTime = now - RATE_LIMIT_ENTRY_TTL_MS
+
+  for (const [storeKey, entry] of rateLimitStore.entries()) {
+    if (entry.lastSeen <= expirationTime) {
+      rateLimitStore.delete(storeKey)
+    }
+  }
+}
 
 /**
  * Returns `true` if the request is within the rate limit.
  */
 async function isWithinLimit(key: string, maxRequests: number, windowMs: number): Promise<boolean> {
   const now = Date.now()
+  pruneRateLimitStore(now)
+
   const windowStart = now - windowMs
   const storeKey = `rate_limit:${key}`
-  const timestamps = rateLimitStore.get(storeKey) ?? []
+  const entry = rateLimitStore.get(storeKey)
+  const timestamps = entry?.timestamps ?? []
   const activeTimestamps = timestamps.filter((timestamp) => timestamp > windowStart)
 
   if (activeTimestamps.length >= maxRequests) {
-    rateLimitStore.set(storeKey, activeTimestamps)
+    rateLimitStore.set(storeKey, { timestamps: activeTimestamps, lastSeen: now })
     return false
   }
 
   activeTimestamps.push(now)
-  rateLimitStore.set(storeKey, activeTimestamps)
+  rateLimitStore.set(storeKey, { timestamps: activeTimestamps, lastSeen: now })
   return true
 }
 
