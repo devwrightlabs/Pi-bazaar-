@@ -51,6 +51,12 @@ ALTER TABLE public.escrow_transactions
   ADD COLUMN IF NOT EXISTS carrier_tracking_id     TEXT,
   ADD COLUMN IF NOT EXISTS carrier_webhook_status   TEXT;
 
+-- Ensure shipping webhook lookups by tracking ID are fast and unambiguous.
+-- Use a partial unique index so NULL values remain allowed while non-NULL
+-- carrier tracking IDs cannot be duplicated.
+CREATE UNIQUE INDEX IF NOT EXISTS escrow_transactions_carrier_tracking_id_uidx
+  ON public.escrow_transactions (carrier_tracking_id)
+  WHERE carrier_tracking_id IS NOT NULL;
 -- ─── Extend notify_escrow_update for delivered status ────────────────────────
 -- Replace the existing trigger function to also notify buyers when a package
 -- is delivered, reminding them to confirm receipt and release funds.
