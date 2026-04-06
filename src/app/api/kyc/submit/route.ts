@@ -78,31 +78,54 @@ export async function POST(req: NextRequest) {
 
     // 3. Insert a pending KYC record.
     //    The UNIQUE constraint on user_id prevents duplicate submissions.
-    const { data: kycRecord, error: submitError } = await supabaseAdmin.rpc(
-      'submit_kyc_and_mark_user_unverified',
-      {
-        p_user_id: piUid,
-        p_document_type: document_type,
-        p_document_url: document_url,
-      }
-    )
+    const { data: kycRecord, error: insertError } = await supabaseAdmin
+      .from('kyc_disputes')
+      .insert({
+        user_id: piUid,
+        document_type,
+        document_url,
+      })
+      .select()
+      .single()
 
-    if (submitError) {
+    if (insertError) {
       // Unique violation — user already has a KYC record
-      if (submitError.code === '23505') {
+      if (insertError.code === '23505') {
         return NextResponse.json(
           { error: 'A KYC submission already exists for this user' },
           { status: 409 }
         )
       }
       // Foreign-key violation — authenticated user has no corresponding users row
-      if (submitError.code === '23503') {
+      if (insertError.code === '23503') {
         return NextResponse.json(
           { error: 'User record not found for this authenticated user' },
           { status: 404 }
         )
       }
-      console.error('[kyc/submit] Transactional KYC submit error:', submitError)
+      console.error('[kyc/submit] KYC insert error:', insertError)
+      return NextResponse.json({ error: 'Failed to submit KYC record' }, { status: 500 })
+    }
+
+    const { error: updateUserError } = await supabaseAdmin
+      .from('users')
+      .update({ is_kyc_verified: false })
+      .eq('pi_uid', piUid)
+
+    if (updateUserError) {
+      console.error('[kyc/submit] User verification reset error:', updateUserError)
+
+      // Compensating cleanup: remove the inserted KYC record so the endpoint
+      // does not leave behind a partial write when the second step fails.
+      const { error: rollbackError } = await supabaseAdmin
+        .from('kyc_disputes')
+        .delete()
+        .eq('user_id', piUid)
+
+      if (rollbackError) {
+        console.error('[kyc/submit] Rollback error after failed user update:', rollbackError)
+      }
+
       return NextResponse.json({ error: 'Failed to submit KYC record' }, { status: 500 })
     }
     return NextResponse.json(
