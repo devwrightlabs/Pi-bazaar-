@@ -74,23 +74,13 @@ BEGIN
     -- 04_notifications_setup.sql. Do not emit a dedicated notification when
     -- the status changes to `delivered`.
     IF NEW.status = 'funded' THEN
-      INSERT INTO public.notifications
-      SELECT n.*
-      FROM (
-        INSERT INTO public.notifications
-        SELECT *
-        FROM public.notifications
-        WHERE false
-      ) AS n;
+      -- Restore the original `funded` notification INSERT from
+      -- 04_notifications_setup.sql here.
+      NULL;
     ELSIF NEW.status = 'shipped' THEN
-      INSERT INTO public.notifications
-      SELECT n.*
-      FROM (
-        INSERT INTO public.notifications
-        SELECT *
-        FROM public.notifications
-        WHERE false
-      ) AS n;
+      -- Restore the original `shipped` notification INSERT from
+      -- 04_notifications_setup.sql here.
+      NULL;
     END IF;
   END IF;
 
