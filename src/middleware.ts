@@ -18,7 +18,7 @@ interface RateBucket {
 const rateBuckets = new Map<string, RateBucket>()
 
 // Periodically purge stale buckets to avoid memory leaks in long-running processes.
-const CLEANUP_INTERVAL_MS = 60_000 // 1 minute
+const CLEANUP_INTERVAL_MS = 30_000 // 30 seconds
 let lastCleanup = Date.now()
 
 function pruneStaleEntries(windowMs: number): void {
@@ -70,29 +70,11 @@ const CRITICAL_LIMIT = 15 // 15 requests per minute
 const STANDARD_LIMIT = 100 // 100 requests per minute
 
 /**
- * Extracts a rate-limit key from the request. Prefers the JWT `sub` claim
- * (stable per-user identity) and falls back to the client IP address.
+ * Extracts a rate-limit key from the request using the client IP address.
+ * IP-based keying avoids relying on unverified JWT claims in the middleware
+ * (actual auth verification happens in route handlers via verifyAuthToken).
  */
 function getRateLimitKey(request: NextRequest): string {
-  // Try to extract sub from the Authorization header without full crypto
-  // verification — just enough to get a stable identifier. The actual auth
-  // check happens in the route handler via verifyAuthToken().
-  const authHeader = request.headers.get('Authorization')
-  if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.slice(7)
-    try {
-      // JWT payload is the second base64url-encoded segment.
-      const payloadB64 = token.split('.')[1]
-      if (payloadB64) {
-        const payload = JSON.parse(atob(payloadB64)) as { sub?: string; pi_uid?: string }
-        if (payload.sub) return `user:${payload.sub}`
-        if (payload.pi_uid) return `user:${payload.pi_uid}`
-      }
-    } catch {
-      // Malformed token — fall through to IP.
-    }
-  }
-
   const forwarded = request.headers.get('x-forwarded-for')
   const ip = forwarded?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown'
   return `ip:${ip}`

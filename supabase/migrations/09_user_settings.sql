@@ -42,6 +42,12 @@ CREATE TABLE IF NOT EXISTS public.saved_addresses (
 CREATE INDEX IF NOT EXISTS saved_addresses_user_id_idx
   ON public.saved_addresses (user_id);
 
+-- Partial unique index: at most one default address per user.
+-- Application code clears the old default before setting a new one, but this
+-- index provides a database-level safety net against race conditions.
+CREATE UNIQUE INDEX IF NOT EXISTS saved_addresses_one_default_per_user
+  ON public.saved_addresses (user_id) WHERE is_default = true;
+
 -- ============================================================
 -- Row Level Security
 -- ============================================================
