@@ -64,16 +64,28 @@ function verifyWebhookSignature(rawBody: string, signatureHeader: string | null)
     .update(rawBody)
     .digest('hex')
 
-  // Constant-time comparison to prevent timing attacks
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signatureHeader),
-      Buffer.from(expectedSignature)
-    )
-  } catch {
-    // Buffers had different lengths — signatures do not match
+  const normalizedSignatureHeader = signatureHeader.trim().replace(/^sha256=/i, '')
+  const hexPattern = /^[0-9a-fA-F]+$/
+
+  if (
+    normalizedSignatureHeader.length === 0 ||
+    normalizedSignatureHeader.length % 2 !== 0 ||
+    expectedSignature.length % 2 !== 0 ||
+    !hexPattern.test(normalizedSignatureHeader) ||
+    !hexPattern.test(expectedSignature)
+  ) {
     return false
   }
+
+  const providedSignatureBuffer = Buffer.from(normalizedSignatureHeader, 'hex')
+  const expectedSignatureBuffer = Buffer.from(expectedSignature, 'hex')
+
+  if (providedSignatureBuffer.length !== expectedSignatureBuffer.length) {
+    return false
+  }
+
+  // Constant-time comparison to prevent timing attacks
+  return crypto.timingSafeEqual(providedSignatureBuffer, expectedSignatureBuffer)
 }
 
 // ─── Normalize carrier status ─────────────────────────────────────────────────
