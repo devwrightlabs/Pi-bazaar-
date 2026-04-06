@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
     //    non-sellers cannot distinguish between "not found" and "not yours".
     const { data: escrow, error: fetchError } = await supabaseAdmin
       .from('escrow_transactions')
-      .select('id, seller_id, buyer_id, status')
+      .select('id, seller_id, buyer_id, status, metadata')
       .eq('id', escrow_id.trim())
       .eq('seller_id', auth.pi_uid)
       .single()
