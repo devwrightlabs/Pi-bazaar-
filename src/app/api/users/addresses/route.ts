@@ -282,11 +282,17 @@ export async function PUT(req: NextRequest) {
       .select(SELECT_FIELDS)
       .single()
 
-    if (updateError || !address) {
+    if (updateError) {
       console.error('[users/addresses/PUT] Update error:', updateError)
+      if (updateError.code === '23505') {
+        return NextResponse.json({ error: 'Default address conflict' }, { status: 409 })
+      }
       return NextResponse.json({ error: 'Failed to update address' }, { status: 500 })
     }
 
+    if (!address) {
+      return NextResponse.json({ error: 'Failed to update address' }, { status: 500 })
+    }
     return NextResponse.json({ address })
   } catch (err) {
     console.error('[users/addresses/PUT] Unhandled error:', err)
