@@ -95,6 +95,9 @@ export async function PATCH(req: NextRequest) {
     } catch {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
     const { notification_ids, all } = body
 
     // Either `all: true` or a non-empty array of UUIDs must be provided.
