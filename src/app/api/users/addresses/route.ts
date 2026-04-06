@@ -260,28 +260,39 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
     }
 
-    // If setting this address as default, clear the old default.
+    let address
+    let updateError
+
+    // When setting an address as default, perform the clear + update atomically
+    // in the database to avoid leaving the user with no default address if the
+    // second step fails.
     if (updates.is_default === true) {
-      const { error: clearError } = await supabaseAdmin
+      const rpcResult = await supabaseAdmin.rpc('update_saved_address_atomic', {
+        p_user_id: auth.pi_uid,
+        p_address_id: address_id,
+        p_full_name: Object.prototype.hasOwnProperty.call(updates, 'full_name') ? updates.full_name : null,
+        p_street_address: Object.prototype.hasOwnProperty.call(updates, 'street_address') ? updates.street_address : null,
+        p_city: Object.prototype.hasOwnProperty.call(updates, 'city') ? updates.city : null,
+        p_state_province: Object.prototype.hasOwnProperty.call(updates, 'state_province') ? updates.state_province : null,
+        p_postal_code: Object.prototype.hasOwnProperty.call(updates, 'postal_code') ? updates.postal_code : null,
+        p_country: Object.prototype.hasOwnProperty.call(updates, 'country') ? updates.country : null,
+        p_phone_number: Object.prototype.hasOwnProperty.call(updates, 'phone_number') ? updates.phone_number : null,
+      })
+
+      address = rpcResult.data
+      updateError = rpcResult.error
+    } else {
+      const updateResult = await supabaseAdmin
         .from('saved_addresses')
-        .update({ is_default: false })
+        .update(updates)
+        .eq('id', address_id)
         .eq('user_id', auth.pi_uid)
-        .eq('is_default', true)
+        .select(SELECT_FIELDS)
+        .single()
 
-      if (clearError) {
-        console.error('[users/addresses/PUT] Clear default error:', clearError)
-        return NextResponse.json({ error: 'Failed to update address' }, { status: 500 })
-      }
+      address = updateResult.data
+      updateError = updateResult.error
     }
-
-    const { data: address, error: updateError } = await supabaseAdmin
-      .from('saved_addresses')
-      .update(updates)
-      .eq('id', address_id)
-      .eq('user_id', auth.pi_uid)
-      .select(SELECT_FIELDS)
-      .single()
-
     if (updateError) {
       console.error('[users/addresses/PUT] Update error:', updateError)
       if (updateError.code === '23505') {
