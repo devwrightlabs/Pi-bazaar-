@@ -143,7 +143,9 @@ CREATE TRIGGER escrow_notify_status_change
 
 -- ─── Trigger: new review → notify reviewee ───────────────────────────────────
 CREATE OR REPLACE FUNCTION public.notify_new_review()
-RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public, pg_catalog
+AS $$
 BEGIN
   INSERT INTO public.notifications (user_id, type, reference_id, message)
   VALUES (
