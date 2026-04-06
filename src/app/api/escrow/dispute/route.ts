@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
     // 3. Fetch the escrow record.
     const { data: escrow, error: fetchError } = await supabaseAdmin
       .from('escrow_transactions')
-      .select('id, buyer_id, seller_id, status')
+      .select('id, buyer_id, seller_id, status, admin_notes')
       .eq('id', escrow_id)
       .single()
 
@@ -104,12 +104,22 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 6. Update the escrow status to 'disputed' with optimistic locking.
+    // 6. Build admin_notes — append to any existing notes to preserve history.
+    const timestamp = new Date().toISOString()
+    const newNote = `[${timestamp}] Dispute opened by ${isBuyer ? 'buyer' : 'seller'} (${callerPiUid}): ${dispute_reason}`
+
+    // Fetch existing admin_notes before updating, so we can append.
+    const existingNotes = (escrow as Record<string, unknown>).admin_notes as string | null
+    const combinedNotes = existingNotes
+      ? `${existingNotes}\n${newNote}`
+      : newNote
+
+    // 7. Update the escrow status to 'disputed' with optimistic locking.
     const { data: updated, error: updateError } = await supabaseAdmin
       .from('escrow_transactions')
       .update({
         status: 'disputed',
-        admin_notes: `Dispute opened by ${isBuyer ? 'buyer' : 'seller'} (${callerPiUid}): ${dispute_reason}`,
+        admin_notes: combinedNotes,
       })
       .eq('id', escrow_id)
       .eq('status', escrow.status)
@@ -128,7 +138,7 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 7. Insert notifications for both buyer and seller.
+    // 8. Insert notifications for both buyer and seller.
     const disputeMessage = `A dispute has been opened on escrow ${escrow_id}: ${dispute_reason}`
 
     const notificationRows: Array<{
@@ -151,7 +161,7 @@ export async function POST(req: NextRequest) {
       },
     ]
 
-    // 8. Also notify platform admins (if they exist in the users table).
+    // 9. Also notify platform admins (if they exist in the users table).
     const adminUids = process.env.ADMIN_PI_UIDS
     if (adminUids) {
       const adminList = adminUids.split(',').map(s => s.trim()).filter(Boolean)
