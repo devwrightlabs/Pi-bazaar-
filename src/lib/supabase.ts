@@ -73,6 +73,7 @@ export type Database = {
         Update: AsRow<Partial<Omit<EscrowTimelineEvent, 'id'>>>
         Relationships: []
       }
+      platform_revenue: CoreDatabase['public']['Tables']['platform_revenue']
     }
     Views: Record<string, never>
     Functions: Record<string, never>
