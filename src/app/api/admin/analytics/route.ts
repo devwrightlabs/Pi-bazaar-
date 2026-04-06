@@ -60,6 +60,17 @@ export async function GET(req: NextRequest) {
           .eq('status', 'active'),
       ])
 
+    if (revenueResult.error || disputesResult.error || productsResult.error) {
+      console.error('[admin/analytics] Failed to load metrics:', {
+        revenueError: revenueResult.error,
+        disputesError: disputesResult.error,
+        productsError: productsResult.error,
+      })
+      return NextResponse.json(
+        { error: 'Failed to load analytics metrics' },
+        { status: 500 }
+      )
+    }
     // 4. Assemble and return the dashboard metrics.
     // TODO: Replace pending_kyc with actual KYC query when table is created.
     // The KYC table has not been created yet (planned for a future phase).
