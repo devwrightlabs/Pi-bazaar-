@@ -31,20 +31,41 @@ export async function GET(req: NextRequest) {
     }
     const piUid = auth.pi_uid
 
-    // 2. Fetch all unread notifications for this user, newest first.
-    const { data: notifications, error } = await supabaseAdmin
+    // 2. Apply bounded pagination for unread notifications.
+    const searchParams = req.nextUrl.searchParams
+    const pageParam = Number.parseInt(searchParams.get('page') ?? '1', 10)
+    const limitParam = Number.parseInt(searchParams.get('limit') ?? '50', 10)
+    const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
+    const limit = Number.isFinite(limitParam)
+      ? Math.min(Math.max(limitParam, 1), 100)
+      : 50
+    const from = (page - 1) * limit
+    const to = from + limit
+
+    // 3. Fetch unread notifications for this user, newest first.
+    // Request one extra row so we can expose whether another page exists.
+    const { data: notificationRows, error } = await supabaseAdmin
       .from('notifications')
       .select('*')
       .eq('user_id', piUid)
       .eq('is_read', false)
       .order('created_at', { ascending: false })
+      .range(from, to)
 
     if (error) {
       console.error('[notifications/GET] Fetch error:', error)
       return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 })
     }
 
-    return NextResponse.json({ notifications: notifications ?? [] })
+    const notifications = notificationRows ?? []
+    const hasNextPage = notifications.length > limit
+
+    return NextResponse.json({
+      notifications: hasNextPage ? notifications.slice(0, limit) : notifications,
+      page,
+      limit,
+      has_next_page: hasNextPage,
+    })
   } catch (err) {
     console.error('[notifications/GET] Unhandled error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
