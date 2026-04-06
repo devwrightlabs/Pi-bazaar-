@@ -80,26 +80,20 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Fetch the escrow record.
+    // 3. Fetch the escrow record, scoped to the authenticated seller so
+    //    non-sellers cannot distinguish between "not found" and "not yours".
     const { data: escrow, error: fetchError } = await supabaseAdmin
       .from('escrow_transactions')
       .select('id, seller_id, buyer_id, status')
       .eq('id', escrow_id.trim())
+      .eq('seller_id', auth.pi_uid)
       .single()
 
     if (fetchError || !escrow) {
       return NextResponse.json({ error: 'Escrow not found' }, { status: 404 })
     }
 
-    // 4. Verify the authenticated user is the seller.
-    if (escrow.seller_id !== auth.pi_uid) {
-      console.warn(
-        `[escrow/update-shipping] Forbidden: caller=${auth.pi_uid}, escrow_seller=${escrow.seller_id}`
-      )
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    // 5. Verify escrow is in 'funded' status.
+    // 4. Verify escrow is in 'funded' status.
     if (escrow.status !== 'funded') {
       return NextResponse.json(
         { error: `Escrow must be in 'funded' status to add shipping info (current: '${escrow.status}')` },
