@@ -39,8 +39,8 @@ CREATE TABLE IF NOT EXISTS public.platform_revenue (
   collected_at TIMESTAMPTZ    NOT NULL DEFAULT now()
 );
 
--- Index for fast lookups by escrow transaction
-CREATE INDEX IF NOT EXISTS platform_revenue_escrow_idx
+-- Enforce one fee record per escrow transaction while still supporting fast lookups.
+CREATE UNIQUE INDEX IF NOT EXISTS platform_revenue_escrow_idx
   ON public.platform_revenue (escrow_id);
 
 -- Index for time-range aggregation queries on the admin dashboard
