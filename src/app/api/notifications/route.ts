@@ -141,13 +141,15 @@ export async function PATCH(req: NextRequest) {
       validatedIds.push(id)
     }
 
-    // Scope the update to the authenticated user's notifications only —
-    // the user_id predicate prevents marking another user's notifications.
+    // Scope the update to the authenticated user's unread notifications only —
+    // the user_id predicate prevents marking another user's notifications,
+    // and the is_read predicate avoids unnecessary writes/counting already-read rows.
     const { data, error } = await supabaseAdmin
       .from('notifications')
       .update({ is_read: true })
       .eq('user_id', piUid)
       .in('id', validatedIds)
+      .eq('is_read', false)
       .select('id')
 
     if (error) {
