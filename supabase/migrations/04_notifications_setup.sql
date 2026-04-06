@@ -138,7 +138,7 @@ $$;
 
 DROP TRIGGER IF EXISTS escrow_notify_status_change ON public.escrow_transactions;
 CREATE TRIGGER escrow_notify_status_change
-  AFTER UPDATE ON public.escrow_transactions
+  AFTER UPDATE OF status ON public.escrow_transactions
   FOR EACH ROW EXECUTE FUNCTION public.notify_escrow_update();
 
 -- ─── Trigger: new review → notify reviewee ───────────────────────────────────
