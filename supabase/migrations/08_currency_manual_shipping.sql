@@ -56,3 +56,23 @@ ALTER TABLE public.escrow_transactions
 -- Drop the legacy webhook-era partial unique index if it exists from older
 -- Phase 8 migrations so upgraded databases match fresh resets.
 DROP INDEX IF EXISTS public.escrow_transactions_carrier_tracking_id_key;
+
+-- Explicitly converge the escrow update trigger function back to the
+-- manual-shipping definition so databases that previously ran the deleted
+-- webhook migration do not retain its extra delivered-notification branch.
+CREATE OR REPLACE FUNCTION public.notify_escrow_update()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  -- Reverted manual-shipping behavior: no dedicated notification on
+  -- transition to `delivered`.
+  IF TG_OP = 'UPDATE'
+     AND NEW.status IS DISTINCT FROM OLD.status
+     AND NEW.status = 'delivered' THEN
+    RETURN NEW;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
