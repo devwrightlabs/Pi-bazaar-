@@ -97,6 +97,21 @@ export type OrderInsert = Omit<
 }
 export type OrderUpdate = Partial<Omit<OrderRow, 'id'>>
 
+// ─── exchange_rates table ─────────────────────────────────────────────────────
+
+export type ExchangeRateRow = {
+  id: string
+  fiat_currency_code: string
+  pi_rate: number
+  last_updated: string
+}
+
+export type ExchangeRateInsert = Omit<ExchangeRateRow, 'id' | 'last_updated'> & {
+  id?: string
+  last_updated?: string
+}
+export type ExchangeRateUpdate = Partial<Omit<ExchangeRateRow, 'id'>>
+
 // ─── Database type ───────────────────────────────────────────────────────────
 
 export type Database = {
@@ -118,6 +133,12 @@ export type Database = {
         Row: OrderRow
         Insert: OrderInsert
         Update: OrderUpdate
+        Relationships: []
+      }
+      exchange_rates: {
+        Row: ExchangeRateRow
+        Insert: ExchangeRateInsert
+        Update: ExchangeRateUpdate
         Relationships: []
       }
     }
