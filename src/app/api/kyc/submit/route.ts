@@ -116,7 +116,21 @@ export async function POST(req: NextRequest) {
 
     if (userUpdateError) {
       console.error('[kyc/submit] User update error:', userUpdateError)
-      // Non-fatal: KYC record was created successfully; log and continue.
+
+      const { error: rollbackError } = await supabaseAdmin
+        .from('kyc_records')
+        .delete()
+        .eq('id', kycRecord.id)
+        .eq('user_id', piUid)
+
+      if (rollbackError) {
+        console.error('[kyc/submit] Failed to roll back KYC record after user update error:', rollbackError)
+      }
+
+      return NextResponse.json(
+        { error: 'Failed to submit KYC record' },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json(
