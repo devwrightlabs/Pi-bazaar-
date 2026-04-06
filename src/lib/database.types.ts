@@ -153,12 +153,6 @@ export type Database = {
         Update: OrderUpdate
         Relationships: []
       }
-      platform_revenue: {
-        Row: PlatformRevenueRow
-        Insert: PlatformRevenueInsert
-        Update: PlatformRevenueUpdate
-        Relationships: []
-      }
       exchange_rates: {
         Row: ExchangeRateRow
         Insert: ExchangeRateInsert
