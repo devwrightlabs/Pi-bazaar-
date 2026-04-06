@@ -42,25 +42,16 @@ export async function GET(req: NextRequest) {
     }
 
     // 3. Fetch all metrics concurrently for performance.
-    const [revenueResult, disputesResult, kycResult, productsResult] =
+    const [revenueResult, disputesResult, productsResult] =
       await Promise.all([
-        // Total platform revenue (sum of all collected fees)
-        supabaseAdmin
-          .from('platform_revenue')
-          .select('amount_pi'),
+        // Total platform revenue (server-side aggregation via RPC)
+        supabaseAdmin.rpc('get_total_platform_revenue'),
 
         // Active disputes (escrow transactions with status = 'disputed')
         supabaseAdmin
           .from('escrow_transactions')
           .select('id', { count: 'exact', head: true })
           .eq('status', 'disputed'),
-
-        // Pending KYC applications (users with kyc_status = 'pending')
-        // Note: KYC table may not exist yet — handle gracefully.
-        supabaseAdmin
-          .from('users')
-          .select('id', { count: 'exact', head: true })
-          .eq('kyc_status' as string, 'pending'),
 
         // Total active products
         supabaseAdmin
@@ -69,20 +60,14 @@ export async function GET(req: NextRequest) {
           .eq('status', 'active'),
       ])
 
-    // 4. Calculate total revenue from the returned rows.
-    let totalRevenuePi = 0
-    if (!revenueResult.error && revenueResult.data) {
-      totalRevenuePi = revenueResult.data.reduce(
-        (sum, row) => sum + Number(row.amount_pi),
-        0,
-      )
-    }
-
-    // 5. Assemble and return the dashboard metrics.
+    // 4. Assemble and return the dashboard metrics.
+    // pending_kyc is 0 because the KYC table has not been created yet
+    // (planned for a future phase). Once available, this metric will query
+    // the KYC table for applications with status = 'pending'.
     return NextResponse.json({
-      total_revenue_pi: totalRevenuePi,
+      total_revenue_pi: Number(revenueResult.data) || 0,
       active_disputes: disputesResult.count ?? 0,
-      pending_kyc: kycResult.count ?? 0,
+      pending_kyc: 0,
       active_products: productsResult.count ?? 0,
     })
   } catch (err) {

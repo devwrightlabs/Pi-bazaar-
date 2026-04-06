@@ -9,6 +9,11 @@
  *   - hide_product   — Sets status = 'suspended' on the target product
  *   - unhide_product — Sets status = 'active' on the target product
  *
+ * Request body:
+ *   - action    — One of the supported action strings above
+ *   - target_id — The UUID primary key (users.id or products.id) of the
+ *                 entity to act on. This is NOT the pi_uid.
+ *
  * Security:
  *   - Caller identity is extracted from the verified JWT (never trusted from
  *     the request body).

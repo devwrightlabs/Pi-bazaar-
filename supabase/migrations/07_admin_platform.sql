@@ -66,3 +66,16 @@ CREATE POLICY "platform_revenue_select_admin"
 
 -- No INSERT / UPDATE / DELETE policies — all mutations go through the
 -- service-role client (supabaseAdmin) in server-side API routes.
+
+-- ─── Revenue aggregation function ────────────────────────────────────────────
+-- Called from the admin analytics API via supabaseAdmin.rpc().
+-- SECURITY DEFINER so it bypasses RLS when executed by the service role.
+CREATE OR REPLACE FUNCTION public.get_total_platform_revenue()
+RETURNS NUMERIC LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  RETURN COALESCE(
+    (SELECT SUM(amount_pi) FROM public.platform_revenue),
+    0
+  );
+END;
+$$;
