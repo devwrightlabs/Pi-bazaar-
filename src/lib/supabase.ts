@@ -27,6 +27,7 @@ export type Database = {
       orders: CoreDatabase['public']['Tables']['orders']
       user_settings: CoreDatabase['public']['Tables']['user_settings']
       saved_addresses: CoreDatabase['public']['Tables']['saved_addresses']
+      platform_revenue: CoreDatabase['public']['Tables']['platform_revenue']
       conversations: {
         Row: AsRow<Conversation>
         Insert: AsRow<Omit<Conversation, 'id' | 'created_at'>>

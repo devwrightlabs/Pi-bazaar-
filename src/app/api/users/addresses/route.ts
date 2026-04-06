@@ -23,7 +23,7 @@ const MAX_FIELD_LENGTH = 200
 const MAX_PHONE_LENGTH = 30
 const MAX_ADDRESSES_PER_USER = 20
 
-const SELECT_FIELDS = 'id, user_id, is_default, full_name, street_address, city, state_province, postal_code, country, phone_number, created_at'
+const SELECT_FIELDS = 'id, user_id, is_default, full_name, street_address, city, state_province, postal_code, country_code, phone_number, created_at'
 
 function isValidUuid(value: string): boolean {
   return UUID_REGEX.test(value)
@@ -79,14 +79,15 @@ export async function POST(req: NextRequest) {
     const city = typeof body.city === 'string' ? body.city.trim() : ''
     const state_province = typeof body.state_province === 'string' ? body.state_province.trim() : ''
     const postal_code = typeof body.postal_code === 'string' ? body.postal_code.trim() : ''
-    const country = typeof body.country === 'string' ? body.country.trim() : ''
+    const country_code = typeof body.country_code === 'string' ? body.country_code.trim().toUpperCase() : ''
 
     if (!full_name) return NextResponse.json({ error: 'full_name is required' }, { status: 400 })
     if (!street_address) return NextResponse.json({ error: 'street_address is required' }, { status: 400 })
     if (!city) return NextResponse.json({ error: 'city is required' }, { status: 400 })
     if (!state_province) return NextResponse.json({ error: 'state_province is required' }, { status: 400 })
     if (!postal_code) return NextResponse.json({ error: 'postal_code is required' }, { status: 400 })
-    if (!country) return NextResponse.json({ error: 'country is required' }, { status: 400 })
+    if (!country_code) return NextResponse.json({ error: 'country_code is required' }, { status: 400 })
+    if (!/^[A-Z]{2}$/.test(country_code)) return NextResponse.json({ error: 'country_code must be a 2-letter ISO 3166-1 alpha-2 code (e.g. US, GB)' }, { status: 400 })
 
     // Length checks.
     if (full_name.length > MAX_FIELD_LENGTH) return NextResponse.json({ error: `full_name must be ${MAX_FIELD_LENGTH} characters or fewer` }, { status: 400 })
@@ -94,7 +95,6 @@ export async function POST(req: NextRequest) {
     if (city.length > MAX_FIELD_LENGTH) return NextResponse.json({ error: `city must be ${MAX_FIELD_LENGTH} characters or fewer` }, { status: 400 })
     if (state_province.length > MAX_FIELD_LENGTH) return NextResponse.json({ error: `state_province must be ${MAX_FIELD_LENGTH} characters or fewer` }, { status: 400 })
     if (postal_code.length > MAX_FIELD_LENGTH) return NextResponse.json({ error: `postal_code must be ${MAX_FIELD_LENGTH} characters or fewer` }, { status: 400 })
-    if (country.length > MAX_FIELD_LENGTH) return NextResponse.json({ error: `country must be ${MAX_FIELD_LENGTH} characters or fewer` }, { status: 400 })
 
     const phone_number = typeof body.phone_number === 'string' ? body.phone_number.trim() || null : null
     if (phone_number && phone_number.length > MAX_PHONE_LENGTH) {
@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
         city,
         state_province,
         postal_code,
-        country,
+        country_code,
         phone_number,
       })
       .select(SELECT_FIELDS)
@@ -239,10 +239,10 @@ export async function PUT(req: NextRequest) {
       if (!val || val.length > MAX_FIELD_LENGTH) return NextResponse.json({ error: `postal_code must be between 1 and ${MAX_FIELD_LENGTH} characters` }, { status: 400 })
       updates.postal_code = val
     }
-    if ('country' in body) {
-      const val = typeof body.country === 'string' ? body.country.trim() : ''
-      if (!val || val.length > MAX_FIELD_LENGTH) return NextResponse.json({ error: `country must be between 1 and ${MAX_FIELD_LENGTH} characters` }, { status: 400 })
-      updates.country = val
+    if ('country_code' in body) {
+      const val = typeof body.country_code === 'string' ? body.country_code.trim().toUpperCase() : ''
+      if (!val || !/^[A-Z]{2}$/.test(val)) return NextResponse.json({ error: 'country_code must be a 2-letter ISO 3166-1 alpha-2 code (e.g. US, GB)' }, { status: 400 })
+      updates.country_code = val
     }
     if ('phone_number' in body) {
       const val = body.phone_number === null ? null : (typeof body.phone_number === 'string' ? body.phone_number.trim() || null : null)
@@ -275,7 +275,7 @@ export async function PUT(req: NextRequest) {
         p_city: Object.prototype.hasOwnProperty.call(updates, 'city') ? updates.city : null,
         p_state_province: Object.prototype.hasOwnProperty.call(updates, 'state_province') ? updates.state_province : null,
         p_postal_code: Object.prototype.hasOwnProperty.call(updates, 'postal_code') ? updates.postal_code : null,
-        p_country: Object.prototype.hasOwnProperty.call(updates, 'country') ? updates.country : null,
+        p_country_code: Object.prototype.hasOwnProperty.call(updates, 'country_code') ? updates.country_code : null,
         p_phone_number: Object.prototype.hasOwnProperty.call(updates, 'phone_number') ? updates.phone_number : null,
       })
 
