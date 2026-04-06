@@ -97,6 +97,50 @@ export type OrderInsert = Omit<
 }
 export type OrderUpdate = Partial<Omit<OrderRow, 'id'>>
 
+// ─── user_settings table ─────────────────────────────────────────────────────
+
+export type UserSettingsRow = {
+  id: string
+  user_id: string
+  preferred_currency: string
+  email_notifications: boolean
+  push_notifications: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type UserSettingsInsert = Omit<
+  UserSettingsRow,
+  'id' | 'created_at' | 'updated_at' | 'preferred_currency' | 'email_notifications' | 'push_notifications'
+> & {
+  preferred_currency?: string
+  email_notifications?: boolean
+  push_notifications?: boolean
+}
+export type UserSettingsUpdate = Partial<Omit<UserSettingsRow, 'id' | 'user_id'>>
+
+// ─── saved_addresses table ───────────────────────────────────────────────────
+
+export type SavedAddressRow = {
+  id: string
+  user_id: string
+  is_default: boolean
+  full_name: string
+  street_address: string
+  city: string
+  state_province: string
+  postal_code: string
+  country: string
+  phone_number: string | null
+  created_at: string
+}
+
+export type SavedAddressInsert = Omit<SavedAddressRow, 'id' | 'created_at' | 'is_default' | 'phone_number'> & {
+  is_default?: boolean
+  phone_number?: string | null
+}
+export type SavedAddressUpdate = Partial<Omit<SavedAddressRow, 'id' | 'user_id'>>
+
 // ─── Database type ───────────────────────────────────────────────────────────
 
 export type Database = {
@@ -118,6 +162,18 @@ export type Database = {
         Row: OrderRow
         Insert: OrderInsert
         Update: OrderUpdate
+        Relationships: []
+      }
+      user_settings: {
+        Row: UserSettingsRow
+        Insert: UserSettingsInsert
+        Update: UserSettingsUpdate
+        Relationships: []
+      }
+      saved_addresses: {
+        Row: SavedAddressRow
+        Insert: SavedAddressInsert
+        Update: SavedAddressUpdate
         Relationships: []
       }
     }
