@@ -68,7 +68,12 @@ export async function PATCH(req: NextRequest) {
     const piUid = auth.pi_uid
 
     // 2. Parse and validate request body.
-    const body = (await req.json()) as MarkReadBody
+    let body: MarkReadBody
+    try {
+      body = (await req.json()) as MarkReadBody
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
+    }
     const { notification_ids, all } = body
 
     // Either `all: true` or a non-empty array of UUIDs must be provided.
