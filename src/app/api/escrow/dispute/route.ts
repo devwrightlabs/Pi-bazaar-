@@ -181,15 +181,33 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Insert all notifications — use supabaseAdmin since notifications table
-    // has no client INSERT policy.
-    const { error: notifyError } = await supabaseAdmin
-      .from('notifications')
-      .insert(notificationRows)
+    // Filter recipients to users that actually exist so one invalid pi_uid
+    // does not cause the entire batch insert to fail on the FK constraint.
+    const candidateUserIds = [...new Set(notificationRows.map(row => row.user_id))]
+    const { data: existingUsers, error: existingUsersError } = await supabaseAdmin
+      .from('users')
+      .select('pi_uid')
+      .in('pi_uid', candidateUserIds)
 
-    if (notifyError) {
+    if (existingUsersError) {
       // Non-fatal: the dispute was opened successfully; log and continue.
-      console.error('[escrow/dispute] Notification insert error:', notifyError)
+      console.error('[escrow/dispute] Notification recipient lookup error:', existingUsersError)
+    } else {
+      const existingUserIds = new Set((existingUsers ?? []).map(user => user.pi_uid))
+      const validNotificationRows = notificationRows.filter(row => existingUserIds.has(row.user_id))
+
+      if (validNotificationRows.length > 0) {
+        // Insert all valid notifications — use supabaseAdmin since notifications
+        // table has no client INSERT policy.
+        const { error: notifyError } = await supabaseAdmin
+          .from('notifications')
+          .insert(validNotificationRows)
+
+        if (notifyError) {
+          // Non-fatal: the dispute was opened successfully; log and continue.
+          console.error('[escrow/dispute] Notification insert error:', notifyError)
+        }
+      }
     }
 
     return NextResponse.json({
