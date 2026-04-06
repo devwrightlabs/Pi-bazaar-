@@ -136,31 +136,46 @@ export async function POST(req: NextRequest) {
       `${error.details ?? ''} ${error.message ?? ''}`.toLowerCase().includes('rows')
 
     // 4. Find the matching escrow transaction. Prefer the dedicated
-    // carrier_tracking_id column, but fall back to the legacy metadata
-    // storage used by the existing shipped flow.
+    // carrier_tracking_id column, then fall back to the current shipped
+    // flow's tracking_number column, and finally the legacy metadata
+    // storage.
     let { data: escrow, error: fetchError } = await findEscrowByTrackingField('carrier_tracking_id')
 
-    if (!escrow && !fetchError) {
-      const fallbackResult = await findEscrowByTrackingField('metadata->>tracking_number')
-      escrow = fallbackResult.data
-      fetchError = fallbackResult.error
+    const findAndBackfillEscrowByTrackingField = async (field: string, sourceLabel: string) => {
+      const fallbackResult = await findEscrowByTrackingField(field)
 
-      if (escrow) {
+      if (fallbackResult.data) {
         const { error: syncTrackingError } = await supabaseAdmin
           .from('escrow_transactions')
           .update({ carrier_tracking_id: payload.tracking_id })
-          .eq('id', escrow.id)
+          .eq('id', fallbackResult.data.id)
 
         if (syncTrackingError) {
           console.error(
-            '[webhooks/shipping] Failed to backfill carrier_tracking_id from metadata.tracking_number:',
+            `[webhooks/shipping] Failed to backfill carrier_tracking_id from ${sourceLabel}:`,
             payload.tracking_id,
             syncTrackingError,
           )
         }
       }
+
+      return fallbackResult
     }
 
+    if (!escrow && !fetchError) {
+      const fallbackResult = await findAndBackfillEscrowByTrackingField('tracking_number', 'tracking_number')
+      escrow = fallbackResult.data
+      fetchError = fallbackResult.error
+    }
+
+    if (!escrow && !fetchError) {
+      const fallbackResult = await findAndBackfillEscrowByTrackingField(
+        'metadata->>tracking_number',
+        'metadata.tracking_number',
+      )
+      escrow = fallbackResult.data
+      fetchError = fallbackResult.error
+    }
     if (fetchError) {
       if (isMultipleRowsError(fetchError)) {
         console.error(
