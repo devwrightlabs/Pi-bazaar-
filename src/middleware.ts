@@ -70,14 +70,28 @@ const CRITICAL_LIMIT = 15 // 15 requests per minute
 const STANDARD_LIMIT = 100 // 100 requests per minute
 
 /**
- * Extracts a rate-limit key from the request using the client IP address.
- * IP-based keying avoids relying on unverified JWT claims in the middleware
- * (actual auth verification happens in route handlers via verifyAuthToken).
+ * Extracts a rate-limit key from the request using the best available client
+ * network identifier. Prefer the framework-provided client IP when available,
+ * then trusted forwarding headers, and finally fall back to a secondary
+ * discriminator so requests without IP metadata do not all share one bucket.
  */
 function getRateLimitKey(request: NextRequest): string {
+  const requestIp =
+    'ip' in request && typeof request.ip === 'string' && request.ip.trim().length > 0
+      ? request.ip.trim()
+      : null
+
   const forwarded = request.headers.get('x-forwarded-for')
-  const ip = forwarded?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown'
-  return `ip:${ip}`
+  const forwardedIp = forwarded?.split(',')[0]?.trim()
+  const realIp = request.headers.get('x-real-ip')?.trim()
+  const ip = requestIp || forwardedIp || realIp
+
+  if (ip) {
+    return `ip:${ip}`
+  }
+
+  const userAgent = request.headers.get('user-agent')?.trim() || 'unknown-ua'
+  return `anon:${userAgent}`
 }
 
 function isCriticalPath(pathname: string): boolean {
