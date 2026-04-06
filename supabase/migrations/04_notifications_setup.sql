@@ -46,6 +46,30 @@ CREATE POLICY "notifications_update_own"
     AND (auth.jwt() ->> 'pi_uid') = user_id
   );
 
+-- Enforce immutability of notification contents; clients may only change is_read.
+CREATE OR REPLACE FUNCTION public.notifications_only_update_is_read()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.id IS DISTINCT FROM OLD.id
+     OR NEW.user_id IS DISTINCT FROM OLD.user_id
+     OR NEW.type IS DISTINCT FROM OLD.type
+     OR NEW.reference_id IS DISTINCT FROM OLD.reference_id
+     OR NEW.message IS DISTINCT FROM OLD.message
+     OR NEW.created_at IS DISTINCT FROM OLD.created_at THEN
+    RAISE EXCEPTION 'Only is_read may be updated on notifications.';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS notifications_only_update_is_read_trigger
+  ON public.notifications;
+
+CREATE TRIGGER notifications_only_update_is_read_trigger
+  BEFORE UPDATE ON public.notifications
+  FOR EACH ROW
+  EXECUTE FUNCTION public.notifications_only_update_is_read();
 -- No INSERT or DELETE policies for clients — notifications are created only
 -- by server-side trigger functions (SECURITY DEFINER) below.
 
