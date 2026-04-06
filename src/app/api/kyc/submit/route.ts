@@ -97,6 +97,13 @@ export async function POST(req: NextRequest) {
           { status: 409 }
         )
       }
+      // Foreign-key violation — authenticated user has no corresponding users row
+      if (insertError.code === '23503') {
+        return NextResponse.json(
+          { error: 'User record not found for this authenticated user' },
+          { status: 404 }
+        )
+      }
       console.error('[kyc/submit] Insert error:', insertError)
       return NextResponse.json({ error: 'Failed to submit KYC record' }, { status: 500 })
     }
