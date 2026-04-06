@@ -101,6 +101,20 @@ export type OrderInsert = Omit<
 }
 export type OrderUpdate = Partial<Omit<OrderRow, 'id'>>
 
+// ─── platform_revenue table ──────────────────────────────────────────────────
+
+export type PlatformRevenueRow = {
+  id: string
+  escrow_id: string
+  amount_pi: number
+  collected_at: string
+}
+
+export type PlatformRevenueInsert = Omit<PlatformRevenueRow, 'id' | 'collected_at'> & {
+  collected_at?: string
+}
+export type PlatformRevenueUpdate = Partial<Omit<PlatformRevenueRow, 'id'>>
+
 // ─── exchange_rates table ─────────────────────────────────────────────────────
 
 export type ExchangeRateRow = {
@@ -137,6 +151,12 @@ export type Database = {
         Row: OrderRow
         Insert: OrderInsert
         Update: OrderUpdate
+        Relationships: []
+      }
+      platform_revenue: {
+        Row: PlatformRevenueRow
+        Insert: PlatformRevenueInsert
+        Update: PlatformRevenueUpdate
         Relationships: []
       }
       exchange_rates: {
