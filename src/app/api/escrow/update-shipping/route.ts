@@ -109,19 +109,34 @@ export async function POST(req: NextRequest) {
 
     // 6. Update the escrow with carrier info and transition to 'shipped'.
     //    Optimistic lock: .eq('status', 'funded') prevents race conditions.
+    //    Keep top-level shipping columns for existing readers, and mirror the
+    //    same values into metadata so the shipped flow has a single consistent
+    //    representation across endpoints.
     const now = new Date().toISOString()
+    const existingMetadata =
+      escrow.metadata && typeof escrow.metadata === 'object' && !Array.isArray(escrow.metadata)
+        ? escrow.metadata
+        : {}
+    const mergedMetadata = {
+      ...existingMetadata,
+      carrier: carrier_name.trim(),
+      tracking_number: tracking_number.trim(),
+      tracking_url: safeTrackingUrl,
+    }
+
     const { data: updated, error: updateError } = await supabaseAdmin
       .from('escrow_transactions')
       .update({
         carrier_name: carrier_name.trim(),
         tracking_number: tracking_number.trim(),
         tracking_url: safeTrackingUrl,
+        metadata: mergedMetadata,
         status: 'shipped',
         updated_at: now,
       })
       .eq('id', escrow_id.trim())
       .eq('status', 'funded')
-      .select('id, seller_id, buyer_id, status, carrier_name, tracking_number, tracking_url, updated_at')
+      .select('id, seller_id, buyer_id, status, carrier_name, tracking_number, tracking_url, metadata, updated_at')
       .maybeSingle()
 
     if (updateError) {
