@@ -122,22 +122,49 @@ export async function POST(req: NextRequest) {
 
     const canonicalStatus = normalizeCarrierStatus(payload.status)
 
-    // 4. Find the matching escrow transaction by carrier_tracking_id.
-    const { data: escrow, error: fetchError } = await supabaseAdmin
-      .from('escrow_transactions')
-      .select('id, status, buyer_id, seller_id')
-      .eq('carrier_tracking_id', payload.tracking_id)
-      .maybeSingle()
+    const findEscrowByTrackingField = async (field: string) => {
+      return await supabaseAdmin
+        .from('escrow_transactions')
+        .select('id, status, buyer_id, seller_id')
+        .eq(field, payload.tracking_id)
+        .maybeSingle()
+    }
+
+    const isMultipleRowsError = (error: { code?: string; details?: string; message?: string } | null) =>
+      error?.code === 'PGRST116' &&
+      `${error.details ?? ''} ${error.message ?? ''}`.toLowerCase().includes('multiple') &&
+      `${error.details ?? ''} ${error.message ?? ''}`.toLowerCase().includes('rows')
+
+    // 4. Find the matching escrow transaction. Prefer the dedicated
+    // carrier_tracking_id column, but fall back to the legacy metadata
+    // storage used by the existing shipped flow.
+    let { data: escrow, error: fetchError } = await findEscrowByTrackingField('carrier_tracking_id')
+
+    if (!escrow && !fetchError) {
+      const fallbackResult = await findEscrowByTrackingField('metadata->>tracking_number')
+      escrow = fallbackResult.data
+      fetchError = fallbackResult.error
+
+      if (escrow) {
+        const { error: syncTrackingError } = await supabaseAdmin
+          .from('escrow_transactions')
+          .update({ carrier_tracking_id: payload.tracking_id })
+          .eq('id', escrow.id)
+
+        if (syncTrackingError) {
+          console.error(
+            '[webhooks/shipping] Failed to backfill carrier_tracking_id from metadata.tracking_number:',
+            payload.tracking_id,
+            syncTrackingError,
+          )
+        }
+      }
+    }
 
     if (fetchError) {
-      const isMultipleRowsError =
-        fetchError.code === 'PGRST116' &&
-        `${fetchError.details ?? ''} ${fetchError.message ?? ''}`.toLowerCase().includes('multiple') &&
-        `${fetchError.details ?? ''} ${fetchError.message ?? ''}`.toLowerCase().includes('rows')
-
-      if (isMultipleRowsError) {
+      if (isMultipleRowsError(fetchError)) {
         console.error(
-          '[webhooks/shipping] Duplicate escrow_transactions rows for carrier_tracking_id:',
+          '[webhooks/shipping] Duplicate escrow_transactions rows for tracking identifier:',
           payload.tracking_id,
           fetchError,
         )
