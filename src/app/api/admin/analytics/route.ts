@@ -61,9 +61,10 @@ export async function GET(req: NextRequest) {
       ])
 
     // 4. Assemble and return the dashboard metrics.
-    // pending_kyc is 0 because the KYC table has not been created yet
-    // (planned for a future phase). Once available, this metric will query
-    // the KYC table for applications with status = 'pending'.
+    // TODO: Replace pending_kyc with actual KYC query when table is created.
+    // The KYC table has not been created yet (planned for a future phase).
+    // Once available, this metric will query KYC applications with
+    // status = 'pending'.
     return NextResponse.json({
       total_revenue_pi: Number(revenueResult.data) || 0,
       active_disputes: disputesResult.count ?? 0,

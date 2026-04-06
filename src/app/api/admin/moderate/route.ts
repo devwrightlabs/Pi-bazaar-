@@ -49,6 +49,47 @@ function isValidUuid(value: string): boolean {
   return UUID_REGEX.test(value)
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/**
+ * Executes a moderation update on a target entity and returns a JSON response.
+ * Verifies that at least one row was affected to confirm the target exists.
+ */
+async function executeModeration(
+  table: string,
+  targetId: string,
+  updatePayload: Record<string, unknown>,
+  actionName: ModerationAction,
+  entityLabel: string,
+): Promise<NextResponse> {
+  const { data, error } = await supabaseAdmin
+    .from(table)
+    .update(updatePayload)
+    .eq('id', targetId)
+    .select('id')
+
+  if (error) {
+    console.error(`[admin/moderate] ${actionName} error:`, error)
+    return NextResponse.json(
+      { error: `Failed to execute ${actionName}` },
+      { status: 500 },
+    )
+  }
+
+  if (!data || data.length === 0) {
+    return NextResponse.json(
+      { error: `${entityLabel} not found` },
+      { status: 404 },
+    )
+  }
+
+  return NextResponse.json({
+    success: true,
+    action: actionName,
+    target_id: targetId,
+  })
+}
+
 // ─── POST /api/admin/moderate ─────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
@@ -101,89 +142,17 @@ export async function POST(req: NextRequest) {
 
     // 4. Execute the moderation action.
     switch (action as ModerationAction) {
-      case 'suspend_user': {
-        const { error } = await supabaseAdmin
-          .from('users')
-          .update({ is_suspended: true })
-          .eq('id', target_id)
+      case 'suspend_user':
+        return executeModeration('users', target_id, { is_suspended: true }, 'suspend_user', 'User')
 
-        if (error) {
-          console.error('[admin/moderate] suspend_user error:', error)
-          return NextResponse.json(
-            { error: 'Failed to suspend user' },
-            { status: 500 },
-          )
-        }
+      case 'unsuspend_user':
+        return executeModeration('users', target_id, { is_suspended: false }, 'unsuspend_user', 'User')
 
-        return NextResponse.json({
-          success: true,
-          action: 'suspend_user',
-          target_id,
-        })
-      }
+      case 'hide_product':
+        return executeModeration('products', target_id, { status: 'suspended' }, 'hide_product', 'Product')
 
-      case 'unsuspend_user': {
-        const { error } = await supabaseAdmin
-          .from('users')
-          .update({ is_suspended: false })
-          .eq('id', target_id)
-
-        if (error) {
-          console.error('[admin/moderate] unsuspend_user error:', error)
-          return NextResponse.json(
-            { error: 'Failed to unsuspend user' },
-            { status: 500 },
-          )
-        }
-
-        return NextResponse.json({
-          success: true,
-          action: 'unsuspend_user',
-          target_id,
-        })
-      }
-
-      case 'hide_product': {
-        const { error } = await supabaseAdmin
-          .from('products')
-          .update({ status: 'suspended' })
-          .eq('id', target_id)
-
-        if (error) {
-          console.error('[admin/moderate] hide_product error:', error)
-          return NextResponse.json(
-            { error: 'Failed to hide product' },
-            { status: 500 },
-          )
-        }
-
-        return NextResponse.json({
-          success: true,
-          action: 'hide_product',
-          target_id,
-        })
-      }
-
-      case 'unhide_product': {
-        const { error } = await supabaseAdmin
-          .from('products')
-          .update({ status: 'active' })
-          .eq('id', target_id)
-
-        if (error) {
-          console.error('[admin/moderate] unhide_product error:', error)
-          return NextResponse.json(
-            { error: 'Failed to unhide product' },
-            { status: 500 },
-          )
-        }
-
-        return NextResponse.json({
-          success: true,
-          action: 'unhide_product',
-          target_id,
-        })
-      }
+      case 'unhide_product':
+        return executeModeration('products', target_id, { status: 'active' }, 'unhide_product', 'Product')
 
       default:
         return NextResponse.json({ error: 'Unknown action' }, { status: 400 })
