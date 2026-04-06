@@ -208,17 +208,14 @@ export async function POST(req: NextRequest) {
       }
 
       if (!updatedEscrows || updatedEscrows.length === 0) {
-        return NextResponse.json(
-          {
-            received: true,
-            matched: true,
-            escrow_id: escrow.id,
-            carrier_status: canonicalStatus,
-            status_updated: false,
-            error: 'Escrow status changed before delivery transition could be applied',
-          },
-          { status: 409 }
-        )
+        return NextResponse.json({
+          received: true,
+          matched: true,
+          escrow_id: escrow.id,
+          carrier_status: canonicalStatus,
+          status_updated: false,
+          error: 'Escrow status changed before delivery transition could be applied',
+        })
       }
       return NextResponse.json({
         received: true,
