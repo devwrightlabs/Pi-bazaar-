@@ -33,13 +33,23 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Parse and validate request body.
-    const body = (await req.json()) as {
+    let body: {
       escrow_id?: unknown
       carrier_name?: unknown
       tracking_number?: unknown
       tracking_url?: unknown
     }
 
+    try {
+      body = (await req.json()) as {
+        escrow_id?: unknown
+        carrier_name?: unknown
+        tracking_number?: unknown
+        tracking_url?: unknown
+      }
+    } catch {
+      return NextResponse.json({ error: 'Invalid JSON request body' }, { status: 400 })
+    }
     const { escrow_id, carrier_name, tracking_number, tracking_url } = body
 
     if (!escrow_id || typeof escrow_id !== 'string' || escrow_id.trim() === '') {
