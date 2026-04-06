@@ -2,39 +2,15 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import type { Database } from '@/lib/database.types'
 import { supabaseUrl, supabaseAnonKey } from '@/lib/env'
-import { Redis } from '@upstash/redis'
 
-// ─── Shared Redis-Backed Rate Limiter ───────────────────────────────────────
+// ─── Shared In-Memory Rate Limiter ──────────────────────────────────────────
 
 /**
  * Sliding-window rate limiter keyed by client identifier (IP or JWT sub).
- * Request timestamps are stored in Redis so limits are enforced consistently
- * across serverless instances and regions.
+ * Request timestamps are stored in memory for the lifetime of the current
+ * server instance.
  */
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-})
-
-const RATE_LIMIT_SCRIPT = `
-local key = KEYS[1]
-local window_start = tonumber(ARGV[1])
-local now = tonumber(ARGV[2])
-local max_requests = tonumber(ARGV[3])
-local ttl_seconds = tonumber(ARGV[4])
-local member = ARGV[5]
-
-redis.call('ZREMRANGEBYSCORE', key, 0, window_start)
-
-local current = redis.call('ZCARD', key)
-if current >= max_requests then
-  return 0
-end
-
-redis.call('ZADD', key, now, member)
-redis.call('EXPIRE', key, ttl_seconds)
-return 1
-`
+const rateLimitStore = new Map<string, number[]>()
 
 /**
  * Returns `true` if the request is within the rate limit.
@@ -42,17 +18,18 @@ return 1
 async function isWithinLimit(key: string, maxRequests: number, windowMs: number): Promise<boolean> {
   const now = Date.now()
   const windowStart = now - windowMs
-  const ttlSeconds = Math.ceil(windowMs / 1000)
-  const redisKey = `rate_limit:${key}`
-  const member = `${now}:${crypto.randomUUID()}`
+  const storeKey = `rate_limit:${key}`
+  const timestamps = rateLimitStore.get(storeKey) ?? []
+  const activeTimestamps = timestamps.filter((timestamp) => timestamp > windowStart)
 
-  const allowed = await redis.eval<number>(
-    RATE_LIMIT_SCRIPT,
-    [redisKey],
-    [String(windowStart), String(now), String(maxRequests), String(ttlSeconds), member],
-  )
+  if (activeTimestamps.length >= maxRequests) {
+    rateLimitStore.set(storeKey, activeTimestamps)
+    return false
+  }
 
-  return allowed === 1
+  activeTimestamps.push(now)
+  rateLimitStore.set(storeKey, activeTimestamps)
+  return true
 }
 
 // ─── Rate Limit Configuration ────────────────────────────────────────────────
