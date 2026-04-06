@@ -70,13 +70,21 @@ BEGIN
     -- 04_notifications_setup.sql. Do not emit a dedicated notification when
     -- the status changes to `delivered`.
     IF NEW.status = 'funded' THEN
-      -- Restore the original `funded` notification INSERT from
-      -- 04_notifications_setup.sql here.
-      NULL;
+      INSERT INTO public.notifications (user_id, type, title, message)
+      VALUES (
+        NEW.seller_id,
+        'escrow_funded',
+        'Escrow funded',
+        'The buyer has funded the escrow. You can now prepare the order for shipment.'
+      );
     ELSIF NEW.status = 'shipped' THEN
-      -- Restore the original `shipped` notification INSERT from
-      -- 04_notifications_setup.sql here.
-      NULL;
+      INSERT INTO public.notifications (user_id, type, title, message)
+      VALUES (
+        NEW.buyer_id,
+        'escrow_shipped',
+        'Order shipped',
+        'The seller marked your order as shipped.'
+      );
     END IF;
   END IF;
 
