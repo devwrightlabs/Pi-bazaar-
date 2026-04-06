@@ -130,6 +130,20 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     if (fetchError) {
+      const isMultipleRowsError =
+        fetchError.code === 'PGRST116' &&
+        `${fetchError.details ?? ''} ${fetchError.message ?? ''}`.toLowerCase().includes('multiple') &&
+        `${fetchError.details ?? ''} ${fetchError.message ?? ''}`.toLowerCase().includes('rows')
+
+      if (isMultipleRowsError) {
+        console.error(
+          '[webhooks/shipping] Duplicate escrow_transactions rows for carrier_tracking_id:',
+          payload.tracking_id,
+          fetchError,
+        )
+        // Acknowledge duplicate matches to prevent carrier retry storms.
+        return NextResponse.json({ received: true, matched: false, duplicate_tracking_id: true })
+      }
       console.error('[webhooks/shipping] Escrow lookup error:', fetchError)
       return NextResponse.json({ error: 'Database error' }, { status: 500 })
     }
