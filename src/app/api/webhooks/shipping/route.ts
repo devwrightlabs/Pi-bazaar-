@@ -195,17 +195,31 @@ export async function POST(req: NextRequest) {
     //    update the escrow status to 'delivered'. This will trigger the
     //    notify_escrow_update DB trigger to notify the buyer.
     if (canonicalStatus === 'delivered' && escrow.status === 'shipped') {
-      const { error: updateError } = await supabaseAdmin
+      const { data: updatedEscrows, error: updateError } = await supabaseAdmin
         .from('escrow_transactions')
         .update({ status: 'delivered' })
         .eq('id', escrow.id)
         .eq('status', 'shipped') // Optimistic lock — only update if still 'shipped'
+        .select('id')
 
       if (updateError) {
         console.error('[webhooks/shipping] Escrow status update error:', updateError)
         return NextResponse.json({ error: 'Failed to update escrow status' }, { status: 500 })
       }
 
+      if (!updatedEscrows || updatedEscrows.length === 0) {
+        return NextResponse.json(
+          {
+            received: true,
+            matched: true,
+            escrow_id: escrow.id,
+            carrier_status: canonicalStatus,
+            status_updated: false,
+            error: 'Escrow status changed before delivery transition could be applied',
+          },
+          { status: 409 }
+        )
+      }
       return NextResponse.json({
         received: true,
         matched: true,
