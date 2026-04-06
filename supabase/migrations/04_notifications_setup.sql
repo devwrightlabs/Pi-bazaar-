@@ -119,22 +119,30 @@ BEGIN
   -- Notify buyer when the item has been shipped
   IF NEW.status = 'shipped' THEN
     INSERT INTO public.notifications (user_id, type, reference_id, message)
-    VALUES (
+    SELECT
       NEW.buyer_id,
       'escrow_update',
       NEW.id,
       'Your order has been shipped.'
+    WHERE EXISTS (
+      SELECT 1
+      FROM public.users u
+      WHERE u.pi_uid = NEW.buyer_id
     );
   END IF;
 
   -- Notify seller when the escrow has been funded (payment received)
   IF NEW.status = 'funded' THEN
     INSERT INTO public.notifications (user_id, type, reference_id, message)
-    VALUES (
+    SELECT
       NEW.seller_id,
       'escrow_update',
       NEW.id,
       'Your escrow has been funded. Please ship the item.'
+    WHERE EXISTS (
+      SELECT 1
+      FROM public.users u
+      WHERE u.pi_uid = NEW.seller_id
     );
   END IF;
 
