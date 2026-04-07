@@ -7,11 +7,12 @@ interface CategoryNavProps {
 
 const CATEGORIES = [
   'All',
+  'Physical Goods',
+  'Digital Assets',
+  'Professional Services',
   'Electronics',
   'Fashion',
   'Home',
-  'Digital',
-  'Services',
   'Vehicles',
   'Sports',
   'Books',

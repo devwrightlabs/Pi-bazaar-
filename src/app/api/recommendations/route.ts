@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
       longitude,
       price_min,
       price_max,
+      origin_country,
     } = parsed.data
     const radius_km: number = parsed.data.radius_km ?? 50
     const preferred_categories: string[] = parsed.data.preferred_categories ?? []
@@ -54,6 +55,11 @@ export async function POST(req: NextRequest) {
       query = query.lte('price_pi', price_max)
     }
 
+    // Jurisdiction filter: when 'local', filter by origin_country
+    if (origin_country) {
+      query = query.eq('origin_country', origin_country)
+    }
+
     // Fix #6: Add explicit ordering before limit for deterministic and representative prefetch
     query = query
       .order('is_boosted', { ascending: false })
@@ -79,12 +85,17 @@ export async function POST(req: NextRequest) {
       price_max,
     )
 
-    const recommendations = scored.slice(offset, offset + limit)
+    // Prioritize Pro-Seller listings at the top of the feed
+    const proListings = scored.filter((l) => l.is_pro_seller)
+    const regularListings = scored.filter((l) => !l.is_pro_seller)
+    const prioritized = [...proListings, ...regularListings]
+
+    const recommendations = prioritized.slice(offset, offset + limit)
 
     const responseBody: RecommendationResponse = {
       recommendations,
-      total_found: scored.length,
-      has_more: offset + recommendations.length < scored.length,
+      total_found: prioritized.length,
+      has_more: offset + recommendations.length < prioritized.length,
       applied_filters: {
         radius_km,
         categories: preferred_categories,

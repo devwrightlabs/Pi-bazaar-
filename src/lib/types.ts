@@ -11,9 +11,12 @@ export interface Listing {
   location_lng: number
   city: string
   country: string
+  origin_country?: string
   allow_offers?: boolean
   is_active: boolean
   is_boosted: boolean
+  is_pro_seller?: boolean
+  product_type?: 'physical' | 'digital' | 'service'
   created_at: string
   updated_at: string
 }

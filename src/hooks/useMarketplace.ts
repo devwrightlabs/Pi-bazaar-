@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useStore } from '@/store/useStore'
+import { useUIStore, type JurisdictionMode } from '@/store/useUIStore'
 import type { Listing, MatchScore, RecommendationResponse } from '@/lib/types'
 
 export type RecommendedListing = Listing & { match_score: MatchScore }
@@ -9,9 +10,11 @@ export type RecommendedListing = Listing & { match_score: MatchScore }
 const PAGE_SIZE = 20
 const FALLBACK_USER_ID = '00000000-0000-0000-0000-000000000000'
 const DEBOUNCE_MS = 200
+const LOCAL_COUNTRY = 'BS'
 
 export function useMarketplace(initialListings: RecommendedListing[] = []) {
   const { currentUser, userLocation, mapRadius } = useStore()
+  const jurisdictionMode = useUIStore((s) => s.jurisdictionMode)
 
   const [listings, setListings] = useState<RecommendedListing[]>(initialListings)
   const [loading, setLoading] = useState(false)
@@ -63,6 +66,8 @@ export function useMarketplace(initialListings: RecommendedListing[] = []) {
             preferred_categories: categories,
             limit: PAGE_SIZE,
             offset: currentOffset,
+            jurisdiction: jurisdictionMode,
+            origin_country: jurisdictionMode === 'local' ? LOCAL_COUNTRY : undefined,
           }),
           signal: controller.signal,
         })
@@ -92,7 +97,7 @@ export function useMarketplace(initialListings: RecommendedListing[] = []) {
         isFetchingRef.current = false
       }
     },
-    [currentUser, userLocation, mapRadius],
+    [currentUser, userLocation, mapRadius, jurisdictionMode],
   )
 
   // Initial load if no SSR data provided
@@ -101,6 +106,19 @@ export function useMarketplace(initialListings: RecommendedListing[] = []) {
       void fetchRecommendations(true)
     }
   }, [initialListings.length, fetchRecommendations])
+
+  // Re-fetch when jurisdiction changes
+  const prevJurisdiction = useRef(jurisdictionMode)
+  useEffect(() => {
+    if (prevJurisdiction.current !== jurisdictionMode) {
+      prevJurisdiction.current = jurisdictionMode
+      offsetRef.current = 0
+      setListings([])
+      setHasMore(true)
+      setError(null)
+      void fetchRecommendations(true)
+    }
+  }, [jurisdictionMode, fetchRecommendations])
 
   const setCategory = useCallback(
     (category: string) => {

@@ -222,7 +222,15 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
 
   // ----- GRID layout (default) -----
   return (
-    <div className="rounded-2xl border border-border bg-card-bg overflow-hidden flex flex-col">
+    <div
+      className="rounded-2xl overflow-hidden flex flex-col"
+      style={{
+        border: item.is_pro_seller
+          ? '2px solid var(--color-gold)'
+          : '1px solid var(--color-border)',
+        backgroundColor: 'var(--color-card-bg)',
+      }}
+    >
       {/* Square image */}
       <div className="relative w-full aspect-square overflow-hidden">
         {hasImage ? (
@@ -241,8 +249,18 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
           </div>
         )}
 
+        {/* Pro-Seller badge */}
+        {item.is_pro_seller && (
+          <span
+            className="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full z-10"
+            style={{ backgroundColor: '#8B5CF6', color: '#fff' }}
+          >
+            ✓ Pro Seller
+          </span>
+        )}
+
         {/* Boosted badge */}
-        {item.is_boosted && (
+        {item.is_boosted && !item.is_pro_seller && (
           <span className="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full z-10 bg-gold text-black">
             BOOSTED
           </span>
@@ -282,8 +300,27 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
 
         {/* Seller avatar */}
         <div className="flex items-center justify-end gap-1.5 mt-1">
-          <VerifiedBadge size="sm" />
-          <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-gold text-black">
+          {item.is_pro_seller ? (
+            <span
+              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
+              style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8B5CF6' }}
+            >
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                <path d="M6 1L7.5 4.2L11 4.7L8.5 7.1L9.1 10.6L6 9L2.9 10.6L3.5 7.1L1 4.7L4.5 4.2L6 1Z" fill="#8B5CF6" />
+                <path d="M4 6L5.5 7.5L8 5" stroke="#fff" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              Verified Pro
+            </span>
+          ) : (
+            <VerifiedBadge size="sm" />
+          )}
+          <div
+            className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+            style={{
+              backgroundColor: item.is_pro_seller ? '#8B5CF6' : 'var(--color-gold)',
+              color: item.is_pro_seller ? '#fff' : '#000',
+            }}
+          >
             {sellerInitial}
           </div>
         </div>

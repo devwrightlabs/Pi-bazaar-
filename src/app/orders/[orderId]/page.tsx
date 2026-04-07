@@ -161,7 +161,7 @@ function OrderDetailContent({ orderId }: OrderDetailContentProps) {
         {/* Tracking info (buyer view, shipped) */}
         {order.status === 'shipped' && order.tracking_number && (
           <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid #8B5CF6' }}>
-            <p className="text-sm font-semibold mb-1" style={{ color: '#8B5CF6' }}>{'\u{1f4e6}'} Shipment Info</p>
+            <p className="text-sm font-semibold mb-1" style={{ color: '#8B5CF6' }}>📦 Shipment Info</p>
             <p className="text-sm" style={{ color: 'var(--color-text)' }}>
               Carrier: <strong>{order.shipping_carrier}</strong>
             </p>
@@ -174,7 +174,7 @@ function OrderDetailContent({ orderId }: OrderDetailContentProps) {
         {/* Digital delivery proof */}
         {order.delivery_proof && (
           <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid #14B8A6' }}>
-            <p className="text-sm font-semibold mb-1" style={{ color: '#14B8A6' }}>{'\u{1f4e5}'} Delivery Proof</p>
+            <p className="text-sm font-semibold mb-1" style={{ color: '#14B8A6' }}>📥 Delivery Proof</p>
             <a
               href={order.delivery_proof}
               target="_blank"
@@ -202,7 +202,7 @@ function OrderDetailContent({ orderId }: OrderDetailContentProps) {
                 className="w-full py-3 rounded-xl font-semibold text-sm"
                 style={{ backgroundColor: '#22C55E', color: '#fff', opacity: actionLoading ? 0.6 : 1 }}
               >
-                {actionLoading ? 'Processing…' : '\u2713 Confirm Receipt'}
+                {actionLoading ? 'Processing…' : '✓ Confirm Receipt'}
               </button>
             )}
             {canDispute && (
@@ -226,7 +226,7 @@ function OrderDetailContent({ orderId }: OrderDetailContentProps) {
                 className="w-full py-3 rounded-xl font-semibold text-sm"
                 style={{ backgroundColor: '#8B5CF6', color: '#fff' }}
               >
-              {'\u{1f69a}'} Mark as Shipped
+              🚚 Mark as Shipped
               </button>
             )}
             {canDeliver && (
@@ -235,13 +235,13 @@ function OrderDetailContent({ orderId }: OrderDetailContentProps) {
                 className="w-full py-3 rounded-xl font-semibold text-sm"
                 style={{ backgroundColor: '#14B8A6', color: '#fff' }}
               >
-              {'\u{1f4e4}'} Deliver Item
+              📤 Deliver Item
               </button>
             )}
             {['payment_received', 'shipped', 'delivered', 'completed'].includes(order.status) && (
               <div className="rounded-xl p-3 text-sm" style={{ backgroundColor: 'var(--color-card-bg)', color: 'var(--color-subtext)' }}>
                 {order.status === 'completed'
-                  ? '\u2705 Payout released \u2014 Pi has been sent to your wallet.'
+                  ? '✅ Payout released — Pi has been sent to your wallet.'
                   : `Payout will be released when buyer confirms receipt or auto-release occurs.`}
               </div>
             )}
@@ -254,7 +254,7 @@ function OrderDetailContent({ orderId }: OrderDetailContentProps) {
           className="w-full py-3 rounded-xl font-semibold text-sm"
           style={{ backgroundColor: 'var(--color-card-bg)', color: 'var(--color-gold)', border: '1px solid rgba(240,192,64,0.3)' }}
         >
-          {'\u{1f4ac}'} Message {isBuyer ? 'Seller' : 'Buyer'}
+          💬 Message {isBuyer ? 'Seller' : 'Buyer'}
         </button>
 
         {/* Timeline */}
