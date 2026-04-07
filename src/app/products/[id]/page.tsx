@@ -168,7 +168,9 @@ function ProductDetailContent({ productId }: { productId: string }) {
   // Dual-check: product_type is the canonical field; category fallback supports
   // listings that were created before the product_type column was added.
   const isService = product.product_type === 'service' || product.category === 'Professional Services'
-  const isBuyer = currentUser?.id !== product.seller_id
+  const currentUserSellerId = currentUser?.pi_uid
+  const isAuthenticated = Boolean(currentUserSellerId)
+  const isBuyer = isAuthenticated && currentUserSellerId !== product.seller_id
   const currentStepIndex = ESCROW_STEPS.findIndex((s) => s.key === currentStep)
 
   return (
