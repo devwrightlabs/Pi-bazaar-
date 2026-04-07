@@ -29,11 +29,25 @@ CREATE INDEX IF NOT EXISTS audit_logs_created_at_idx
 ALTER TABLE public.audit_logs ENABLE ROW LEVEL SECURITY;
 
 -- IMPORTANT: No SELECT, INSERT, UPDATE, or DELETE policies for authenticated
--- users. The service-role client (supabaseAdmin) bypasses RLS entirely and is
--- the only way to INSERT or SELECT audit records. This ensures the log is
--- fully immutable from the client perspective — no UPDATE or DELETE is ever
--- possible, even by admins using the anon/authenticated client.
+-- users. The service-role client (supabaseAdmin) bypasses RLS entirely, so
+-- RLS alone is not enough to make this table immutable. Enforce append-only
+-- semantics at the database layer by rejecting all UPDATE and DELETE attempts,
+-- including those made through privileged server access.
+CREATE OR REPLACE FUNCTION public.prevent_audit_logs_mutation()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = public, pg_catalog
+AS $$
+BEGIN
+  RAISE EXCEPTION 'audit_logs is append-only; % is not allowed', TG_OP;
+END;
+$$;
 
+DROP TRIGGER IF EXISTS prevent_audit_logs_mutation ON public.audit_logs;
+CREATE TRIGGER prevent_audit_logs_mutation
+  BEFORE UPDATE OR DELETE ON public.audit_logs
+  FOR EACH ROW
+  EXECUTE FUNCTION public.prevent_audit_logs_mutation();
 -- ─── Extend escrow_transactions.status to include 'cancelled' ────────────────
 -- The cleanup cron sets stale pending transactions to 'cancelled'.
 ALTER TABLE public.escrow_transactions
