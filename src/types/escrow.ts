@@ -9,6 +9,7 @@
 export type EscrowStatus =
   | 'pending'
   | 'funded'
+  | 'held_in_escrow'
   | 'shipped'
   | 'delivered'
   | 'released'
@@ -55,7 +56,21 @@ export interface VerifyPaymentRequest {
 export interface VerifyPaymentResponse {
   success: true
   escrow_id: string
-  status: 'funded'
+  status: 'funded' | 'held_in_escrow'
+}
+
+// ─── Pi Payment Verify (Phase 3 — /api/pi/verify) ────────────────────────────
+
+export interface PiVerifyRequest {
+  payment_id: string
+  txid: string
+  escrow_id: string
+}
+
+export interface PiVerifyResponse {
+  success: true
+  escrow_id: string
+  status: 'held_in_escrow'
 }
 
 export interface UpdateStatusRequest {
@@ -115,9 +130,9 @@ export const SHIPPING_COSTS: Record<string, number> = {
  * Maps each allowed action to the set of statuses that permit it.
  */
 export const VALID_FROM_STATUS: Record<EscrowAction, EscrowStatus[]> = {
-  shipped: ['funded'],
+  shipped: ['funded', 'held_in_escrow'],
   delivered: ['shipped'],
-  released: ['delivered'],
-  disputed: ['funded', 'shipped'],
+  released: ['delivered', 'held_in_escrow'],
+  disputed: ['funded', 'held_in_escrow', 'shipped'],
   refunded: ['pending', 'disputed'],
 }

@@ -1,16 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { createPiPayment } from '@/lib/pi-sdk'
+import { createPiPayment, approvePaymentOnServer, completePaymentOnServer } from '@/lib/pi-sdk'
 import { useStore } from '@/store/useStore'
 
 interface PiPayButtonProps {
   amount: number
   memo: string
   metadata: Record<string, unknown>
+  escrowId?: string
   onPaymentId?: (paymentId: string) => void
   onComplete?: (paymentId: string, txid: string) => void
   onCancel?: (paymentId: string) => void
+  onEscrowHeld?: (escrowId: string) => void
   disabled?: boolean
 }
 
@@ -18,9 +20,11 @@ export default function PiPayButton({
   amount,
   memo,
   metadata,
+  escrowId,
   onPaymentId,
   onComplete,
   onCancel,
+  onEscrowHeld,
   disabled = false,
 }: PiPayButtonProps) {
   const [processing, setProcessing] = useState(false)
@@ -35,10 +39,42 @@ export default function PiPayButton({
       {
         onReadyForServerApproval: (paymentId) => {
           onPaymentId?.(paymentId)
+
+          // If we have an escrow ID, approve the payment server-side.
+          // The server links the paymentId to the escrow record and
+          // developer-approves the payment with the Pi Network API.
+          if (escrowId) {
+            void approvePaymentOnServer(paymentId, escrowId).then((result) => {
+              if (!result.success) {
+                console.error('[PiPayButton] Server approval failed:', result.error)
+              }
+            })
+          }
         },
         onReadyForServerCompletion: (paymentId, txid) => {
-          setProcessing(false)
-          onComplete?.(paymentId, txid)
+          // Complete the payment server-side via /api/pi/verify.
+          // This transitions the escrow to 'held_in_escrow'.
+          if (escrowId) {
+            void completePaymentOnServer(paymentId, txid, escrowId).then((result) => {
+              setProcessing(false)
+              if (result.success) {
+                onComplete?.(paymentId, txid)
+                if (result.escrow_id) {
+                  onEscrowHeld?.(result.escrow_id)
+                }
+              } else {
+                openModal({
+                  title: 'Verification Failed',
+                  message: result.error ?? 'Payment completed but server verification failed. Please contact support.',
+                  variant: 'alert',
+                })
+              }
+            })
+          } else {
+            // Fallback: no escrow ID — pass through to parent callback.
+            setProcessing(false)
+            onComplete?.(paymentId, txid)
+          }
         },
         onCancel: (paymentId) => {
           setProcessing(false)

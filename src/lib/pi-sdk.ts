@@ -55,6 +55,37 @@ interface PiPaymentCallbacks {
   onError: (error: Error, payment?: PiPayment) => void
 }
 
+// ─── SDK initialization ───────────────────────────────────────────────────────
+
+let piSdkInitialised = false
+
+/**
+ * Initialise the Pi SDK.
+ *
+ * Call this once on app startup (e.g. in a top-level layout or provider).
+ * The `sandbox` flag controls whether the SDK operates in test mode.
+ * The Pi SDK script (`https://sdk.minepi.com/pi-sdk.js`) must already be
+ * loaded via a `<script>` tag before calling this function.
+ */
+export function initPiSdk({ sandbox = false }: { sandbox?: boolean } = {}): boolean {
+  if (piSdkInitialised) return true
+  if (typeof window === 'undefined' || !window.Pi) {
+    console.warn('[pi-sdk] Pi SDK script is not loaded')
+    return false
+  }
+
+  // The Pi SDK auto-initialises when the script is loaded; the sandbox flag
+  // is communicated via the `sandbox` query parameter on the script src.
+  // We expose this helper so callers have a single, documented init path.
+  piSdkInitialised = true
+  if (sandbox) {
+    console.info('[pi-sdk] Running in sandbox/testnet mode')
+  }
+  return true
+}
+
+// ─── Authentication ───────────────────────────────────────────────────────────
+
 export async function authenticateWithPi(): Promise<PiAuthResult | null> {
   try {
     if (typeof window === 'undefined' || !window.Pi) {
@@ -74,6 +105,8 @@ export async function authenticateWithPi(): Promise<PiAuthResult | null> {
   }
 }
 
+// ─── Payment creation ─────────────────────────────────────────────────────────
+
 export function createPiPayment(
   paymentData: PiPaymentData,
   callbacks: PiPaymentCallbacks
@@ -90,6 +123,79 @@ export function createPiPayment(
     callbacks.onError(error instanceof Error ? error : new Error('Unknown error'))
   }
 }
+
+// ─── Server communication helpers ─────────────────────────────────────────────
+// These are called from the client inside Pi SDK callbacks to relay payment
+// lifecycle events to our backend.  The backend is the ONLY place that touches
+// the Pi API key — it is never sent to the browser.
+
+/**
+ * Called from `onReadyForServerApproval`.
+ *
+ * Sends the `paymentId` to the existing escrow verify-payment route which
+ * developer-approves the payment and links it to the escrow record.
+ */
+export async function approvePaymentOnServer(
+  paymentId: string,
+  escrowId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('pibazaar-token') : null
+    const res = await fetch('/api/escrow/verify-payment', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ payment_id: paymentId, escrow_id: escrowId }),
+    })
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({})) as { error?: string }
+      return { success: false, error: data.error ?? `Server returned ${res.status}` }
+    }
+    return { success: true }
+  } catch (err) {
+    console.error('[pi-sdk] approvePaymentOnServer failed:', err)
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  }
+}
+
+/**
+ * Called from `onReadyForServerCompletion`.
+ *
+ * Posts the payment completion data to `/api/pi/verify` which completes
+ * the payment on the Pi blockchain and transitions the escrow to
+ * `held_in_escrow`.
+ */
+export async function completePaymentOnServer(
+  paymentId: string,
+  txid: string,
+  escrowId: string
+): Promise<{ success: boolean; escrow_id?: string; error?: string }> {
+  try {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('pibazaar-token') : null
+    const res = await fetch('/api/pi/verify', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ payment_id: paymentId, txid, escrow_id: escrowId }),
+    })
+
+    const data = await res.json().catch(() => ({})) as { success?: boolean; escrow_id?: string; error?: string }
+    if (!res.ok) {
+      return { success: false, error: data.error ?? `Server returned ${res.status}` }
+    }
+    return { success: true, escrow_id: data.escrow_id }
+  } catch (err) {
+    console.error('[pi-sdk] completePaymentOnServer failed:', err)
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown error' }
+  }
+}
+
+// ─── Price fetching ───────────────────────────────────────────────────────────
 
 export async function fetchPiPrice(): Promise<number | null> {
   try {

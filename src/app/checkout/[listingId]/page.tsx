@@ -25,6 +25,8 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
   const [selectedAddress, setSelectedAddress] = useState<Omit<ShippingAddress, 'id' | 'user_id' | 'created_at'> | null>(null)
   const [savedAddresses, setSavedAddresses] = useState<ShippingAddress[]>([])
   const [paymentId, setPaymentId] = useState<string | null>(null)
+  const [escrowId, setEscrowId] = useState<string | null>(null)
+  const [creatingEscrow, setCreatingEscrow] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,12 +59,18 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
 
   const isPhysical = (listing?.category ?? '').toLowerCase() !== 'digital'
 
-  const handlePaymentComplete = async (_pid: string, _txid: string) => {
-    if (!listing || !currentUser || !paymentId) return
+  /**
+   * Create escrow BEFORE initiating the Pi payment so we have an escrow_id
+   * to pass to PiPayButton.  The escrow is created in 'pending' status and
+   * the paymentId is linked to it during onReadyForServerApproval.
+   */
+  const handleInitiatePayment = async () => {
+    if (!listing || !currentUser || creatingEscrow || escrowId) return
+    setCreatingEscrow(true)
     try {
       let savedAddressId: string | undefined
 
-      // Save new shipping address if provided and user is logged in
+      // Save new shipping address if provided
       if (isPhysical && selectedAddress && currentUser) {
         const { data: addrData } = await supabase
           .from('shipping_addresses')
@@ -81,19 +89,30 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
         seller_id: listing.seller_id,
         amount_pi: listing.price_pi,
         product_type: isPhysical ? 'physical' : 'digital',
-        pi_payment_id: paymentId,
+        pi_payment_id: '',
         ...(savedAddressId ? { shipping_address_id: savedAddressId } : {}),
       })
       if (!escrow) throw new Error('Failed to create escrow record')
-      router.push(`/orders/${escrow.id}`)
+      setEscrowId(escrow.id)
     } catch (err) {
-      console.error('Post-payment escrow creation failed:', err)
+      console.error('Escrow creation failed:', err)
       openModal({
-        title: 'Order Error',
-        message: 'Payment received but order setup failed. Please contact support with your payment ID.',
+        title: 'Checkout Error',
+        message: 'Could not prepare your order. Please try again.',
         variant: 'alert',
       })
+    } finally {
+      setCreatingEscrow(false)
     }
+  }
+
+  /**
+   * Called after Pi payment is fully verified and the escrow is held.
+   * Navigate the user to the order detail page.
+   */
+  const handlePaymentComplete = async (_pid: string, _txid: string) => {
+    if (!escrowId) return
+    router.push(`/orders/${escrowId}`)
   }
 
   const shippingMethods = [
@@ -111,7 +130,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
     )
   }
 
-  const readyToPay = !isPhysical || selectedAddress !== null
+  const readyToPay = (!isPhysical || selectedAddress !== null) && escrowId !== null
 
   return (
     <main className="min-h-screen pb-8" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -213,17 +232,42 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
 
         {/* Pay button */}
         {currentUser ? (
-          <PiPayButton
-            amount={listing.price_pi}
-            memo={`PiBazaar: ${listing.title}`}
-            metadata={{ listing_id: listing.id, buyer_id: currentUser.id }}
-            onPaymentId={(pid) => setPaymentId(pid)}
-            onComplete={(pid, txid) => void handlePaymentComplete(pid, txid)}
-            onCancel={() => {
-              openModal({ title: 'Payment Cancelled', message: 'Your payment was cancelled. No Pi was charged.', variant: 'info' })
-            }}
-            disabled={!readyToPay}
-          />
+          escrowId ? (
+            <PiPayButton
+              amount={listing.price_pi}
+              memo={`PiBazaar: ${listing.title}`}
+              metadata={{ listing_id: listing.id, buyer_id: currentUser.id }}
+              escrowId={escrowId}
+              onPaymentId={(pid) => setPaymentId(pid)}
+              onComplete={(pid, txid) => void handlePaymentComplete(pid, txid)}
+              onEscrowHeld={(eid) => router.push(`/orders/${eid}`)}
+              onCancel={() => {
+                openModal({ title: 'Payment Cancelled', message: 'Your payment was cancelled. No Pi was charged.', variant: 'info' })
+              }}
+              disabled={!readyToPay}
+            />
+          ) : (
+            <button
+              onClick={() => void handleInitiatePayment()}
+              disabled={creatingEscrow || (!isPhysical ? false : selectedAddress === null)}
+              className="w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-opacity"
+              style={{
+                backgroundColor: '#F0C040',
+                color: '#000',
+                fontFamily: 'Sora, sans-serif',
+                opacity: creatingEscrow || (!isPhysical ? false : selectedAddress === null) ? 0.7 : 1,
+              }}
+            >
+              {creatingEscrow ? (
+                <>
+                  <span className="inline-block w-5 h-5 rounded-full border-2 border-black border-t-transparent animate-spin" />
+                  Preparing Order…
+                </>
+              ) : (
+                'Proceed to Payment'
+              )}
+            </button>
+          )
         ) : (
           <div className="rounded-xl p-4 text-center" style={{ backgroundColor: 'var(--color-card-bg)' }}>
             <p className="text-sm" style={{ color: 'var(--color-subtext)' }}>
