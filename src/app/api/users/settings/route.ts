@@ -111,6 +111,12 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (error) {
+      if (error.code === '23505') {
+        return NextResponse.json(
+          { error: 'Settings already exist. Use PUT to update.' },
+          { status: 409 }
+        )
+      }
       console.error('[users/settings/POST] Insert error:', error)
       return NextResponse.json({ error: 'Failed to create settings' }, { status: 500 })
     }
