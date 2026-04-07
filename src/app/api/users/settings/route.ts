@@ -15,7 +15,6 @@ import { verifyAuthToken } from '@/lib/authHelper'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const VALID_CURRENCIES = ['USD', 'EUR', 'GBP', 'CNY', 'JPY', 'KRW', 'INR', 'BRL', 'NGN', 'PI'] as const
 const MAX_CURRENCY_LENGTH = 5
 
 // ─── GET /api/users/settings ──────────────────────────────────────────────────
