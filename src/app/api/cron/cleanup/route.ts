@@ -33,11 +33,13 @@ export async function GET(req: NextRequest) {
     }
 
     const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : ''
+    const tokenBuffer = Buffer.from(token)
+    const cronSecretBuffer = Buffer.from(cronSecret)
 
     // Constant-time comparison to prevent timing attacks.
     if (
-      token.length !== cronSecret.length ||
-      !timingSafeEqual(Buffer.from(token), Buffer.from(cronSecret))
+      tokenBuffer.length !== cronSecretBuffer.length ||
+      !timingSafeEqual(tokenBuffer, cronSecretBuffer)
     ) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
