@@ -48,22 +48,21 @@ export async function GET(req: NextRequest) {
     const cutoff = new Date(Date.now() - STALE_THRESHOLD_MS).toISOString()
 
     // 3. Update all stale 'pending' escrow transactions to 'cancelled'.
-    const { data: cancelled, error } = await supabaseAdmin
+    const { count, error } = await supabaseAdmin
       .from('escrow_transactions')
-      .update({ status: 'cancelled' })
+      .update({ status: 'cancelled' }, { count: 'exact' })
       .eq('status', 'pending')
       .lt('created_at', cutoff)
-      .select('id')
 
     if (error) {
       console.error('[cron/cleanup] Failed to cancel stale transactions:', error)
       return NextResponse.json({ error: 'Cleanup failed' }, { status: 500 })
     }
 
-    const count = cancelled?.length ?? 0
-    console.log(`[cron/cleanup] Cancelled ${count} stale pending transaction(s)`)
+    const cancelledCount = count ?? 0
+    console.log(`[cron/cleanup] Cancelled ${cancelledCount} stale pending transaction(s)`)
 
-    return NextResponse.json({ cancelled: count })
+    return NextResponse.json({ cancelled: cancelledCount })
   } catch (err) {
     console.error('[cron/cleanup] Unhandled error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
