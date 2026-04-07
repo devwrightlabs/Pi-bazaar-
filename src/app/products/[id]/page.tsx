@@ -52,7 +52,7 @@ function ProductDetailContent({ productId }: { productId: string }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [imgError, setImgError] = useState(false)
-  const [currentStep] = useState<EscrowStep>('payment_held')
+  const [currentStep, setCurrentStep] = useState<EscrowStep>('payment_held')
   const [reviewLoading, setReviewLoading] = useState(false)
 
   const fetchProduct = useCallback(async () => {
@@ -75,12 +75,29 @@ function ProductDetailContent({ productId }: { productId: string }) {
   }, [fetchProduct])
 
   const handleRequestRevision = async () => {
+    if (!product) return
     setReviewLoading(true)
     try {
+      const res = await fetch(`/api/escrow/${encodeURIComponent(product.id)}/dispute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reason: 'revision_requested',
+          description: 'Buyer has requested a revision of deliverables.',
+        }),
+      })
+      if (!res.ok) throw new Error('Request failed')
+      setCurrentStep('under_review')
       openModal({
         title: 'Revision Requested',
         message: 'Your revision request has been submitted. The seller will be notified.',
         variant: 'info',
+      })
+    } catch {
+      openModal({
+        title: 'Error',
+        message: 'Failed to submit revision request. Please try again.',
+        variant: 'alert',
       })
     } finally {
       setReviewLoading(false)
@@ -88,12 +105,24 @@ function ProductDetailContent({ productId }: { productId: string }) {
   }
 
   const handleApproveRelease = async () => {
+    if (!product) return
     setReviewLoading(true)
     try {
+      const res = await fetch(`/api/escrow/${encodeURIComponent(product.id)}/confirm`, {
+        method: 'POST',
+      })
+      if (!res.ok) throw new Error('Approval failed')
+      setCurrentStep('funds_released')
       openModal({
         title: 'Pi Released',
         message: 'Payment has been approved and Pi will be released to the seller.',
         variant: 'info',
+      })
+    } catch {
+      openModal({
+        title: 'Error',
+        message: 'Failed to approve release. Please try again.',
+        variant: 'alert',
       })
     } finally {
       setReviewLoading(false)
@@ -378,7 +407,7 @@ function ProductDetailContent({ productId }: { productId: string }) {
                   opacity: reviewLoading ? 0.6 : 1,
                 }}
               >
-                Approve &amp; Release Pi
+                Approve & Release Pi
               </button>
             </div>
           </div>

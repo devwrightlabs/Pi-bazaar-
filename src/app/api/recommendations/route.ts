@@ -85,9 +85,16 @@ export async function POST(req: NextRequest) {
       price_max,
     )
 
-    // Prioritize Pro-Seller listings at the top of the feed
-    const proListings = scored.filter((l) => l.is_pro_seller)
-    const regularListings = scored.filter((l) => !l.is_pro_seller)
+    // Prioritize Pro-Seller listings at the top of the feed (single pass)
+    const proListings: typeof scored = []
+    const regularListings: typeof scored = []
+    for (const listing of scored) {
+      if (listing.is_pro_seller) {
+        proListings.push(listing)
+      } else {
+        regularListings.push(listing)
+      }
+    }
     const prioritized = [...proListings, ...regularListings]
 
     const recommendations = prioritized.slice(offset, offset + limit)
