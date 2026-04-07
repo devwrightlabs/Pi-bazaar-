@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS public.saved_addresses (
   city            TEXT        NOT NULL,
   state_province  TEXT        NOT NULL,
   postal_code     TEXT        NOT NULL,
-  country_code    VARCHAR(2)  NOT NULL,   -- ISO 3166-1 alpha-2 for regional carrier routing
+  country_code    VARCHAR(2)  NOT NULL CHECK (country_code ~ '^[A-Z]{2}$'),   -- ISO 3166-1 alpha-2 for regional carrier routing
   phone_number    TEXT,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT now()
