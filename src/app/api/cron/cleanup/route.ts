@@ -15,6 +15,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { timingSafeEqual } from 'crypto'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 // Stale threshold: 24 hours in milliseconds.
@@ -31,7 +32,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
 
-    if (authHeader !== `Bearer ${cronSecret}`) {
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : ''
+
+    // Constant-time comparison to prevent timing attacks.
+    if (
+      token.length !== cronSecret.length ||
+      !timingSafeEqual(Buffer.from(token), Buffer.from(cronSecret))
+    ) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
