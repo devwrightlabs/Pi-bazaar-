@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useStore } from '@/store/useStore'
-import { useUIStore, type JurisdictionMode } from '@/store/useUIStore'
+import { useUIStore } from '@/store/useUIStore'
 import type { Listing, MatchScore, RecommendationResponse } from '@/lib/types'
 
 export type RecommendedListing = Listing & { match_score: MatchScore }
