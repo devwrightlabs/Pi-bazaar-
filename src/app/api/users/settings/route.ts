@@ -169,7 +169,7 @@ export async function PUT(req: NextRequest) {
       .update(updates)
       .eq('user_id', piUid)
       .select()
-      .single()
+      .maybeSingle()
 
     if (error) {
       console.error('[users/settings/PUT] Update error:', error)
