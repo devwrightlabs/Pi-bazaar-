@@ -47,8 +47,9 @@ function isSafePaymentId(paymentId: string): boolean {
 }
 
 function isSafeTxid(txid: string): boolean {
-  // Stellar transaction hashes are 64-character hex strings.
-  // Allow a generous format that covers hex hashes and base64-style IDs.
+  // Pi Network uses Stellar-based transaction hashes which are typically
+  // 64-character hex strings.  We use a generous pattern that also covers
+  // base64-style IDs to accommodate potential format variations.
   return /^[A-Za-z0-9+/=_-]{1,128}$/.test(txid)
 }
 

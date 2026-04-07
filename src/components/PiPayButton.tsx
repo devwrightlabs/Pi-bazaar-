@@ -47,6 +47,11 @@ export default function PiPayButton({
             void approvePaymentOnServer(paymentId, escrowId).then((result) => {
               if (!result.success) {
                 console.error('[PiPayButton] Server approval failed:', result.error)
+                openModal({
+                  title: 'Approval Error',
+                  message: result.error ?? 'Server could not approve the payment. Please try again or contact support.',
+                  variant: 'alert',
+                })
               }
             })
           }

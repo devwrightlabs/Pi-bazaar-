@@ -89,7 +89,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
         seller_id: listing.seller_id,
         amount_pi: listing.price_pi,
         product_type: isPhysical ? 'physical' : 'digital',
-        pi_payment_id: '',
+        pi_payment_id: 'pending',
         ...(savedAddressId ? { shipping_address_id: savedAddressId } : {}),
       })
       if (!escrow) throw new Error('Failed to create escrow record')
@@ -131,6 +131,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
   }
 
   const readyToPay = (!isPhysical || selectedAddress !== null) && escrowId !== null
+  const canInitiatePayment = !isPhysical || selectedAddress !== null
 
   return (
     <main className="min-h-screen pb-8" style={{ backgroundColor: 'var(--color-background)' }}>
@@ -249,13 +250,13 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
           ) : (
             <button
               onClick={() => void handleInitiatePayment()}
-              disabled={creatingEscrow || (!isPhysical ? false : selectedAddress === null)}
+              disabled={creatingEscrow || !canInitiatePayment}
               className="w-full py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-3 transition-opacity"
               style={{
                 backgroundColor: '#F0C040',
                 color: '#000',
                 fontFamily: 'Sora, sans-serif',
-                opacity: creatingEscrow || (!isPhysical ? false : selectedAddress === null) ? 0.7 : 1,
+                opacity: creatingEscrow || !canInitiatePayment ? 0.7 : 1,
               }}
             >
               {creatingEscrow ? (
