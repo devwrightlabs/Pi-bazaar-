@@ -461,29 +461,11 @@ function ProductDetailContent({ productId }: { productId: string }) {
 // ─── Page Component ───────────────────────────────────────────────────────────
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: { id: string }
 }
 
 export default function ProductDetailPage({ params }: PageProps) {
-  const [productId, setProductId] = useState<string | null>(null)
-
-  useEffect(() => {
-    params.then(({ id }) => setProductId(id))
-  }, [params])
-
-  if (!productId) {
-    return (
-      <main className="min-h-screen pb-8" style={{ backgroundColor: 'var(--color-background)' }}>
-        <div className="px-4 pt-6 max-w-lg mx-auto space-y-4">
-          <Skeleton shape="line" className="h-8 w-24 rounded-lg" />
-          <Skeleton shape="card" className="h-72 w-full rounded-2xl" />
-          <Skeleton shape="line" className="h-6 w-3/4" />
-          <Skeleton shape="line" className="h-8 w-1/3" />
-        </div>
-      </main>
-    )
-  }
-
+  const productId = params.id
   return (
     <ErrorBoundary>
       <ProductDetailContent productId={productId} />
