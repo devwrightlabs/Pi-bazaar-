@@ -1,5 +1,5 @@
 /**
- * GET  /api/users/settings — Fetch the caller's settings (creates defaults if none exist)
+ * GET  /api/users/settings — Fetch the caller's settings (returns defaults if none exist)
  * POST /api/users/settings — Create initial settings for the caller
  * PUT  /api/users/settings — Update the caller's settings
  *
