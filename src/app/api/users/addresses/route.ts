@@ -119,7 +119,16 @@ async function clearPreviousDefault(piUid: string, excludeId?: string): Promise<
     query.neq('id', excludeId)
   }
 
-  await query
+  const { error } = await query
+
+  if (error) {
+    console.error('[users/addresses] Failed to clear previous default address:', {
+      piUid,
+      excludeId,
+      error,
+    })
+    throw error
+  }
 }
 
 // ─── GET /api/users/addresses ─────────────────────────────────────────────────
