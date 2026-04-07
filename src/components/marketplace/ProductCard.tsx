@@ -304,6 +304,7 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
             <span
               className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
               style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8B5CF6' }}
+              aria-label="Verified Pro Seller"
             >
               <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
                 <path d="M6 1L7.5 4.2L11 4.7L8.5 7.1L9.1 10.6L6 9L2.9 10.6L3.5 7.1L1 4.7L4.5 4.2L6 1Z" fill="#8B5CF6" />

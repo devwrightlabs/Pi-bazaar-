@@ -165,6 +165,8 @@ function ProductDetailContent({ productId }: { productId: string }) {
 
   const imageUrl = product.images?.[0]
   const hasImage = Boolean(imageUrl) && !imgError
+  // Dual-check: product_type is the canonical field; category fallback supports
+  // listings that were created before the product_type column was added.
   const isService = product.product_type === 'service' || product.category === 'Professional Services'
   const isBuyer = currentUser?.id !== product.seller_id
   const currentStepIndex = ESCROW_STEPS.findIndex((s) => s.key === currentStep)
@@ -385,7 +387,7 @@ function ProductDetailContent({ productId }: { productId: string }) {
             </p>
             <div className="flex gap-3">
               <button
-                onClick={() => void handleRequestRevision()}
+                onClick={handleRequestRevision}
                 disabled={reviewLoading}
                 className="flex-1 py-3 rounded-xl text-sm font-semibold transition-all duration-150 active:scale-95"
                 style={{
@@ -398,7 +400,7 @@ function ProductDetailContent({ productId }: { productId: string }) {
                 Request Revision
               </button>
               <button
-                onClick={() => void handleApproveRelease()}
+                onClick={handleApproveRelease}
                 disabled={reviewLoading}
                 className="flex-1 py-3 rounded-xl text-sm font-bold transition-all duration-150 active:scale-95"
                 style={{
