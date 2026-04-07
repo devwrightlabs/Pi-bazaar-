@@ -28,8 +28,17 @@ END
 $$;
 -- is_pro_seller: marks the listing owner as a Pro/Verified seller
 ALTER TABLE public.listings
-  ADD COLUMN IF NOT EXISTS is_pro_seller BOOLEAN DEFAULT FALSE;
+  ADD COLUMN IF NOT EXISTS is_pro_seller BOOLEAN NOT NULL DEFAULT FALSE;
 
+ALTER TABLE public.products
+  ALTER COLUMN is_pro_seller SET DEFAULT FALSE;
+
+UPDATE public.products
+SET is_pro_seller = FALSE
+WHERE is_pro_seller IS NULL;
+
+ALTER TABLE public.products
+  ALTER COLUMN is_pro_seller SET NOT NULL;
 -- product_type: distinguishes between physical, digital, and service listings
 ALTER TABLE public.listings
   ADD COLUMN IF NOT EXISTS product_type TEXT
