@@ -1,6 +1,7 @@
 'use client'
 
 import { useStore } from '@/store/useStore'
+import { useUIStore } from '@/store/useUIStore'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { authenticateWithPi } from '@/lib/pi-sdk'
@@ -8,6 +9,8 @@ import { useState } from 'react'
 
 export default function Navbar() {
   const { currentUser, isAuthenticated, setCurrentUser } = useStore()
+  const jurisdictionMode = useUIStore((s) => s.jurisdictionMode)
+  const setJurisdictionMode = useUIStore((s) => s.setJurisdictionMode)
   const [connecting, setConnecting] = useState(false)
   const [connectError, setConnectError] = useState<string | null>(null)
 
@@ -68,6 +71,25 @@ export default function Navbar() {
           <span className="text-lg font-bold font-heading text-text-primary">
             Pi Bazaar
           </span>
+        </div>
+
+        {/* Jurisdiction toggle */}
+        <div className="flex items-center">
+          <button
+            onClick={() => setJurisdictionMode(jurisdictionMode === 'local' ? 'global' : 'local')}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-all duration-200"
+            style={{
+              backgroundColor: jurisdictionMode === 'local'
+                ? 'rgba(139, 92, 246, 0.15)'
+                : 'rgba(240, 192, 64, 0.12)',
+              color: jurisdictionMode === 'local' ? '#8B5CF6' : 'var(--color-gold)',
+              border: `1px solid ${jurisdictionMode === 'local' ? 'rgba(139, 92, 246, 0.3)' : 'rgba(240, 192, 64, 0.25)'}`,
+            }}
+            aria-label={`Switch to ${jurisdictionMode === 'local' ? 'global' : 'local'} marketplace`}
+          >
+            <span>{jurisdictionMode === 'local' ? '🇧🇸' : '🌐'}</span>
+            <span>{jurisdictionMode === 'local' ? 'Local' : 'Global'}</span>
+          </button>
         </div>
 
         {/* Auth area */}

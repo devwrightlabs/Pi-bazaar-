@@ -11,14 +11,14 @@ const STEP_ORDER: EscrowTransaction['status'][] = [
 ]
 
 const STEP_LABELS: Record<string, { icon: string; label: string }> = {
-  pending_payment: { icon: '\u23f3', label: 'Awaiting Payment' },
-  payment_received: { icon: '\u{1f4b0}', label: 'Payment Received' },
-  shipped: { icon: '\u{1f4e6}', label: 'Item Shipped' },
-  delivered: { icon: '\u2705', label: 'Item Delivered' },
-  completed: { icon: '\u{1f3c6}', label: 'Order Complete' },
-  disputed: { icon: '\u26a0\ufe0f', label: 'Dispute Opened' },
-  refunded: { icon: '\u21a9\ufe0f', label: 'Refunded' },
-  auto_released: { icon: '\u23f0', label: 'Auto Released' },
+  pending_payment: { icon: '⏳', label: 'Awaiting Payment' },
+  payment_received: { icon: '💰', label: 'Payment Received' },
+  shipped: { icon: '📦', label: 'Item Shipped' },
+  delivered: { icon: '✅', label: 'Item Delivered' },
+  completed: { icon: '🏆', label: 'Order Complete' },
+  disputed: { icon: '⚠️', label: 'Dispute Opened' },
+  refunded: { icon: '↩️', label: 'Refunded' },
+  auto_released: { icon: '⏰', label: 'Auto Released' },
 }
 
 interface EscrowTimelineProps {
@@ -67,7 +67,7 @@ export default function EscrowTimeline({ currentStatus, timeline, productType }:
                   color: isActive ? '#000' : isCompleted ? '#fff' : '#888',
                 }}
               >
-                {isCompleted ? '\u2713' : cfg.icon}
+                {isCompleted ? '✓' : cfg.icon}
               </div>
               {idx < steps.length - 1 && (
                 <div

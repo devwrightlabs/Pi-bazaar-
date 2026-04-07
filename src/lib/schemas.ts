@@ -62,6 +62,12 @@ export const RecommendationRequestSchema = z
     price_max: z.number().positive().optional(),
     limit: z.number().int().min(1).max(100).default(20),
     offset: z.number().int().min(0).default(0),
+    jurisdiction: z.enum(['local', 'global']).optional(),
+    origin_country: z
+      .string()
+      .length(2, 'origin_country must be a 2-letter ISO country code')
+      .regex(/^[A-Z]{2}$/, 'origin_country must be a valid uppercase ISO-2 country code')
+      .optional(),
   })
   .superRefine((data, ctx) => {
     if (

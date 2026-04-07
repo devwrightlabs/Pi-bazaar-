@@ -6,6 +6,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 // ---------------------------------------------------------------------------
 export type ViewMode = 'grid' | 'list' | 'swipe'
 export type ThemeMode = 'dark' | 'light'
+export type JurisdictionMode = 'local' | 'global'
 
 interface UIState {
   // View
@@ -15,6 +16,10 @@ interface UIState {
   // Theme
   themeMode: ThemeMode
   setThemeMode: (mode: ThemeMode) => void
+
+  // Jurisdiction
+  jurisdictionMode: JurisdictionMode
+  setJurisdictionMode: (mode: JurisdictionMode) => void
 
   // Hydration flag — true once client-side rehydration from localStorage completes
   _hasHydrated: boolean
@@ -34,6 +39,9 @@ export const useUIStore = create<UIState>()(
       themeMode: 'dark',
       setThemeMode: (mode) => set({ themeMode: mode }),
 
+      jurisdictionMode: 'global',
+      setJurisdictionMode: (mode) => set({ jurisdictionMode: mode }),
+
       _hasHydrated: false,
       setHasHydrated: (state) => set({ _hasHydrated: state }),
     }),
@@ -45,6 +53,7 @@ export const useUIStore = create<UIState>()(
       partialize: (state) => ({
         viewMode: state.viewMode,
         themeMode: state.themeMode,
+        jurisdictionMode: state.jurisdictionMode,
       }),
 
       // skipHydration: the store will NOT auto-rehydrate on creation.
