@@ -7,8 +7,25 @@
 
 -- origin_country: ISO country code for jurisdiction filtering (e.g., 'BS' for Bahamas)
 ALTER TABLE public.listings
-  ADD COLUMN IF NOT EXISTS origin_country TEXT;
+  ADD COLUMN IF NOT EXISTS origin_country VARCHAR(2);
 
+ALTER TABLE public.products
+  ALTER COLUMN origin_country TYPE VARCHAR(2);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'products_origin_country_iso_check'
+      AND conrelid = 'public.products'::regclass
+  ) THEN
+    ALTER TABLE public.products
+      ADD CONSTRAINT products_origin_country_iso_check
+      CHECK (origin_country IS NULL OR origin_country ~ '^[A-Z]{2}$');
+  END IF;
+END
+$$;
 -- is_pro_seller: marks the listing owner as a Pro/Verified seller
 ALTER TABLE public.listings
   ADD COLUMN IF NOT EXISTS is_pro_seller BOOLEAN DEFAULT FALSE;
