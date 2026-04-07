@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import '@/styles/globals.css'
 import BottomNav from '@/components/BottomNav'
 import GlobalModal from '@/components/GlobalModal'
+import Navbar from '@/components/Navbar'
 import RootErrorBoundary from '@/components/RootErrorBoundary'
 import StoreHydration from '@/components/providers/StoreHydration'
 import ThemeProvider from '@/components/providers/ThemeProvider'
@@ -24,6 +25,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-background pb-20">
         <StoreHydration />
         <ThemeProvider>
+          <Navbar />
           <RootErrorBoundary>
             {children}
           </RootErrorBoundary>
