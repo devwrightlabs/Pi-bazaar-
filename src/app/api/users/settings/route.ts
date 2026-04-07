@@ -86,12 +86,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Check if settings already exist.
-    const { data: existing } = await supabaseAdmin
+    const { data: existing, error: existingError } = await supabaseAdmin
       .from('user_settings')
       .select('id')
       .eq('user_id', piUid)
       .maybeSingle()
 
+    if (existingError) {
+      console.error('[users/settings/POST] Pre-check error:', existingError)
+      return NextResponse.json({ error: 'Failed to check existing settings' }, { status: 500 })
+    }
     if (existing) {
       return NextResponse.json({ error: 'Settings already exist. Use PUT to update.' }, { status: 409 })
     }
