@@ -83,13 +83,16 @@ SET search_path = public, pg_catalog
 AS $$
 BEGIN
   UPDATE public.escrow_transactions
-    SET buyer_id = '[deleted]'
-  WHERE buyer_id = OLD.pi_uid;
-
-  UPDATE public.escrow_transactions
-    SET seller_id = '[deleted]'
-  WHERE seller_id = OLD.pi_uid;
-
+    SET buyer_id = CASE
+      WHEN buyer_id = OLD.pi_uid THEN '[deleted]'
+      ELSE buyer_id
+    END,
+        seller_id = CASE
+      WHEN seller_id = OLD.pi_uid THEN '[deleted]'
+      ELSE seller_id
+    END
+  WHERE buyer_id = OLD.pi_uid
+     OR seller_id = OLD.pi_uid;
   RETURN OLD;
 END;
 $$;
