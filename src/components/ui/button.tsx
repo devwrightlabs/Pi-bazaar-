@@ -18,10 +18,11 @@ const sizeStyles: Record<NonNullable<ButtonProps['size']>, string> = {
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ variant = 'default', size = 'md', className = '', children, ...props }, ref) => {
+  ({ variant = 'default', size = 'md', className = '', type = 'button', children, ...props }, ref) => {
     return (
       <button
         ref={ref}
+        type={type}
         className={`inline-flex items-center justify-center font-semibold transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:pointer-events-none ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
         {...props}
       >
