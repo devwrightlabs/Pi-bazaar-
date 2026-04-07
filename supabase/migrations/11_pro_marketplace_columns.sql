@@ -9,36 +9,9 @@
 ALTER TABLE public.listings
   ADD COLUMN IF NOT EXISTS origin_country VARCHAR(2);
 
-ALTER TABLE public.products
-  ALTER COLUMN origin_country TYPE VARCHAR(2);
-
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_constraint
-    WHERE conname = 'products_origin_country_iso_check'
-      AND conrelid = 'public.products'::regclass
-  ) THEN
-    ALTER TABLE public.products
-      ADD CONSTRAINT products_origin_country_iso_check
-      CHECK (origin_country IS NULL OR origin_country ~ '^[A-Z]{2}$');
-  END IF;
-END
-$$;
 -- is_pro_seller: marks the listing owner as a Pro/Verified seller
 ALTER TABLE public.listings
   ADD COLUMN IF NOT EXISTS is_pro_seller BOOLEAN NOT NULL DEFAULT FALSE;
-
-ALTER TABLE public.products
-  ALTER COLUMN is_pro_seller SET DEFAULT FALSE;
-
-UPDATE public.products
-SET is_pro_seller = FALSE
-WHERE is_pro_seller IS NULL;
-
-ALTER TABLE public.products
-  ALTER COLUMN is_pro_seller SET NOT NULL;
 -- product_type: distinguishes between physical, digital, and service listings
 ALTER TABLE public.listings
   ADD COLUMN IF NOT EXISTS product_type TEXT
