@@ -56,10 +56,16 @@ function checkRateLimit(ip: string, limit: number): boolean {
   const timestamps = ipRequestLog.get(ip) ?? []
   // Remove entries outside the current window
   const recent = timestamps.filter((t) => t > cutoff)
+
+  if (recent.length >= limit) {
+    ipRequestLog.set(ip, recent)
+    return false
+  }
+
   recent.push(now)
   ipRequestLog.set(ip, recent)
 
-  return recent.length <= limit
+  return true
 }
 
 // ============================================================
