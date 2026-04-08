@@ -381,7 +381,7 @@ export default function DashboardPage() {
     (t) => t.seller_id === currentUser?.id,
   )
   const activeOrders = sales.filter((t) =>
-    ['payment_received', 'shipped'].includes(t.status),
+    ['payment_received', 'funded', 'held_in_escrow', 'shipped'].includes(t.status),
   )
 
   const stats: ShopStats = {
