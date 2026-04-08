@@ -31,7 +31,7 @@ const INITIAL_FORM: CreateListingForm = {
   fast_seller_agreed: false,
   target_market: 'global',
   product_type: 'physical',
-  shipping_method: 'shipping',
+  shipping_method: 'shipping_information',
 }
 
 type Tab = 'manual' | 'url'
@@ -405,10 +405,10 @@ export default function CreateListingPage() {
                     </div>
                   )}
 
-                  {/* Shipping Method — dynamic based on target market & product type */}
+                  {/* Shipping Information — dynamic based on target market & product type */}
                   <div>
                     <FieldLabel>
-                      {form.product_type === 'digital' ? 'Delivery Method' : 'Shipping Method'}
+                      {form.product_type === 'digital' ? 'Delivery Method' : 'Shipping Information'}
                     </FieldLabel>
                     {form.product_type === 'digital' ? (
                       <div
