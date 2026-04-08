@@ -14,7 +14,7 @@ const DEFAULT_FORM: CreateListingForm = {
   fast_seller_agreed: false,
   target_market: 'global',
   product_type: 'physical',
-  shipping_method: 'international_shipping',
+  shipping_method: 'shipping',
 }
 
 interface AppState {
