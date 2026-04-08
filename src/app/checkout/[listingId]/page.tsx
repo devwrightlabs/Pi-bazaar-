@@ -240,7 +240,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
               metadata={{ listing_id: listing.id, buyer_id: currentUser.id }}
               escrowId={escrowId}
               onPaymentId={(pid) => setPaymentId(pid)}
-              onComplete={(pid, txid) => void handlePaymentComplete(pid, txid)}
+              onComplete={() => {}}
               onEscrowHeld={(eid) => router.push(`/orders/${eid}`)}
               onCancel={() => {
                 openModal({ title: 'Payment Cancelled', message: 'Your payment was cancelled. No Pi was charged.', variant: 'info' })
