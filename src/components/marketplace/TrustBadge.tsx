@@ -35,9 +35,9 @@ export default function TrustBadge({
     <span
       className={`inline-flex items-center gap-1 rounded-full font-semibold ${cfg.text} ${cfg.px} ${cfg.py} ${className}`}
       style={{
-        backgroundColor: 'rgba(255, 215, 0, 0.15)',
-        color: '#FFD700',
-        boxShadow: '0 1px 4px rgba(255, 215, 0, 0.25)',
+        backgroundColor: 'color-mix(in srgb, var(--color-gold) 15%, transparent)',
+        color: 'var(--color-gold)',
+        boxShadow: '0 1px 4px color-mix(in srgb, var(--color-gold) 25%, transparent)',
       }}
       aria-label={label}
     >
@@ -51,12 +51,12 @@ export default function TrustBadge({
         {/* Star / shield shape */}
         <path
           d="M6 1L7.5 4.2L11 4.7L8.5 7.1L9.1 10.6L6 9L2.9 10.6L3.5 7.1L1 4.7L4.5 4.2L6 1Z"
-          fill="#FFD700"
+          fill="currentColor"
         />
         {/* Checkmark */}
         <path
           d="M4 6L5.5 7.5L8 5"
-          stroke="#000"
+          stroke="var(--color-card-bg)"
           strokeWidth="1"
           strokeLinecap="round"
           strokeLinejoin="round"

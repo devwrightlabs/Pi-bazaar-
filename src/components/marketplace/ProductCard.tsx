@@ -254,7 +254,7 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
         {item.is_pro_seller && (
           <span
             className="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full z-10"
-            style={{ backgroundColor: '#FFD700', color: '#000' }}
+            style={{ backgroundColor: 'var(--color-gold)', color: '#000' }}
           >
             ✓ Pro Seller
           </span>
@@ -309,7 +309,7 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
           <div
             className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
             style={{
-              backgroundColor: item.is_pro_seller ? '#FFD700' : 'var(--color-gold)',
+              backgroundColor: 'var(--color-gold)',
               color: '#000',
             }}
           >

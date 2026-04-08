@@ -84,7 +84,7 @@ export default function PullToRefresh({ onRefresh, children }: PullToRefreshProp
       >
         <div
           className="flex items-center gap-2 text-xs font-medium"
-          style={{ color: 'var(--color-gold)', opacity: progress }}
+          style={{ color: 'var(--color-gold)', opacity: Math.max(progress, 0.4) }}
         >
           <svg
             width="16"
