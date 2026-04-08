@@ -69,6 +69,10 @@ export interface UserPreferences {
   updated_at: string
 }
 
+export type TargetMarket = 'local' | 'global'
+export type ShippingMethod = 'nassau_courier' | 'local_pickup' | 'international_shipping' | 'digital_delivery'
+export type ProductType = 'physical' | 'digital'
+
 export interface CreateListingForm {
   title: string
   description: string
@@ -80,6 +84,9 @@ export interface CreateListingForm {
   location_country: string
   allow_offers: boolean
   fast_seller_agreed: boolean
+  target_market: TargetMarket
+  product_type: ProductType
+  shipping_method: ShippingMethod
 }
 
 export interface ScrapedListing {
