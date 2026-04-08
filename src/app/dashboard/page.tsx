@@ -233,7 +233,7 @@ function ShipModal({
           onClick={() => onSubmit(tracking, carrier)}
           disabled={!tracking.trim() || !carrier.trim() || loading}
           className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-50 transition-all active:scale-95"
-          style={{ backgroundColor: '#8B5CF6', color: '#fff' }}
+          style={{ backgroundColor: 'var(--color-royal-purple)', color: '#fff' }}
         >
           {loading ? 'Updating…' : '🚚 Mark as Shipped'}
         </button>
