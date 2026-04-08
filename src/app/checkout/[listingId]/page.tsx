@@ -92,7 +92,12 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
         product_type: isPhysical ? 'physical' : 'digital',
         pi_payment_id: 'pending',
         ...(savedAddressId ? { shipping_address_id: savedAddressId } : {}),
-        ...(isPhysical ? { shipping_carrier: shipping.carrier } : {}),
+        ...(isPhysical
+          ? {
+              shipping_method: shipping.carrier,
+              shipping_carrier: shipping.carrier,
+            }
+          : {}),
       })
       if (!escrow) throw new Error('Failed to create escrow record')
       setEscrowId(escrow.id)
