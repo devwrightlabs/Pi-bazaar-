@@ -139,7 +139,7 @@ export default function CreateListingPage() {
           location_lng: 0,
           city: form.location_city.trim(),
           country: form.location_country.trim(),
-          origin_country: form.shipping.category === 'local' ? 'BS' : form.location_country.trim(),
+          origin_country: form.location_country.trim(),
           product_type: form.product_type,
           allow_offers: form.allow_offers,
           shipping_carrier: form.product_type === 'digital' ? null : form.shipping.carrier,
