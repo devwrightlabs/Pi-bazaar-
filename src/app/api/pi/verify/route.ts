@@ -186,10 +186,47 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Cross-check Pi-side approval / verification state and use the authoritative
+    // txid from the Pi API whenever it is available.
+    const piPaymentVerification = piPayment as PiPaymentResponse & {
+      developer_approved?: boolean
+      transaction_verified?: boolean
+      transaction?: {
+        txid?: string | null
+      } | null
+    }
+    const piApiTxid = piPaymentVerification.transaction?.txid ?? null
+
+    if (piPaymentVerification.developer_approved === false) {
+      console.warn(`[pi/verify] Payment is not developer-approved: payment_id=${payment_id}`)
+      return NextResponse.json(
+        { error: 'Payment is not approved for completion' },
+        { status: 409 }
+      )
+    }
+
+    if (piPaymentVerification.transaction_verified === false) {
+      console.warn(`[pi/verify] Payment transaction is not verified: payment_id=${payment_id}`)
+      return NextResponse.json(
+        { error: 'Payment transaction is not verified' },
+        { status: 409 }
+      )
+    }
+
+    if (piApiTxid && txid !== piApiTxid) {
+      console.warn(`[pi/verify] txid mismatch: request=${txid}, pi=${piApiTxid}`)
+      return NextResponse.json(
+        { error: 'Payment transaction does not match Pi Network record' },
+        { status: 400 }
+      )
+    }
+
+    const txidToComplete = piApiTxid ?? txid
+
     // 5. Complete the payment on the blockchain (if not already completed).
     if (!piPayment.status.developer_completed) {
       try {
-        await completePiPayment(payment_id, txid, apiKey)
+        await completePiPayment(payment_id, txidToComplete, apiKey)
       } catch (err) {
         console.error('[pi/verify] Failed to complete payment:', err)
         return NextResponse.json({ error: 'Failed to complete payment' }, { status: 502 })
