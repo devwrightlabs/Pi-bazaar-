@@ -425,8 +425,8 @@ export default function CreateListingPage() {
                       <div className="flex gap-2">
                         {(
                           [
-                            { key: 'nassau_courier' as ShippingMethod, label: '🚗 Nassau Courier' },
-                            { key: 'local_pickup' as ShippingMethod, label: '📍 Local Pickup' },
+                            { key: 'nassau_courier', label: '🚗 Nassau Courier' },
+                            { key: 'local_pickup', label: '📍 Local Pickup' },
                           ] as const
                         ).map((sm) => (
                           <button
