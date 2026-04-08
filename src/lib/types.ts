@@ -70,7 +70,7 @@ export interface UserPreferences {
 }
 
 export type TargetMarket = 'local' | 'global'
-export type ShippingMethod = 'nassau_courier' | 'local_pickup' | 'international_shipping' | 'digital_delivery'
+export type ShippingMethod = 'standard' | 'express' | 'local_pickup'
 export type ProductType = 'physical' | 'digital'
 
 export interface CreateListingForm {
