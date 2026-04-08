@@ -69,9 +69,22 @@ export interface UserPreferences {
   updated_at: string
 }
 
-export type TargetMarket = 'local' | 'global'
-export type ShippingMethod = 'nassau_courier' | 'local_pickup' | 'international_shipping' | 'digital_delivery' | 'shipping_information'
 export type ProductType = 'physical' | 'digital'
+
+// ─── Shipping types ───────────────────────────────────────────────────────────
+
+export type ShippingCategory = 'local' | 'international'
+
+export type LocalCarrier = 'nassau_courier' | 'local_pickup' | 'bahamas_post' | 'quickship_bahamas'
+
+export type InternationalCarrier = 'fedex' | 'dhl' | 'ups' | 'usps'
+
+export type ShippingCarrier = LocalCarrier | InternationalCarrier
+
+export interface ShippingConfig {
+  category: ShippingCategory
+  carrier: ShippingCarrier
+}
 
 export interface CreateListingForm {
   title: string
@@ -84,9 +97,8 @@ export interface CreateListingForm {
   location_country: string
   allow_offers: boolean
   fast_seller_agreed: boolean
-  target_market: TargetMarket
   product_type: ProductType
-  shipping_method: ShippingMethod
+  shipping: ShippingConfig
 }
 
 export interface ScrapedListing {

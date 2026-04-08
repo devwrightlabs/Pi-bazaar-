@@ -12,9 +12,8 @@ const DEFAULT_FORM: CreateListingForm = {
   location_country: '',
   allow_offers: true,
   fast_seller_agreed: false,
-  target_market: 'global',
   product_type: 'physical',
-  shipping_method: 'shipping_information',
+  shipping: { category: 'local', carrier: 'nassau_courier' },
 }
 
 interface AppState {
@@ -66,6 +65,7 @@ interface AppState {
     product_type: 'physical' | 'digital'
     pi_payment_id: string
     shipping_address_id?: string
+    shipping_carrier?: string
   }) => Promise<EscrowTransaction | null>
   confirmReceipt: (orderId: string) => Promise<boolean>
   openDispute: (orderId: string, reason: string, description: string, evidence_urls?: string[]) => Promise<boolean>

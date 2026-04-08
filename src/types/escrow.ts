@@ -119,9 +119,14 @@ export interface PiPaymentResponse {
 // ─── Shipping cost mapping ────────────────────────────────────────────────────
 
 export const SHIPPING_COSTS: Record<string, number> = {
-  standard: 0.5,
-  express: 1.0,
+  nassau_courier: 0.5,
   local_pickup: 0,
+  bahamas_post: 0.3,
+  quickship_bahamas: 1.0,
+  fedex: 2.0,
+  dhl: 2.5,
+  ups: 2.0,
+  usps: 1.5,
 }
 
 // ─── State machine ────────────────────────────────────────────────────────────

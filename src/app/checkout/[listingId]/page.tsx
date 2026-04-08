@@ -3,11 +3,12 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import type { Listing, ShippingAddress } from '@/lib/types'
+import type { Listing, ShippingAddress, ShippingConfig } from '@/lib/types'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import PaymentBreakdown from '@/components/PaymentBreakdown'
 import ShippingAddressForm from '@/components/ShippingAddressForm'
+import ShippingSelector from '@/components/ShippingSelector'
 import PiPayButton from '@/components/PiPayButton'
 import { useStore } from '@/store/useStore'
 
@@ -21,7 +22,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
 
   const [listing, setListing] = useState<Listing | null>(null)
   const [loading, setLoading] = useState(true)
-  const [shippingMethod, setShippingMethod] = useState<'standard' | 'express' | 'pickup'>('standard')
+  const [shipping, setShipping] = useState<ShippingConfig>({ category: 'local', carrier: 'nassau_courier' })
   const [selectedAddress, setSelectedAddress] = useState<Omit<ShippingAddress, 'id' | 'user_id' | 'created_at'> | null>(null)
   const [savedAddresses, setSavedAddresses] = useState<ShippingAddress[]>([])
   const [paymentId, setPaymentId] = useState<string | null>(null)
@@ -57,7 +58,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
     void fetchData()
   }, [listingId, currentUser])
 
-  const isPhysical = (listing?.category ?? '').toLowerCase() !== 'digital'
+  const isPhysical = listing?.product_type === 'physical'
 
   /**
    * Create escrow BEFORE initiating the Pi payment so we have an escrow_id
@@ -91,6 +92,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
         product_type: isPhysical ? 'physical' : 'digital',
         pi_payment_id: 'pending',
         ...(savedAddressId ? { shipping_address_id: savedAddressId } : {}),
+        ...(isPhysical ? { shipping_carrier: shipping.carrier } : {}),
       })
       if (!escrow) throw new Error('Failed to create escrow record')
       setEscrowId(escrow.id)
@@ -114,12 +116,6 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
     if (!escrowId) return
     router.push(`/orders/${escrowId}`)
   }
-
-  const shippingMethods = [
-    { id: 'standard', label: 'Standard Shipping', est: '5\u201310 business days' },
-    { id: 'express', label: 'Express Shipping', est: '2\u20133 business days' },
-    { id: 'pickup', label: 'Local Pickup', est: 'Arrange with seller' },
-  ] as const
 
   if (loading) return <LoadingSkeleton rows={6} variant="rows" />
   if (!listing) {
@@ -190,27 +186,15 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
             <h2 className="font-semibold" style={{ color: 'var(--color-text)', fontFamily: 'Sora, sans-serif' }}>
               Shipping Method
             </h2>
-            <div className="space-y-2">
-              {shippingMethods.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setShippingMethod(m.id)}
-                  className="w-full rounded-xl p-3 text-left flex justify-between items-center"
-                  style={{
-                    backgroundColor: shippingMethod === m.id ? 'rgba(240,192,64,0.1)' : 'var(--color-card-bg)',
-                    border: `1px solid ${shippingMethod === m.id ? '#F0C040' : 'rgba(255,255,255,0.06)'}`,
-                  }}
-                >
-                  <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>{m.label}</span>
-                  <span className="text-xs" style={{ color: 'var(--color-subtext)' }}>{m.est}</span>
-                </button>
-              ))}
-            </div>
+            <ShippingSelector
+              value={shipping}
+              onChange={setShipping}
+            />
           </div>
         ) : (
           <div className="rounded-xl p-4" style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid rgba(34,197,94,0.2)' }}>
             <p className="text-sm font-semibold mb-1" style={{ color: '#22C55E' }}>
-              {'\u{1f4e5}'} Digital Delivery {'\u2014'} No Shipping Required
+              📥 Digital Delivery — No Shipping Required
             </p>
             <p className="text-sm" style={{ color: 'var(--color-subtext)' }}>
               The seller will deliver this item via chat or a download link after payment is confirmed.
@@ -224,7 +208,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
         {/* Escrow protection info */}
         <div className="rounded-xl p-4" style={{ backgroundColor: '#0D1B2A', border: '1px solid rgba(240,192,64,0.2)' }}>
           <p className="text-sm font-semibold mb-1" style={{ color: '#F0C040' }}>
-            {'\u{1f512}'} Escrow Protection
+            🔒 Escrow Protection
           </p>
           <p className="text-sm" style={{ color: 'var(--color-subtext)' }}>
             Your Pi is held securely until you confirm receipt. If there&apos;s a problem, you can open a dispute and our team will help resolve it.

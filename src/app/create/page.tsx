@@ -4,7 +4,7 @@ import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { CreateListingForm, ScrapedListing } from '@/lib/types'
-import type { TargetMarket, ProductType, ShippingMethod } from '@/lib/types'
+import type { ProductType } from '@/lib/types'
 import { useStore } from '@/store/useStore'
 import PhotoUploader from '@/components/PhotoUploader'
 import ListingPreviewCard from '@/components/ListingPreviewCard'
@@ -17,6 +17,7 @@ import FastSellerAgreement from '@/components/FastSellerAgreement'
 import URLImportForm from '@/components/URLImportForm'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import ShippingSelector from '@/components/ShippingSelector'
 
 const INITIAL_FORM: CreateListingForm = {
   title: '',
@@ -29,9 +30,8 @@ const INITIAL_FORM: CreateListingForm = {
   location_country: '',
   allow_offers: true,
   fast_seller_agreed: false,
-  target_market: 'global',
   product_type: 'physical',
-  shipping_method: 'international_shipping',
+  shipping: { category: 'local', carrier: 'nassau_courier' },
 }
 
 type Tab = 'manual' | 'url'
@@ -139,9 +139,10 @@ export default function CreateListingPage() {
           location_lng: 0,
           city: form.location_city.trim(),
           country: form.location_country.trim(),
-          origin_country: form.target_market === 'local' ? 'BS' : form.location_country.trim(),
+          origin_country: form.shipping.category === 'local' ? 'BS' : form.location_country.trim(),
           product_type: form.product_type,
           allow_offers: form.allow_offers,
+          shipping_carrier: form.product_type === 'digital' ? null : form.shipping.carrier,
           is_active: true,
           is_boosted: false,
         })
@@ -334,16 +335,7 @@ export default function CreateListingPage() {
                         <button
                           key={pt.key}
                           type="button"
-                          onClick={() => {
-                            update('product_type', pt.key)
-                            if (pt.key === 'digital') {
-                              update('shipping_method', 'digital_delivery')
-                            } else if (form.target_market === 'local') {
-                              update('shipping_method', 'nassau_courier')
-                            } else {
-                              update('shipping_method', 'international_shipping')
-                            }
-                          }}
+                          onClick={() => update('product_type', pt.key)}
                           className="flex-1 py-3 px-3 rounded-xl text-center transition-all"
                           style={{
                             backgroundColor: form.product_type === pt.key ? 'rgba(240,192,64,0.15)' : 'var(--color-card-bg)',
@@ -358,59 +350,18 @@ export default function CreateListingPage() {
                     </div>
                   </div>
 
-                  {/* Target Market Toggle — only for physical products */}
-                  {form.product_type === 'physical' && (
+                  {/* Shipping — shown for physical products only */}
+                  {form.product_type === 'physical' ? (
                     <div>
-                      <FieldLabel>Target Market</FieldLabel>
-                      <div
-                        className="flex items-center justify-between py-3 px-4 rounded-xl"
-                        style={{ backgroundColor: 'var(--color-card-bg)' }}
-                      >
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <span className="text-2xl">{form.target_market === 'local' ? '🇧🇸' : '🌐'}</span>
-                          <div>
-                            <p className="text-sm font-semibold" style={{ color: 'var(--color-text)' }}>
-                              {form.target_market === 'local' ? 'Local (Bahamas)' : 'Global'}
-                            </p>
-                            <p className="text-xs" style={{ color: 'var(--color-subtext)' }}>
-                              {form.target_market === 'local'
-                                ? 'Ship within The Bahamas only'
-                                : 'Ship internationally'}
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          role="switch"
-                          aria-checked={form.target_market === 'global'}
-                          aria-label={`Target market: ${form.target_market}`}
-                          onClick={() => {
-                            const next: TargetMarket = form.target_market === 'local' ? 'global' : 'local'
-                            update('target_market', next)
-                            update('shipping_method', next === 'local' ? 'nassau_courier' : 'international_shipping')
-                          }}
-                          className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
-                          style={{
-                            backgroundColor: form.target_market === 'global' ? 'var(--color-gold)' : '#8B5CF6',
-                          }}
-                        >
-                          <span
-                            className="absolute top-0.5 w-5 h-5 rounded-full transition-transform bg-white"
-                            style={{
-                              transform: form.target_market === 'global' ? 'translateX(26px)' : 'translateX(2px)',
-                            }}
-                          />
-                        </button>
-                      </div>
+                      <FieldLabel>Shipping Options</FieldLabel>
+                      <ShippingSelector
+                        value={form.shipping}
+                        onChange={(cfg) => update('shipping', cfg)}
+                      />
                     </div>
-                  )}
-
-                  {/* Shipping Information — dynamic based on target market & product type */}
-                  <div>
-                    <FieldLabel>
-                      {form.product_type === 'digital' ? 'Delivery Method' : 'Shipping Information'}
-                    </FieldLabel>
-                    {form.product_type === 'digital' ? (
+                  ) : (
+                    <div>
+                      <FieldLabel>Delivery Method</FieldLabel>
                       <div
                         className="py-3 px-4 rounded-xl text-sm"
                         style={{
@@ -421,42 +372,8 @@ export default function CreateListingPage() {
                       >
                         💾 Digital Delivery — files/links sent via PiBazaar
                       </div>
-                    ) : form.target_market === 'local' ? (
-                      <div className="flex gap-2">
-                        {(
-                          [
-                            { key: 'nassau_courier', label: '🚗 Nassau Courier' },
-                            { key: 'local_pickup', label: '📍 Local Pickup' },
-                          ] as const
-                        ).map((sm) => (
-                          <button
-                            key={sm.key}
-                            type="button"
-                            onClick={() => update('shipping_method', sm.key)}
-                            className="flex-1 py-3 px-3 rounded-xl text-sm font-medium transition-all"
-                            style={{
-                              backgroundColor: form.shipping_method === sm.key ? 'rgba(139,92,246,0.15)' : 'var(--color-card-bg)',
-                              color: form.shipping_method === sm.key ? '#8B5CF6' : 'var(--color-text)',
-                              border: form.shipping_method === sm.key ? '1px solid rgba(139,92,246,0.4)' : '1px solid rgba(136,136,136,0.2)',
-                            }}
-                          >
-                            {sm.label}
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div
-                        className="py-3 px-4 rounded-xl text-sm"
-                        style={{
-                          backgroundColor: 'rgba(240,192,64,0.1)',
-                          color: 'var(--color-gold)',
-                          border: '1px solid rgba(240,192,64,0.3)',
-                        }}
-                      >
-                        🌐 International Shipping — standard worldwide delivery
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   {/* Allow Offers */}
                   <div className="flex items-center justify-between py-3 px-4 rounded-xl" style={{ backgroundColor: 'var(--color-card-bg)' }}>
