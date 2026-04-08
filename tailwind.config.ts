@@ -13,6 +13,7 @@ const config: Config = {
         'secondary-bg': 'var(--color-secondary-bg)',
         'card-bg': 'var(--color-card-bg)',
         gold: 'var(--color-gold)',
+        'royal-purple': 'var(--color-royal-purple)',
         'text-primary': 'var(--color-text)',
         'text-sub': 'var(--color-subtext)',
         success: 'var(--color-success)',

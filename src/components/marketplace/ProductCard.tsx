@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { useStore } from '@/store/useStore'
 import type { Listing, MatchScore } from '@/lib/types'
 import VerifiedBadge from '@/components/VerifiedBadge'
+import TrustBadge from '@/components/marketplace/TrustBadge'
 
 type RecommendedListing = Listing & { match_score: MatchScore }
 
@@ -124,13 +125,13 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
         <div className="flex gap-3 px-4 pb-4">
           <button
             onClick={handleQuickView}
-            className="flex-1 py-3 rounded-xl text-sm font-medium transition-opacity hover:opacity-80 bg-secondary-bg text-text-primary border border-border"
+            className="flex-1 py-3 rounded-xl text-sm font-medium transition-all hover:opacity-80 active:scale-95 bg-secondary-bg text-text-primary border border-border"
           >
             Quick View
           </button>
           <button
             onClick={handleBuy}
-            className="flex-1 py-3 rounded-xl text-sm font-bold transition-opacity hover:opacity-80 bg-gold text-black"
+            className="flex-1 py-3 rounded-xl text-sm font-bold transition-all hover:opacity-80 active:scale-95 bg-gold text-black"
           >
             Buy with π
           </button>
@@ -204,13 +205,13 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
           <div className="flex gap-2 mt-2">
             <button
               onClick={handleQuickView}
-              className="flex-1 py-2 rounded-lg text-xs font-medium transition-opacity hover:opacity-80 bg-secondary-bg text-text-primary border border-border"
+              className="flex-1 py-2 rounded-lg text-xs font-medium transition-all hover:opacity-80 active:scale-95 bg-secondary-bg text-text-primary border border-border"
             >
               Quick View
             </button>
             <button
               onClick={handleBuy}
-              className="flex-1 py-2 rounded-lg text-xs font-bold transition-opacity hover:opacity-80 bg-gold text-black"
+              className="flex-1 py-2 rounded-lg text-xs font-bold transition-all hover:opacity-80 active:scale-95 bg-gold text-black"
             >
               Buy with π
             </button>
@@ -251,12 +252,9 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
 
         {/* Pro-Seller badge */}
         {item.is_pro_seller && (
-          <span
-            className="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full z-10"
-            style={{ backgroundColor: '#8B5CF6', color: '#fff' }}
-          >
-            ✓ Pro Seller
-          </span>
+          <div className="absolute top-2 left-2 z-10">
+            <TrustBadge size="sm" />
+          </div>
         )}
 
         {/* Boosted badge */}
@@ -301,25 +299,15 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
         {/* Seller avatar */}
         <div className="flex items-center justify-end gap-1.5 mt-1">
           {item.is_pro_seller ? (
-            <span
-              className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium"
-              style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8B5CF6' }}
-              aria-label="Verified Pro Seller"
-            >
-              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                <path d="M6 1L7.5 4.2L11 4.7L8.5 7.1L9.1 10.6L6 9L2.9 10.6L3.5 7.1L1 4.7L4.5 4.2L6 1Z" fill="#8B5CF6" />
-                <path d="M4 6L5.5 7.5L8 5" stroke="#fff" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              Verified Pro
-            </span>
+            <TrustBadge size="sm" />
           ) : (
             <VerifiedBadge size="sm" />
           )}
           <div
             className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
             style={{
-              backgroundColor: item.is_pro_seller ? '#8B5CF6' : 'var(--color-gold)',
-              color: item.is_pro_seller ? '#fff' : '#000',
+              backgroundColor: 'var(--color-gold)',
+              color: '#000',
             }}
           >
             {sellerInitial}
@@ -331,13 +319,13 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
       <div className="flex gap-2 px-3 pb-3">
         <button
           onClick={handleQuickView}
-          className="flex-1 py-2 rounded-lg text-xs font-medium transition-opacity hover:opacity-80 bg-secondary-bg text-text-primary border border-border"
+          className="flex-1 py-2 rounded-lg text-xs font-medium transition-all hover:opacity-80 active:scale-95 bg-secondary-bg text-text-primary border border-border"
         >
           Quick View
         </button>
         <button
           onClick={handleBuy}
-          className="flex-1 py-2 rounded-lg text-xs font-bold transition-opacity hover:opacity-80 bg-gold text-black"
+          className="flex-1 py-2 rounded-lg text-xs font-bold transition-all hover:opacity-80 active:scale-95 bg-gold text-black"
         >
           Buy with π
         </button>

@@ -232,14 +232,14 @@ function ShipModal({
         <button
           onClick={() => onSubmit(tracking, carrier)}
           disabled={!tracking.trim() || !carrier.trim() || loading}
-          className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-50"
-          style={{ backgroundColor: '#8B5CF6', color: '#fff' }}
+          className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-50 transition-all active:scale-95"
+          style={{ backgroundColor: 'var(--color-royal-purple)', color: '#fff' }}
         >
           {loading ? 'Updating…' : '🚚 Mark as Shipped'}
         </button>
         <button
           onClick={onClose}
-          className="w-full py-2 text-sm"
+          className="w-full py-2 text-sm transition-all active:scale-95"
           style={{ color: 'var(--color-subtext)' }}
         >
           Cancel
@@ -295,14 +295,14 @@ function DeliverModal({
         <button
           onClick={() => onSubmit(proof)}
           disabled={!proof.trim() || loading}
-          className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-50"
+          className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-50 transition-all active:scale-95"
           style={{ backgroundColor: '#14B8A6', color: '#fff' }}
         >
           {loading ? 'Uploading…' : '📤 Upload Deliverables'}
         </button>
         <button
           onClick={onClose}
-          className="w-full py-2 text-sm"
+          className="w-full py-2 text-sm transition-all active:scale-95"
           style={{ color: 'var(--color-subtext)' }}
         >
           Cancel
@@ -570,7 +570,7 @@ export default function DashboardPage() {
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key)}
-                  className="px-5 py-2 rounded-full text-sm font-medium transition-colors"
+                  className="px-5 py-2 rounded-full text-sm font-medium transition-all active:scale-95"
                   style={{
                     backgroundColor:
                       tab === t.key ? '#F0C040' : 'var(--color-card-bg)',

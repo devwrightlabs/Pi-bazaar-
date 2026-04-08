@@ -176,5 +176,6 @@ export function useMarketplace(initialListings: RecommendedListing[] = []) {
     loadMore,
     sentinelRef,
     retry,
+    refresh: () => fetchRecommendations(true),
   }
 }

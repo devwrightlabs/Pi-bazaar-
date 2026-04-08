@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { useMarketplace, type RecommendedListing } from '@/hooks/useMarketplace'
 import { useUIStore } from '@/store/useUIStore'
@@ -8,6 +9,7 @@ import ControlBar from './ControlBar'
 import GridFeed from './GridFeed'
 import ListFeed from './ListFeed'
 import SwipeFeed from './SwipeFeed'
+import PullToRefresh from './PullToRefresh'
 
 const SKELETON_COUNT = 6
 
@@ -26,12 +28,18 @@ function FeedContent({ initialListings = [] }: MarketplaceFeedProps) {
     setCategory,
     sentinelRef,
     retry,
+    refresh,
   } = useMarketplace(initialListings)
 
   const viewMode = useUIStore((s) => s.viewMode)
 
+  const handleRefresh = useCallback(async () => {
+    await refresh()
+  }, [refresh])
+
   return (
-    <div>
+    <PullToRefresh onRefresh={handleRefresh}>
+      <div>
       <ControlBar />
 
       {/* Category navigation */}
@@ -47,13 +55,18 @@ function FeedContent({ initialListings = [] }: MarketplaceFeedProps) {
           {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
             <div
               key={i}
-              className="rounded-2xl overflow-hidden animate-pulse bg-card-bg border border-border"
+              className="rounded-2xl overflow-hidden"
+              style={{ backgroundColor: 'var(--color-card-bg)', border: '1px solid var(--color-border)' }}
             >
-              <div className="w-full aspect-square bg-secondary-bg" />
+              <div className="skeleton-shimmer w-full aspect-square" />
               <div className="p-3 space-y-2">
-                <div className="h-3 rounded bg-secondary-bg w-4/5" />
-                <div className="h-3 rounded bg-secondary-bg w-3/5" />
-                <div className="h-4 rounded bg-secondary-bg w-2/5" />
+                <div className="skeleton-shimmer h-3 rounded w-4/5" />
+                <div className="skeleton-shimmer h-3 rounded w-3/5" />
+                <div className="skeleton-shimmer h-4 rounded w-2/5" />
+              </div>
+              <div className="flex gap-2 px-3 pb-3">
+                <div className="skeleton-shimmer h-8 rounded-lg flex-1" />
+                <div className="skeleton-shimmer h-8 rounded-lg flex-1" />
               </div>
             </div>
           ))}
@@ -71,7 +84,7 @@ function FeedContent({ initialListings = [] }: MarketplaceFeedProps) {
           </p>
           <button
             onClick={retry}
-            className="px-6 py-3 rounded-xl font-semibold text-sm bg-gold text-black"
+            className="px-6 py-3 rounded-xl font-semibold text-sm transition-all active:scale-95 bg-gold text-black"
           >
             Try Again
           </button>
@@ -115,7 +128,8 @@ function FeedContent({ initialListings = [] }: MarketplaceFeedProps) {
           You've seen all listings in this area.
         </p>
       )}
-    </div>
+      </div>
+    </PullToRefresh>
   )
 }
 

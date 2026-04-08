@@ -7,6 +7,7 @@ import { useStore } from '@/store/useStore'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import TrustBadge from '@/components/marketplace/TrustBadge'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -233,11 +234,8 @@ function ProductDetailContent({ productId }: { productId: string }) {
             </div>
           )}
           {product.is_pro_seller && (
-            <div
-              className="absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full z-10"
-              style={{ backgroundColor: '#8B5CF6', color: '#fff' }}
-            >
-              ✓ Verified Pro
+            <div className="absolute top-3 left-3 z-10">
+              <TrustBadge size="md" />
             </div>
           )}
         </div>
