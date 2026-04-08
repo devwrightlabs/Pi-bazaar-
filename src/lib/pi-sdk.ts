@@ -93,7 +93,7 @@ export async function authenticateWithPi(): Promise<PiAuthResult | null> {
       return null
     }
     const result = await window.Pi.authenticate(
-      ['username', 'payments'],
+      ['username', 'payments', 'wallet_address'],
       (payment: PiPayment) => {
         console.log('Incomplete payment found:', payment.identifier)
       }

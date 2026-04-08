@@ -98,7 +98,7 @@ export default function HomePage() {
           ) : (
             <div className="flex flex-col items-center gap-2">
               <Button size="lg" onClick={handleLogin}>
-                Login with Pi Browser
+                Login with Pi
               </Button>
               {authError && (
                 <p className="text-xs text-error">{authError}</p>
