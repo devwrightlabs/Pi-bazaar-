@@ -47,18 +47,20 @@ export type ListingRow = {
   is_boosted: boolean
   is_pro_seller: boolean | null
   product_type: 'physical' | 'digital' | 'service' | null
+  shipping_carrier: string | null
   created_at: string
   updated_at: string
 }
 
 export type ListingInsert = Omit<
   ListingRow,
-  'id' | 'created_at' | 'updated_at' | 'allow_offers' | 'origin_country' | 'is_pro_seller' | 'product_type'
+  'id' | 'created_at' | 'updated_at' | 'allow_offers' | 'origin_country' | 'is_pro_seller' | 'product_type' | 'shipping_carrier'
 > & {
   allow_offers?: boolean | null
   origin_country?: string | null
   is_pro_seller?: boolean | null
   product_type?: 'physical' | 'digital' | 'service' | null
+  shipping_carrier?: string | null
 }
 export type ListingUpdate = Partial<Omit<ListingRow, 'id' | 'allow_offers'>> & {
   allow_offers?: boolean | null
