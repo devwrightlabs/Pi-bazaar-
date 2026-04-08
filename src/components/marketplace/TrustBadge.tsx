@@ -21,8 +21,8 @@ const sizeConfig: Record<TrustBadgeSize, { icon: number; text: string; px: strin
  * TrustBadge — Reusable "Verified Pro" seller badge.
  *
  * Renders when `is_pro_seller` is true on product cards, checkout screens,
- * and user profiles. Uses Gold (#FFD700) branding with a subtle drop shadow
- * and verified checkmark icon.
+ * and user profiles. Uses the `--color-gold` brand token for themed gold
+ * styling, with a subtle drop shadow and verified checkmark icon.
  */
 export default function TrustBadge({
   size = 'sm',
