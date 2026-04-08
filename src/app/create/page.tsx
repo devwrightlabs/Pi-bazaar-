@@ -31,7 +31,7 @@ const INITIAL_FORM: CreateListingForm = {
   fast_seller_agreed: false,
   target_market: 'global',
   product_type: 'physical',
-  shipping_method: 'shipping_information',
+  shipping_method: 'international_shipping',
 }
 
 type Tab = 'manual' | 'url'
