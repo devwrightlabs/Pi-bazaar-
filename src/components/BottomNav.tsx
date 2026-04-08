@@ -33,11 +33,13 @@ function OrdersIcon({ active }: { active: boolean }) {
   )
 }
 
-function ProfileIcon({ active }: { active: boolean }) {
+function DashboardIcon({ active }: { active: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? 'var(--color-gold)' : 'var(--color-subtext)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="8" r="4" />
-      <path d="M4 21v-1a6 6 0 0 1 12 0v1" />
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="4" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="11" width="7" height="10" rx="1" />
     </svg>
   )
 }
@@ -58,7 +60,7 @@ const LEFT_ITEMS: NavItem[] = [
 
 const RIGHT_ITEMS: NavItem[] = [
   { href: '/orders', label: 'My Orders', Icon: OrdersIcon, badgeCount: 0 },
-  { href: '/profile', label: 'Profile', Icon: ProfileIcon },
+  { href: '/dashboard', label: 'Dashboard', Icon: DashboardIcon },
 ]
 
 /* ─── Component ───────────────────────────────────────────────────────── */

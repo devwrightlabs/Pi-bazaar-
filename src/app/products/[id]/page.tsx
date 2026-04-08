@@ -461,11 +461,18 @@ function ProductDetailContent({ productId }: { productId: string }) {
 // ─── Page Component ───────────────────────────────────────────────────────────
 
 interface PageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function ProductDetailPage({ params }: PageProps) {
-  const productId = params.id
+  const [productId, setProductId] = useState<string | null>(null)
+
+  useEffect(() => {
+    params.then(({ id }) => setProductId(id))
+  }, [params])
+
+  if (!productId) return <Skeleton shape="card" className="m-4" />
+
   return (
     <ErrorBoundary>
       <ProductDetailContent productId={productId} />

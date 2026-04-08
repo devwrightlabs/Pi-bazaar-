@@ -12,6 +12,9 @@ const DEFAULT_FORM: CreateListingForm = {
   location_country: '',
   allow_offers: true,
   fast_seller_agreed: false,
+  target_market: 'global',
+  product_type: 'physical',
+  shipping_method: 'shipping',
 }
 
 interface AppState {
