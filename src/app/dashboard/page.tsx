@@ -402,13 +402,18 @@ export default function DashboardPage() {
         typeof window !== 'undefined'
           ? localStorage.getItem('pibazaar-token')
           : null
-      const res = await fetch(`/api/escrow/${shipOrderId}/ship`, {
+      const res = await fetch('/api/escrow/update-status', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ tracking_number: tracking, shipping_carrier: carrier }),
+        body: JSON.stringify({
+          escrowId: shipOrderId,
+          status: 'shipped',
+          tracking_number: tracking,
+          shipping_carrier: carrier,
+        }),
       })
       if (!res.ok) throw new Error('Ship failed')
       setShipOrderId(null)
