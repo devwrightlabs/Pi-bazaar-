@@ -26,15 +26,25 @@ export default function PullToRefresh({ onRefresh, children }: PullToRefreshProp
   const [pullDistance, setPullDistance] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
 
+  const getScrollTop = useCallback(() => {
+    const el = containerRef.current
+
+    if (el && el.scrollHeight > el.clientHeight) {
+      return el.scrollTop
+    }
+
+    return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0
+  }, [])
+
   const handleTouchStart = useCallback(
     (e: React.TouchEvent) => {
       if (refreshing) return
       const el = containerRef.current
-      if (!el || el.scrollTop > 0) return
+      if (!el || getScrollTop() > 0) return
       startYRef.current = e.touches[0].clientY
       pullingRef.current = true
     },
-    [refreshing],
+    [getScrollTop, refreshing],
   )
 
   const handleTouchMove = useCallback(
