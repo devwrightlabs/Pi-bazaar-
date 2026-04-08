@@ -21,6 +21,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
+        <script src="https://sdk.minepi.com/pi-sdk.js"></script>
+        <script dangerouslySetInnerHTML={{ __html: 'Pi.init({ version: "2.0", sandbox: true })' }} />
       </head>
       <body className="bg-background pb-20">
         <StoreHydration />
