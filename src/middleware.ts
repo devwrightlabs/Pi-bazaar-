@@ -19,7 +19,7 @@ const STANDARD_LIMIT = 100
 const CRITICAL_LIMIT = 15
 
 /** Path prefixes that are considered critical */
-const CRITICAL_PREFIXES = ['/api/escrow', '/api/auth']
+const CRITICAL_PREFIXES = ['/api/escrow', '/api/auth', '/api/pi']
 
 /**
  * Periodic cleanup: remove stale entries every 2 minutes to prevent unbounded
