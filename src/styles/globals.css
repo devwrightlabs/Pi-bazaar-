@@ -12,7 +12,7 @@
   --color-secondary-bg: #1A1A2E;
   --color-card-bg: #16213E;
   --color-gold: #F0C040;
-  --color-royal-purple: #4B0082;
+  --color-royal-purple: #4B0082; /* Brand accent — available for themed UI elements */
   --color-text: #FFFFFF;
   --color-subtext: #888888;
   --color-success: #22C55E;
@@ -31,7 +31,7 @@
   --color-secondary-bg: #1A1A2E;
   --color-card-bg: #16213E;
   --color-gold: #F0C040;
-  --color-royal-purple: #4B0082;
+  --color-royal-purple: #4B0082; /* Brand accent */
   --color-text: #FFFFFF;
   --color-subtext: #888888;
   --color-success: #22C55E;
@@ -50,7 +50,7 @@
   --color-secondary-bg: #E8E8ED;
   --color-card-bg: #FFFFFF;
   --color-gold: #D4A017;
-  --color-royal-purple: #4B0082;
+  --color-royal-purple: #4B0082; /* Brand accent */
   --color-text: #1A1A1A;
   --color-subtext: #4B5563;
   --color-success: #16A34A;

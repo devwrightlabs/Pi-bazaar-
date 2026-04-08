@@ -252,12 +252,9 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
 
         {/* Pro-Seller badge */}
         {item.is_pro_seller && (
-          <span
-            className="absolute top-2 left-2 text-xs font-bold px-2 py-0.5 rounded-full z-10"
-            style={{ backgroundColor: 'var(--color-gold)', color: '#000' }}
-          >
-            ✓ Pro Seller
-          </span>
+          <div className="absolute top-2 left-2 z-10">
+            <TrustBadge size="sm" />
+          </div>
         )}
 
         {/* Boosted badge */}
