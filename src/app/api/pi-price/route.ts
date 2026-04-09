@@ -23,6 +23,16 @@ async function fetchPiPrice(): Promise<number | null> {
   }
 }
 
+function staleCacheResponse() {
+  if (!cachedPrice) return null
+  return NextResponse.json({
+    price_usd: cachedPrice.price_usd,
+    price: cachedPrice.price_usd,
+    timestamp: new Date(cachedPrice.fetchedAt).toISOString(),
+    stale: true,
+  })
+}
+
 export async function GET() {
   try {
     const now = Date.now()
@@ -39,18 +49,12 @@ export async function GET() {
     const price = await fetchPiPrice()
 
     if (price === null) {
-      if (cachedPrice) {
-        // Return stale cache rather than failing
-        return NextResponse.json({
-          price_usd: cachedPrice.price_usd,
-          price: cachedPrice.price_usd,
-          timestamp: new Date(cachedPrice.fetchedAt).toISOString(),
-          stale: true,
-        })
-      }
-      return NextResponse.json(
-        { error: 'Rate unavailable', price: null },
-        { status: 503 }
+      return (
+        staleCacheResponse() ??
+        NextResponse.json(
+          { error: 'Rate unavailable', price: null },
+          { status: 503 }
+        )
       )
     }
 
@@ -62,17 +66,12 @@ export async function GET() {
     })
   } catch (err) {
     console.error('[pi-price] Unhandled error:', err)
-    if (cachedPrice) {
-      return NextResponse.json({
-        price_usd: cachedPrice.price_usd,
-        price: cachedPrice.price_usd,
-        timestamp: new Date(cachedPrice.fetchedAt).toISOString(),
-        stale: true,
-      })
-    }
-    return NextResponse.json(
-      { error: 'Internal server error', price: null },
-      { status: 500 }
+    return (
+      staleCacheResponse() ??
+      NextResponse.json(
+        { error: 'Internal server error', price: null },
+        { status: 500 }
+      )
     )
   }
 }
