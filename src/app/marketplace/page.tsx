@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
-import { supabase } from '@/lib/supabase'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import type { Listing, MatchScore } from '@/lib/types'
 import MarketplaceFeed from '@/components/marketplace/MarketplaceFeed'
 import ProductCardSkeleton from '@/components/marketplace/ProductCardSkeleton'
@@ -22,26 +22,40 @@ function SkeletonGrid() {
 }
 
 async function FeedWithData() {
-  const { data } = await supabase
-    .from('listings')
-    .select('*')
-    .eq('is_active', true)
-    .order('is_boosted', { ascending: false })
-    .order('created_at', { ascending: false })
-    .limit(20)
+  if (!isSupabaseConfigured) {
+    return <MarketplaceFeed initialListings={[]} />
+  }
 
-  const initialListings = ((data ?? []) as Listing[]).map((listing) => ({
-    ...listing,
-    match_score: {
-      listing_id: listing.id,
-      score: 0,
-      distance_km: null,
-      category_match: false,
-      is_boosted: listing.is_boosted,
-    } satisfies MatchScore,
-  }))
+  try {
+    const { data, error } = await supabase
+      .from('listings')
+      .select('*')
+      .eq('is_active', true)
+      .order('is_boosted', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(20)
 
-  return <MarketplaceFeed initialListings={initialListings} />
+    if (error) {
+      console.error('[marketplace] Supabase query error:', error)
+      return <MarketplaceFeed initialListings={[]} />
+    }
+
+    const initialListings = ((data ?? []) as Listing[]).map((listing) => ({
+      ...listing,
+      match_score: {
+        listing_id: listing.id,
+        score: 0,
+        distance_km: null,
+        category_match: false,
+        is_boosted: listing.is_boosted,
+      } satisfies MatchScore,
+    }))
+
+    return <MarketplaceFeed initialListings={initialListings} />
+  } catch (err) {
+    console.error('[marketplace] Unexpected error fetching listings:', err)
+    return <MarketplaceFeed initialListings={[]} />
+  }
 }
 
 export default function MarketplacePage() {
