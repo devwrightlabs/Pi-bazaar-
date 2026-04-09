@@ -1,13 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { RecommendationRequestSchema, safeParse } from '@/lib/schemas'
 import { scoreListings } from '@/lib/matching'
 import type { Listing, RecommendationResponse } from '@/lib/types'
 
 const DB_PREFETCH_LIMIT = 200
 
+const EMPTY_RESPONSE: RecommendationResponse = {
+  recommendations: [],
+  total_found: 0,
+  has_more: false,
+  applied_filters: { radius_km: 50, categories: [], price_range: {} },
+}
+
 export async function POST(req: NextRequest) {
   try {
+    if (!isSupabaseConfigured) {
+      console.error('[recommendations] Supabase is not configured — returning empty results')
+      return NextResponse.json(EMPTY_RESPONSE, { status: 200 })
+    }
+
     const body: unknown = await req.json()
     const parsed = safeParse(RecommendationRequestSchema, body)
     if (!parsed.success) {
