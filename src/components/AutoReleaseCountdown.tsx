@@ -43,7 +43,7 @@ export default function AutoReleaseCountdown({ autoReleaseAt }: AutoReleaseCount
     return (
       <div className="rounded-xl p-4" style={{ backgroundColor: '#16213E' }}>
         <p className="text-sm font-medium" style={{ color: '#22C55E' }}>
-          \u2713 Escrow period ended. Pi has been released to seller.
+          ✓ Escrow period ended. Pi has been released to seller.
         </p>
       </div>
     )

@@ -53,6 +53,13 @@ export default function PiPayButton({
                   variant: 'alert',
                 })
               }
+            }).catch((err) => {
+              console.error('[PiPayButton] Unhandled approval error:', err)
+              openModal({
+                title: 'Approval Error',
+                message: 'An unexpected error occurred during payment approval. Please try again.',
+                variant: 'alert',
+              })
             })
           }
         },
@@ -74,6 +81,14 @@ export default function PiPayButton({
                   variant: 'alert',
                 })
               }
+            }).catch((err) => {
+              setProcessing(false)
+              console.error('[PiPayButton] Unhandled completion error:', err)
+              openModal({
+                title: 'Verification Failed',
+                message: 'An unexpected error occurred during payment verification. Please contact support.',
+                variant: 'alert',
+              })
             })
           } else {
             // Fallback: no escrow ID — pass through to parent callback.

@@ -283,8 +283,8 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 8. Insert an audit log entry.
-    await supabaseAdmin
+    // 8. Insert an audit log entry (non-fatal — do not block the response).
+    const { error: auditError } = await supabaseAdmin
       .from('audit_logs')
       .insert({
         admin_id: null,
@@ -299,9 +299,10 @@ export async function POST(req: NextRequest) {
           review_gate: isDigital,
         },
       })
-      .then(({ error }) => {
-        if (error) console.error('[pi/verify] Audit log insert error:', error)
-      })
+
+    if (auditError) {
+      console.error('[pi/verify] Audit log insert error:', auditError)
+    }
 
     // 9. Return success.
     const response: PiVerifyResponse = {

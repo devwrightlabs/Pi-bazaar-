@@ -24,22 +24,45 @@ async function fetchPiPrice(): Promise<number | null> {
 }
 
 export async function GET() {
-  const now = Date.now()
+  try {
+    const now = Date.now()
 
-  // Return cached value if fresh
-  if (cachedPrice && now - cachedPrice.fetchedAt < CACHE_TTL_MS) {
+    // Return cached value if fresh
+    if (cachedPrice && now - cachedPrice.fetchedAt < CACHE_TTL_MS) {
+      return NextResponse.json({
+        price_usd: cachedPrice.price_usd,
+        price: cachedPrice.price_usd,
+        timestamp: new Date(cachedPrice.fetchedAt).toISOString(),
+      })
+    }
+
+    const price = await fetchPiPrice()
+
+    if (price === null) {
+      if (cachedPrice) {
+        // Return stale cache rather than failing
+        return NextResponse.json({
+          price_usd: cachedPrice.price_usd,
+          price: cachedPrice.price_usd,
+          timestamp: new Date(cachedPrice.fetchedAt).toISOString(),
+          stale: true,
+        })
+      }
+      return NextResponse.json(
+        { error: 'Rate unavailable', price: null },
+        { status: 503 }
+      )
+    }
+
+    cachedPrice = { price_usd: price, fetchedAt: now }
     return NextResponse.json({
-      price_usd: cachedPrice.price_usd,
-      price: cachedPrice.price_usd,
-      timestamp: new Date(cachedPrice.fetchedAt).toISOString(),
+      price_usd: price,
+      price,
+      timestamp: new Date(now).toISOString(),
     })
-  }
-
-  const price = await fetchPiPrice()
-
-  if (price === null) {
+  } catch (err) {
+    console.error('[pi-price] Unhandled error:', err)
     if (cachedPrice) {
-      // Return stale cache rather than failing
       return NextResponse.json({
         price_usd: cachedPrice.price_usd,
         price: cachedPrice.price_usd,
@@ -48,15 +71,8 @@ export async function GET() {
       })
     }
     return NextResponse.json(
-      { error: 'Rate unavailable', price: null },
-      { status: 503 }
+      { error: 'Internal server error', price: null },
+      { status: 500 }
     )
   }
-
-  cachedPrice = { price_usd: price, fetchedAt: now }
-  return NextResponse.json({
-    price_usd: price,
-    price,
-    timestamp: new Date(now).toISOString(),
-  })
 }
