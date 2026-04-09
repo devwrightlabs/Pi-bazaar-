@@ -25,7 +25,6 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
   const [shipping, setShipping] = useState<ShippingConfig>({ category: 'local', carrier: 'nassau_courier' })
   const [selectedAddress, setSelectedAddress] = useState<Omit<ShippingAddress, 'id' | 'user_id' | 'created_at'> | null>(null)
   const [savedAddresses, setSavedAddresses] = useState<ShippingAddress[]>([])
-  const [paymentId, setPaymentId] = useState<string | null>(null)
   const [escrowId, setEscrowId] = useState<string | null>(null)
   const [creatingEscrow, setCreatingEscrow] = useState(false)
 
@@ -94,7 +93,6 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
         ...(savedAddressId ? { shipping_address_id: savedAddressId } : {}),
         ...(isPhysical
           ? {
-              shipping_method: shipping.carrier,
               shipping_carrier: shipping.carrier,
             }
           : {}),
@@ -228,7 +226,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
               memo={`PiBazaar: ${listing.title}`}
               metadata={{ listing_id: listing.id, buyer_id: currentUser.id }}
               escrowId={escrowId}
-              onPaymentId={(pid) => setPaymentId(pid)}
+              onPaymentId={() => {}}
               onComplete={() => {}}
               onEscrowHeld={(eid) => router.push(`/orders/${eid}`)}
               onCancel={() => {
@@ -284,7 +282,9 @@ export default function CheckoutPage({ params }: PageProps) {
   const [listingId, setListingId] = useState<string | null>(null)
 
   useEffect(() => {
-    params.then(({ listingId: id }) => setListingId(id))
+    params.then(({ listingId: id }) => setListingId(id)).catch(() => {
+      // params resolution failed — leave listingId null so the fallback UI shows
+    })
   }, [params])
 
   if (!listingId) return <LoadingSkeleton rows={6} variant="rows" />

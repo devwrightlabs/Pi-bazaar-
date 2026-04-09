@@ -338,7 +338,9 @@ export default function OrderDetailPage({ params }: PageProps) {
   const [orderId, setOrderId] = useState<string | null>(null)
 
   useEffect(() => {
-    params.then(({ orderId: id }) => setOrderId(id))
+    params.then(({ orderId: id }) => setOrderId(id)).catch(() => {
+      // params resolution failed — leave orderId null so the fallback UI shows
+    })
   }, [params])
 
   if (!orderId) return <LoadingSkeleton rows={6} variant="rows" />
