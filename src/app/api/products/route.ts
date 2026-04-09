@@ -53,7 +53,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // 3. Validate and sanitize inputs — strip HTML to prevent stored XSS.
-    const title = typeof body.title === 'string' ? stripHtml(body.title) : ''
+    const title = typeof body.title === 'string' ? stripHtml(body.title.trim()) : ''
     if (!title) {
       return NextResponse.json({ error: 'title is required' }, { status: 400 })
     }

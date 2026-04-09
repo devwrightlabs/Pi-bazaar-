@@ -25,8 +25,8 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'shipping_carrier is required' }, { status: 400 })
     }
 
-    const trackingNumber = stripHtml(body.tracking_number)
-    const shippingCarrier = stripHtml(body.shipping_carrier)
+    const trackingNumber = stripHtml(body.tracking_number.trim())
+    const shippingCarrier = stripHtml(body.shipping_carrier.trim())
 
     if (!trackingNumber) {
       return NextResponse.json({ error: 'tracking_number must not be empty' }, { status: 400 })

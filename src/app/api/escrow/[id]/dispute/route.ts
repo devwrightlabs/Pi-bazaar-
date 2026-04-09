@@ -29,8 +29,8 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'description is required' }, { status: 400 })
     }
 
-    const reason = stripHtml(body.reason)
-    const description = stripHtml(body.description)
+    const reason = stripHtml(body.reason.trim())
+    const description = stripHtml(body.description.trim())
 
     if (!reason) {
       return NextResponse.json({ error: 'reason must not be empty' }, { status: 400 })
