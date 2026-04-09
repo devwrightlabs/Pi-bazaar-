@@ -31,11 +31,14 @@ export async function POST(_req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Failed to confirm receipt' }, { status: 500 })
     }
 
-    await supabase.from('escrow_timeline').insert({
+    const { error: timelineError } = await supabase.from('escrow_timeline').insert({
       escrow_id: id,
       event: 'completed',
       description: 'Buyer confirmed receipt. Pi released to seller.',
     } as Omit<EscrowTimelineEvent, 'id' | 'created_at'>)
+    if (timelineError) {
+      console.error('Timeline insert error (non-fatal):', timelineError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (err) {

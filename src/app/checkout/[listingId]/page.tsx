@@ -25,7 +25,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
   const [shipping, setShipping] = useState<ShippingConfig>({ category: 'local', carrier: 'nassau_courier' })
   const [selectedAddress, setSelectedAddress] = useState<Omit<ShippingAddress, 'id' | 'user_id' | 'created_at'> | null>(null)
   const [savedAddresses, setSavedAddresses] = useState<ShippingAddress[]>([])
-  const [paymentId, setPaymentId] = useState<string | null>(null)
+  const [, setPaymentId] = useState<string | null>(null)
   const [escrowId, setEscrowId] = useState<string | null>(null)
   const [creatingEscrow, setCreatingEscrow] = useState(false)
 
@@ -111,15 +111,6 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
     } finally {
       setCreatingEscrow(false)
     }
-  }
-
-  /**
-   * Called after Pi payment is fully verified and the escrow is held.
-   * Navigate the user to the order detail page.
-   */
-  const handlePaymentComplete = async (_pid: string, _txid: string) => {
-    if (!escrowId) return
-    router.push(`/orders/${escrowId}`)
   }
 
   if (loading) return <LoadingSkeleton rows={6} variant="rows" />

@@ -125,7 +125,7 @@ function FeedContent({ initialListings = [] }: MarketplaceFeedProps) {
       {/* End of results (grid/list only — swipe has its own end card) */}
       {!hasMore && listings.length > 0 && viewMode !== 'swipe' && (
         <p className="text-center text-sm py-8 text-text-sub">
-          You've seen all listings in this area.
+          You&apos;ve seen all listings in this area.
         </p>
       )}
       </div>

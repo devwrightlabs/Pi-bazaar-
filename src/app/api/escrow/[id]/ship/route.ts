@@ -28,11 +28,14 @@ export async function POST(req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Failed to update shipment' }, { status: 500 })
     }
 
-    await supabase.from('escrow_timeline').insert({
+    const { error: timelineError } = await supabase.from('escrow_timeline').insert({
       escrow_id: id,
       event: 'shipped',
       description: `Item shipped via ${body.shipping_carrier}. Tracking: ${body.tracking_number}`,
     } as Omit<EscrowTimelineEvent, 'id' | 'created_at'>)
+    if (timelineError) {
+      console.error('Timeline insert error (non-fatal):', timelineError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (err) {

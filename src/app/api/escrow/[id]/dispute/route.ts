@@ -34,11 +34,14 @@ export async function POST(req: NextRequest, { params }: Params) {
       ? ` Evidence: ${body.evidence_urls.join(', ')}`
       : ''
 
-    await supabase.from('escrow_timeline').insert({
+    const { error: timelineError } = await supabase.from('escrow_timeline').insert({
       escrow_id: id,
       event: 'disputed',
       description: `Dispute opened: ${body.reason}. ${body.description}${evidenceSummary}`,
     } as Omit<EscrowTimelineEvent, 'id' | 'created_at'>)
+    if (timelineError) {
+      console.error('Timeline insert error (non-fatal):', timelineError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (err) {

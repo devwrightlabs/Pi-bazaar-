@@ -61,7 +61,7 @@ export default function SwipeFeed({ listings }: SwipeFeedProps) {
       {listings.length > 0 && (
         <div className="h-[100dvh] snap-start flex flex-col items-center justify-center gap-4 text-center px-8">
           <p className="text-xl font-bold font-heading text-text-primary">
-            You're all caught up
+            You&apos;re all caught up
           </p>
           <p className="text-sm text-text-sub">
             Check back later for more listings near you.

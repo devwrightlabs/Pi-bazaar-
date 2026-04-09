@@ -78,7 +78,7 @@ export async function middleware(request: NextRequest) {
   // ── Rate limiting for /api/* routes ──────────────────────────────────────
   if (pathname.startsWith('/api')) {
     const forwarded = request.headers.get('x-forwarded-for')
-    const ip = forwarded ? forwarded.split(',')[0].trim() : request.headers.get('x-real-ip') ?? 'unknown'
+    const ip = forwarded?.split(',')[0]?.trim() || request.headers.get('x-real-ip') || 'unknown'
 
     const isCritical = CRITICAL_PREFIXES.some((prefix) => pathname.startsWith(prefix))
     const limit = isCritical ? CRITICAL_LIMIT : STANDARD_LIMIT

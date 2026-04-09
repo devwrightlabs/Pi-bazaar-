@@ -216,7 +216,7 @@ function ProductDetailContent({ productId }: { productId: string }) {
               : '1px solid var(--color-border)',
           }}
         >
-          {hasImage ? (
+          {hasImage && imageUrl ? (
             <Image
               src={imageUrl}
               alt={product.title}

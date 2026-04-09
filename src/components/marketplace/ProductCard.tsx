@@ -32,7 +32,7 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
   const imageUrl = item.images[0]
   const hasImage = Boolean(imageUrl) && !imgError
   const distanceKm = item.match_score.distance_km
-  const sellerInitial = item.seller_id.charAt(0).toUpperCase() || '?'
+  const sellerInitial = (item.seller_id ?? '').charAt(0).toUpperCase() || '?'
   const conditionLabel = item.condition ? CONDITION_LABELS[item.condition] : null
 
   const handleQuickView = () => {
