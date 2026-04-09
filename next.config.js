@@ -10,6 +10,15 @@ const nextConfig = {
       },
     ],
   },
+  eslint: {
+    // Ignore ESLint errors during builds to prevent circular structure errors
+    // ESLint can still be run separately via npm run lint
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    // Keep TypeScript checking enabled during builds
+    ignoreBuildErrors: false,
+  },
 }
 
 module.exports = nextConfig
