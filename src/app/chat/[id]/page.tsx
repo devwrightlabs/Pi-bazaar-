@@ -127,21 +127,34 @@ export default function ChatRoomPage() {
       is_read: false,
     }
     const { error } = await supabase.from('messages').insert(newMsg)
-    if (error) console.error('Failed to send message:', error)
-    await supabase
+    if (error) {
+      console.error('Failed to send message:', error)
+      return
+    }
+
+    // Update conversation metadata
+    const { error: updateError } = await supabase
       .from('conversations')
       .update({ last_message: content, last_message_at: new Date().toISOString() })
       .eq('id', conversationId)
+
+    if (updateError) {
+      console.error('Failed to update conversation metadata:', updateError)
+    }
   }
 
   const handleTyping = async (isTyping: boolean) => {
     if (!currentUser || !conversationId) return
-    await supabase.from('typing_indicators').upsert({
+    const { error } = await supabase.from('typing_indicators').upsert({
       conversation_id: conversationId,
       user_id: currentUser.id,
       is_typing: isTyping,
       updated_at: new Date().toISOString(),
     })
+
+    if (error) {
+      console.error('Failed to update typing indicator:', error)
+    }
   }
 
   if (!currentUser) {

@@ -347,7 +347,7 @@ export default function DashboardPage() {
       // Fetch orders in parallel
       const ordersPromise = fetchOrders(currentUser.id)
 
-      const [profileRes] = await Promise.all([profilePromise, ordersPromise])
+      const [profileRes, ordersRes] = await Promise.all([profilePromise, ordersPromise])
 
       if (profileRes.data) {
         setProfileData(profileRes.data as {
@@ -357,7 +357,10 @@ export default function DashboardPage() {
           created_at: string
         })
       }
-    } catch {
+
+      // ordersRes is handled by fetchOrders callback which already sets state
+    } catch (err) {
+      console.error('Dashboard data load error:', err)
       setError('Failed to load dashboard data. Please try again.')
     } finally {
       setLoading(false)
