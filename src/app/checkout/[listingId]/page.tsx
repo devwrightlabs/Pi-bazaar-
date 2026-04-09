@@ -226,7 +226,6 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
               memo={`PiBazaar: ${listing.title}`}
               metadata={{ listing_id: listing.id, buyer_id: currentUser.id }}
               escrowId={escrowId}
-              onPaymentId={() => {}}
               onComplete={() => {}}
               onEscrowHeld={(eid) => router.push(`/orders/${eid}`)}
               onCancel={() => {
