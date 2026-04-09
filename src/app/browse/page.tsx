@@ -6,7 +6,7 @@ import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import type { Listing } from '@/lib/types'
 import LoadingSkeleton from '@/components/LoadingSkeleton'
 import ErrorBoundary from '@/components/ErrorBoundary'
-import PullToRefresh from '@/components/PullToRefresh'
+import PullToRefresh from '@/components/marketplace/PullToRefresh'
 
 const CATEGORIES = ['All', 'Electronics', 'Clothing', 'Home', 'Garden', 'Outdoor', 'Sports', 'Books', 'Art']
 

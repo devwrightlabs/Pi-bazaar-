@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import MarketplaceFeed from '@/components/marketplace/MarketplaceFeed'
-import PullToRefresh from '@/components/PullToRefresh'
+import PullToRefresh from '@/components/marketplace/PullToRefresh'
 
 export default function HomePage() {
   const { isAuthenticated, currentUser, setCurrentUser } = useStore()
