@@ -16,7 +16,7 @@ const EMPTY_RESPONSE: RecommendationResponse = {
 export async function POST(req: NextRequest) {
   try {
     if (!isSupabaseConfigured) {
-      console.error('[recommendations] Supabase is not configured — returning empty results')
+      console.warn('[recommendations] Supabase is not configured — returning empty results')
       return NextResponse.json(EMPTY_RESPONSE, { status: 200 })
     }
 

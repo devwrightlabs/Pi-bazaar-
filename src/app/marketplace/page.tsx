@@ -23,7 +23,7 @@ function SkeletonGrid() {
 
 async function FeedWithData() {
   if (!isSupabaseConfigured) {
-    console.error('[marketplace] Supabase is not configured — serving empty feed')
+    console.warn('[marketplace] Supabase is not configured — serving empty feed')
     return <MarketplaceFeed initialListings={[]} />
   }
 
