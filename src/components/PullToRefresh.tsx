@@ -17,7 +17,7 @@ export default function PullToRefresh({ onRefresh, children }: PullToRefreshProp
   const pullingRef = useRef(false)
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (window.scrollY <= 0) {
+    if (typeof window !== 'undefined' && window.scrollY <= 0) {
       startYRef.current = e.touches[0].clientY
       pullingRef.current = true
     }

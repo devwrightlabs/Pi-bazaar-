@@ -18,6 +18,7 @@ export default function ChatRoomPage() {
   const { currentUser } = useStore()
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [otherUserName, setOtherUserName] = useState('User')
   const [isOtherTyping, setIsOtherTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -33,40 +34,49 @@ export default function ChatRoomPage() {
     }
 
     const fetchData = async () => {
-      const { data: convData } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('id', conversationId)
-        .single()
-      if (convData) {
-        const conv = convData as Conversation
-        const otherUserId =
-          conv.participant_1 === currentUser.id ? conv.participant_2 : conv.participant_1
-        const { data: userData } = await supabase
-          .from('user_profiles')
-          .select('username')
-          .eq('id', otherUserId)
+      try {
+        const { data: convData } = await supabase
+          .from('conversations')
+          .select('*')
+          .eq('id', conversationId)
           .single()
-        if (userData) {
-          setOtherUserName((userData as { username: string }).username)
+        if (convData) {
+          const conv = convData as Conversation
+          const otherUserId =
+            conv.participant_1 === currentUser.id ? conv.participant_2 : conv.participant_1
+          const { data: userData } = await supabase
+            .from('user_profiles')
+            .select('username')
+            .eq('id', otherUserId)
+            .single()
+          if (userData) {
+            setOtherUserName((userData as { username: string }).username)
+          }
         }
-      }
 
-      const { data: msgData, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true })
-      if (!error) {
-        setMessages((msgData as Message[]) ?? [])
-        await supabase
+        const { data: msgData, error: msgError } = await supabase
           .from('messages')
-          .update({ is_read: true })
+          .select('*')
           .eq('conversation_id', conversationId)
-          .neq('sender_id', currentUser.id)
-          .eq('is_read', false)
+          .order('created_at', { ascending: true })
+        if (msgError) {
+          console.error('Failed to fetch messages:', msgError)
+          setError('Failed to load messages. Please try again.')
+        } else {
+          setMessages((msgData as Message[]) ?? [])
+          await supabase
+            .from('messages')
+            .update({ is_read: true })
+            .eq('conversation_id', conversationId)
+            .neq('sender_id', currentUser.id)
+            .eq('is_read', false)
+        }
+      } catch (err) {
+        console.error('Failed to load chat:', err)
+        setError('Failed to load chat. Please try again.')
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
 
     void fetchData()
@@ -120,28 +130,42 @@ export default function ChatRoomPage() {
 
   const handleSend = async (content: string) => {
     if (!currentUser || !conversationId) return
-    const newMsg: Omit<Message, 'id' | 'created_at'> = {
-      conversation_id: conversationId,
-      sender_id: currentUser.id,
-      content,
-      is_read: false,
+    try {
+      const newMsg: Omit<Message, 'id' | 'created_at'> = {
+        conversation_id: conversationId,
+        sender_id: currentUser.id,
+        content,
+        is_read: false,
+      }
+      const { error: insertError } = await supabase.from('messages').insert(newMsg)
+      if (insertError) {
+        console.error('Failed to send message:', insertError)
+        return
+      }
+      const { error: updateError } = await supabase
+        .from('conversations')
+        .update({ last_message: content, last_message_at: new Date().toISOString() })
+        .eq('id', conversationId)
+      if (updateError) {
+        console.error('Failed to update conversation:', updateError)
+      }
+    } catch (err) {
+      console.error('Failed to send message:', err)
     }
-    const { error } = await supabase.from('messages').insert(newMsg)
-    if (error) console.error('Failed to send message:', error)
-    await supabase
-      .from('conversations')
-      .update({ last_message: content, last_message_at: new Date().toISOString() })
-      .eq('id', conversationId)
   }
 
   const handleTyping = async (isTyping: boolean) => {
     if (!currentUser || !conversationId) return
-    await supabase.from('typing_indicators').upsert({
-      conversation_id: conversationId,
-      user_id: currentUser.id,
-      is_typing: isTyping,
-      updated_at: new Date().toISOString(),
-    })
+    try {
+      await supabase.from('typing_indicators').upsert({
+        conversation_id: conversationId,
+        user_id: currentUser.id,
+        is_typing: isTyping,
+        updated_at: new Date().toISOString(),
+      })
+    } catch (err) {
+      console.error('Failed to update typing indicator:', err)
+    }
   }
 
   if (!currentUser) {
@@ -198,6 +222,15 @@ export default function ChatRoomPage() {
         <ErrorBoundary>
           {loading ? (
             <LoadingSkeleton rows={5} variant="rows" />
+          ) : error ? (
+            <div className="text-center py-16">
+              <p className="font-semibold mb-2" style={{ color: 'var(--color-text)' }}>
+                Something went wrong
+              </p>
+              <p className="text-sm mb-4" style={{ color: 'var(--color-subtext)' }}>
+                {error}
+              </p>
+            </div>
           ) : messages.length === 0 ? (
             <div className="text-center py-16">
               

@@ -15,7 +15,6 @@ import AISuggestButton from '@/components/AISuggestButton'
 import LocationPicker from '@/components/LocationPicker'
 import FastSellerAgreement from '@/components/FastSellerAgreement'
 import URLImportForm from '@/components/URLImportForm'
-import LoadingSkeleton from '@/components/LoadingSkeleton'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import ShippingSelector from '@/components/ShippingSelector'
 

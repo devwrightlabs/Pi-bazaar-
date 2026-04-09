@@ -19,18 +19,24 @@ export default function ChatPage() {
     if (!currentUser) return
     setLoading(true)
     setError(null)
-    const { data, error: fetchError } = await supabase
-      .from('conversations')
-      .select('*')
-      .or(`participant_1.eq.${currentUser.id},participant_2.eq.${currentUser.id}`)
-      .order('last_message_at', { ascending: false })
-    if (fetchError) {
-      console.error('Failed to fetch conversations:', fetchError)
+    try {
+      const { data, error: fetchError } = await supabase
+        .from('conversations')
+        .select('*')
+        .or(`participant_1.eq.${currentUser.id},participant_2.eq.${currentUser.id}`)
+        .order('last_message_at', { ascending: false })
+      if (fetchError) {
+        console.error('Failed to fetch conversations:', fetchError)
+        setError('Failed to load conversations. Please try again.')
+      } else {
+        setConversations((data as Conversation[]) ?? [])
+      }
+    } catch (err) {
+      console.error('Failed to load conversations:', err)
       setError('Failed to load conversations. Please try again.')
-    } else {
-      setConversations((data as Conversation[]) ?? [])
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }, [currentUser])
 
   useEffect(() => {
