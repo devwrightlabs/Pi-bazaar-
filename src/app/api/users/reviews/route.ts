@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { verifyAuthToken } from '@/lib/authHelper'
+import { stripHtml } from '@/lib/sanitize'
 import type {
   SubmitReviewRequest,
   SubmitReviewResponse,
@@ -176,7 +177,7 @@ export async function POST(req: NextRequest) {
         reviewee_id: escrow.seller_id,
         escrow_id,
         rating,
-        comment: comment?.trim() || null,
+        comment: comment ? stripHtml(comment) || null : null,
       })
       .select()
       .single()

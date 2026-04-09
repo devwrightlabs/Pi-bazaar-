@@ -16,6 +16,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { verifyAuthToken } from '@/lib/authHelper'
+import { stripHtml } from '@/lib/sanitize'
 
 // Statuses that allow a dispute to be opened
 const DISPUTABLE_STATUSES = ['funded', 'shipped'] as const
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
 
-    const { escrow_id, dispute_reason } = body
+    const { escrow_id, dispute_reason: rawDisputeReason } = body
 
     if (!escrow_id || typeof escrow_id !== 'string') {
       return NextResponse.json({ error: 'escrow_id is required' }, { status: 400 })
@@ -63,8 +64,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'escrow_id must be a valid UUID' }, { status: 400 })
     }
 
-    if (!dispute_reason || typeof dispute_reason !== 'string') {
+    if (!rawDisputeReason || typeof rawDisputeReason !== 'string') {
       return NextResponse.json({ error: 'dispute_reason is required' }, { status: 400 })
+    }
+
+    const dispute_reason = stripHtml(rawDisputeReason)
+
+    if (!dispute_reason) {
+      return NextResponse.json({ error: 'dispute_reason must not be empty' }, { status: 400 })
     }
 
     if (dispute_reason.length > 2000) {

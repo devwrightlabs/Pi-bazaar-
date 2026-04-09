@@ -17,6 +17,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { verifyAuthToken } from '@/lib/authHelper'
+import { stripHtml } from '@/lib/sanitize'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -95,13 +96,13 @@ function validateAddressFields(body: Record<string, unknown>): AddressInput | st
   }
 
   return {
-    full_name: full_name.trim(),
-    street_address: street_address.trim(),
-    city: city.trim(),
-    state_province: state_province.trim(),
-    postal_code: postal_code.trim(),
+    full_name: stripHtml(full_name.trim()),
+    street_address: stripHtml(street_address.trim()),
+    city: stripHtml(city.trim()),
+    state_province: stripHtml(state_province.trim()),
+    postal_code: stripHtml(postal_code.trim()),
     country_code: cc,
-    phone_number: phone_number != null ? (phone_number as string).trim() || null : null,
+    phone_number: phone_number != null ? stripHtml((phone_number as string).trim()) || null : null,
     is_default: typeof is_default === 'boolean' ? is_default : false,
   }
 }
@@ -282,7 +283,7 @@ export async function PUT(req: NextRequest) {
       if (body.full_name.trim().length > MAX_TEXT_LENGTH) {
         return NextResponse.json({ error: 'full_name is too long' }, { status: 400 })
       }
-      updates.full_name = (body.full_name as string).trim()
+      updates.full_name = stripHtml((body.full_name as string).trim())
     }
     if (body.street_address !== undefined) {
       if (typeof body.street_address !== 'string' || body.street_address.trim().length === 0) {
@@ -291,7 +292,7 @@ export async function PUT(req: NextRequest) {
       if (body.street_address.trim().length > MAX_TEXT_LENGTH) {
         return NextResponse.json({ error: 'street_address is too long' }, { status: 400 })
       }
-      updates.street_address = (body.street_address as string).trim()
+      updates.street_address = stripHtml((body.street_address as string).trim())
     }
     if (body.city !== undefined) {
       if (typeof body.city !== 'string' || body.city.trim().length === 0) {
@@ -300,7 +301,7 @@ export async function PUT(req: NextRequest) {
       if (body.city.trim().length > MAX_TEXT_LENGTH) {
         return NextResponse.json({ error: 'city is too long' }, { status: 400 })
       }
-      updates.city = (body.city as string).trim()
+      updates.city = stripHtml((body.city as string).trim())
     }
     if (body.state_province !== undefined) {
       if (typeof body.state_province !== 'string' || body.state_province.trim().length === 0) {
@@ -309,7 +310,7 @@ export async function PUT(req: NextRequest) {
       if (body.state_province.trim().length > MAX_TEXT_LENGTH) {
         return NextResponse.json({ error: 'state_province is too long' }, { status: 400 })
       }
-      updates.state_province = (body.state_province as string).trim()
+      updates.state_province = stripHtml((body.state_province as string).trim())
     }
     if (body.postal_code !== undefined) {
       if (typeof body.postal_code !== 'string' || body.postal_code.trim().length === 0) {
@@ -318,7 +319,7 @@ export async function PUT(req: NextRequest) {
       if (body.postal_code.trim().length > MAX_TEXT_LENGTH) {
         return NextResponse.json({ error: 'postal_code is too long' }, { status: 400 })
       }
-      updates.postal_code = (body.postal_code as string).trim()
+      updates.postal_code = stripHtml((body.postal_code as string).trim())
     }
     if (body.country_code !== undefined) {
       if (typeof body.country_code !== 'string') {
@@ -341,7 +342,7 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: 'phone_number is too long' }, { status: 400 })
       }
       updates.phone_number = body.phone_number != null
-        ? (body.phone_number as string).trim() || null
+        ? stripHtml((body.phone_number as string).trim()) || null
         : null
     }
     if (body.is_default !== undefined) {

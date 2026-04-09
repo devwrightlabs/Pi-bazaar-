@@ -1,14 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { verifyAuthToken } from '@/lib/authHelper'
 import type { EscrowTimelineEvent } from '@/lib/types'
 
 type Params = { params: Promise<{ id: string }> }
 
-export async function POST(_req: NextRequest, { params }: Params) {
+export async function POST(req: NextRequest, { params }: Params) {
   try {
+    // 1. Authenticate the caller.
+    const auth = verifyAuthToken(req)
+    if (!auth) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    const callerPiUid = auth.pi_uid
+
     const { id } = await params
 
-    const { data: escrow, error: fetchError } = await supabase
+    // 2. Fetch the escrow and verify the caller is the buyer.
+    const { data: escrow, error: fetchError } = await supabaseAdmin
       .from('escrow_transactions')
       .select('*')
       .eq('id', id)
@@ -18,7 +27,12 @@ export async function POST(_req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Escrow not found' }, { status: 404 })
     }
 
-    const { error } = await supabase
+    if (escrow.buyer_id !== callerPiUid) {
+      return NextResponse.json({ error: 'Only the buyer can confirm receipt' }, { status: 403 })
+    }
+
+    // 3. Update the escrow status to completed.
+    const { error } = await supabaseAdmin
       .from('escrow_transactions')
       .update({
         status: 'completed',
@@ -31,7 +45,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: 'Failed to confirm receipt' }, { status: 500 })
     }
 
-    await supabase.from('escrow_timeline').insert({
+    await supabaseAdmin.from('escrow_timeline').insert({
       escrow_id: id,
       event: 'completed',
       description: 'Buyer confirmed receipt. Pi released to seller.',

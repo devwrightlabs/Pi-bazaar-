@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { verifyAuthToken } from '@/lib/authHelper'
+import { stripHtml } from '@/lib/sanitize'
 import type { SendMessageRequest, ConversationResponse, MessageRecord } from '@/types/messaging'
 
 // UUID v4 validation regex
@@ -132,7 +133,7 @@ export async function POST(req: NextRequest) {
     if (!content || typeof content !== 'string') {
       return NextResponse.json({ error: 'content is required' }, { status: 400 })
     }
-    const trimmedContent = content.trim()
+    const trimmedContent = stripHtml(content)
     if (trimmedContent.length === 0) {
       return NextResponse.json({ error: 'content must not be empty' }, { status: 400 })
     }

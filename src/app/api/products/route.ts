@@ -13,6 +13,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { verifyAuthToken } from '@/lib/authHelper'
+import { stripHtml } from '@/lib/sanitize'
 import { MAX_IMAGES_PER_PRODUCT } from '@/lib/storage'
 import type { Product, CreateProductRequest, PaginatedProductsResponse } from '@/types/product'
 
@@ -51,8 +52,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ error: 'Invalid JSON body' }, { status: 400 })
     }
 
-    // 3. Validate and sanitize inputs.
-    const title = typeof body.title === 'string' ? body.title.trim() : ''
+    // 3. Validate and sanitize inputs — strip HTML to prevent stored XSS.
+    const title = typeof body.title === 'string' ? stripHtml(body.title) : ''
     if (!title) {
       return NextResponse.json({ error: 'title is required' }, { status: 400 })
     }
@@ -71,7 +72,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       )
     }
 
-    const description = body.description?.trim() ?? null
+    const rawDescription = body.description?.trim() ?? null
+    const description = rawDescription ? stripHtml(rawDescription) : null
     if (description && description.length > MAX_DESCRIPTION_LENGTH) {
       return NextResponse.json(
         { error: `description must be ${MAX_DESCRIPTION_LENGTH} characters or fewer` },
@@ -98,8 +100,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       )
     }
 
-    const category = body.category?.trim() ?? null
-    const location_text = body.location_text?.trim() ?? null
+    const category = body.category ? stripHtml(body.category) : null
+    const location_text = body.location_text ? stripHtml(body.location_text) : null
 
     // 4. Insert the product using the admin client (bypasses RLS, seller_id from JWT).
     const { data: product, error: insertError } = await supabaseAdmin
