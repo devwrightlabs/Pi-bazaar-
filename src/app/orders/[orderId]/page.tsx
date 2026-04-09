@@ -12,7 +12,6 @@ import AutoReleaseCountdown from '@/components/AutoReleaseCountdown'
 import TrackingInput from '@/components/TrackingInput'
 import DigitalDeliveryForm from '@/components/DigitalDeliveryForm'
 import DisputeForm from '@/components/DisputeForm'
-import Modal from '@/components/Modal'
 
 type OrderDetail = EscrowTransaction & { timeline: EscrowTimelineEvent[] }
 
