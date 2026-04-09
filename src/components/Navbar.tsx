@@ -21,6 +21,7 @@ export default function Navbar() {
       const piAuth = await authenticateWithPi()
       if (!piAuth) {
         setConnectError('Pi Browser is required to connect.')
+        setConnecting(false)
         return
       }
 
@@ -32,6 +33,7 @@ export default function Navbar() {
 
       if (!res.ok) {
         setConnectError('Verification failed. Please try again.')
+        setConnecting(false)
         return
       }
 
@@ -52,10 +54,10 @@ export default function Navbar() {
       if (typeof window !== 'undefined') {
         localStorage.setItem('pibazaar-token', data.token)
       }
+      setConnecting(false)
     } catch (err) {
       console.error('Wallet connection failed:', err)
       setConnectError('Connection failed. Please try again.')
-    } finally {
       setConnecting(false)
     }
   }
