@@ -37,6 +37,9 @@ ALTER TABLE public.listings
   ADD CONSTRAINT listings_price_in_pi_check CHECK (price_in_pi > 0);
 
 -- Drop the old single-text location field and replace with discrete columns.
+-- Using NOT NULL with safe defaults (0/empty string) is intentional: on a
+-- fresh supabase db push there are no existing rows, and the application
+-- always supplies these values at insert time (see /api/products POST).
 ALTER TABLE public.listings DROP COLUMN IF EXISTS location_text;
 ALTER TABLE public.listings
   ADD COLUMN IF NOT EXISTS location_lat  DOUBLE PRECISION NOT NULL DEFAULT 0,
@@ -106,6 +109,14 @@ ALTER TABLE public.escrow_transactions
   ADD COLUMN IF NOT EXISTS seller_shipped_at  TIMESTAMPTZ,
   ADD COLUMN IF NOT EXISTS auto_release_at    TIMESTAMPTZ NOT NULL DEFAULT (now() + INTERVAL '7 days'),
   ADD COLUMN IF NOT EXISTS dispute_reason     TEXT;
+
+-- For any existing escrow rows the column defaulted to now()+7d, which is
+-- only meaningful for new transactions. Back-fill using each row's own
+-- created_at so the intent (7 days from creation) is preserved.
+UPDATE public.escrow_transactions
+  SET auto_release_at = created_at + INTERVAL '7 days'
+  WHERE auto_release_at IS NOT NULL
+    AND auto_release_at <> created_at + INTERVAL '7 days';
 
 -- ─── 6. Fix messages: update FK reference ─────────────────────────────────────
 -- The messages.product_id FK was automatically redirected to listings on rename.

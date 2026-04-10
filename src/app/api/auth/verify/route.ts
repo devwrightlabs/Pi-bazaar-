@@ -126,6 +126,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     )
 
     // 5. Return the token and basic user info.
+    // The response key `pi_username` is kept intentionally for frontend
+    // compatibility — it is read by Navbar and page.tsx as `data.user.pi_username`.
+    // The value is sourced from the renamed `username` DB column.
     return NextResponse.json({
       token: customToken,
       user: {
