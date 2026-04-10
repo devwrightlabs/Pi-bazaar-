@@ -124,7 +124,7 @@ export default function CreateListingPage() {
 
     setPublishing(true)
     try {
-      const token = typeof window !== 'undefined' ? localStorage.getItem('pibazaar-token') : null
+      const token = localStorage.getItem('pibazaar-token')
       if (!token) {
         throw new Error('Authentication token not found. Please sign in again.')
       }
@@ -148,8 +148,14 @@ export default function CreateListingPage() {
       })
 
       if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string }
-        throw new Error(data.error ?? `Server returned ${res.status}`)
+        let errorMessage = `Server returned ${res.status}`
+        try {
+          const data = (await res.json()) as { error?: string }
+          if (data.error) errorMessage = data.error
+        } catch {
+          // Response body was not valid JSON; use status-based message.
+        }
+        throw new Error(errorMessage)
       }
 
       openModal({
