@@ -1,8 +1,8 @@
 /**
  * Product Types
  *
- * TypeScript interfaces for product listings, matching the `products` table
- * schema established in supabase/migrations/01_init_schema.sql.
+ * TypeScript interfaces for product listings, matching the `listings` table
+ * schema after the database migration.
  */
 
 export interface Product {
@@ -15,7 +15,8 @@ export interface Product {
   condition: 'new' | 'like_new' | 'good' | 'fair' | 'poor' | null
   images: string[] | null
   status: 'active' | 'sold' | 'removed'
-  location_text: string | null
+  city: string | null
+  country: string | null
   deleted_at: string | null
   created_at: string
   updated_at: string
@@ -28,7 +29,8 @@ export interface CreateProductRequest {
   category?: string
   condition?: 'new' | 'like_new' | 'good' | 'fair' | 'poor'
   images?: string[]
-  location_text?: string
+  city?: string
+  country?: string
 }
 
 export interface ProductSearchParams {

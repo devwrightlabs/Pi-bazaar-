@@ -37,9 +37,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'product_id is required' }, { status: 400 })
     }
 
-    // 3. Validate the product.
+    // 3. Validate the listing.
     const { data: product, error: productError } = await supabaseAdmin
-      .from('products')
+      .from('listings')
       .select('id, seller_id, price_in_pi, status, deleted_at')
       .eq('id', product_id)
       .is('deleted_at', null)

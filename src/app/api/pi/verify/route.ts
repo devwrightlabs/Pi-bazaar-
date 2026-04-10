@@ -238,7 +238,7 @@ export async function POST(req: NextRequest) {
     let isDigital = false
     if (productId) {
       const { data: product } = await supabaseAdmin
-        .from('products')
+        .from('listings')
         .select('category')
         .eq('id', productId)
         .single()

@@ -99,11 +99,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     const category = body.category?.trim() ?? null
-    const location_text = body.location_text?.trim() ?? null
+    const city = body.city?.trim() ?? null
+    const country = body.country?.trim() ?? null
 
-    // 4. Insert the product using the admin client (bypasses RLS, seller_id from JWT).
+    // 4. Insert the listing using the admin client (bypasses RLS, seller_id from JWT).
     const { data: product, error: insertError } = await supabaseAdmin
-      .from('products')
+      .from('listings')
       .insert({
         seller_id: pi_uid,
         title,
@@ -113,9 +114,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         condition,
         images: images.length > 0 ? images : null,
         status: 'active',
-        location_text,
+        city: city ?? '',
+        country: country ?? '',
+        location_lat: 0,
+        location_lng: 0,
+        is_boosted: false,
       })
-      .select('id, seller_id, title, description, price_in_pi, category, condition, images, status, location_text, deleted_at, created_at, updated_at')
+      .select('id, seller_id, title, description, price_in_pi, category, condition, images, status, city, country, deleted_at, created_at, updated_at')
       .single()
 
     if (insertError || !product) {
@@ -160,11 +165,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       | 'price_asc'
       | 'price_desc'
 
-    // Build query — always filter to active products only.
+    // Build query — always filter to active listings only.
     let query = supabaseAdmin
-      .from('products')
+      .from('listings')
       .select(
-        'id, seller_id, title, description, price_in_pi, category, condition, images, status, location_text, deleted_at, created_at, updated_at',
+        'id, seller_id, title, description, price_in_pi, category, condition, images, status, city, country, deleted_at, created_at, updated_at',
         { count: 'exact' }
       )
       .eq('status', 'active')
