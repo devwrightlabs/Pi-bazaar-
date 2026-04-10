@@ -40,8 +40,9 @@ export async function POST(req: NextRequest) {
     // 3. Validate the product.
     const { data: product, error: productError } = await supabaseAdmin
       .from('products')
-      .select('id, seller_id, price_in_pi, status')
+      .select('id, seller_id, price_in_pi, status, deleted_at')
       .eq('id', product_id)
+      .is('deleted_at', null)
       .single()
 
     if (productError || !product) {
