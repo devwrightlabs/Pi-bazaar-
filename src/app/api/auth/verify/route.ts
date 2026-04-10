@@ -81,12 +81,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       .upsert(
         {
           pi_uid: piUser.uid,
-          pi_username: piUser.username ?? null,
+          username: piUser.username ?? null,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'pi_uid' }
       )
-      .select('id, pi_uid, pi_username')
+      .select('id, pi_uid, username')
       .single()
 
     if (upsertError || !dbUser) {
@@ -130,7 +130,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       token: customToken,
       user: {
         pi_uid: dbUser.pi_uid,
-        pi_username: dbUser.pi_username ?? null,
+        pi_username: dbUser.username ?? null,
       },
     })
   } catch (error) {

@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
     const [profileResult, addressesResult, settingsResult] = await Promise.all([
       supabaseAdmin
         .from('users')
-        .select('pi_uid, pi_username, created_at, updated_at')
+        .select('pi_uid, username, created_at, updated_at')
         .eq('pi_uid', piUid)
         .single(),
 
