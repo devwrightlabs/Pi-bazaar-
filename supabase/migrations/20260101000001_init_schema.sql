@@ -15,26 +15,36 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE TABLE IF NOT EXISTS public.users (
   id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   pi_uid       TEXT        UNIQUE NOT NULL,
-  pi_username  TEXT,
+  username     TEXT,
+  email        TEXT,
+  avatar_url   TEXT,
+  bio          TEXT,
+  is_verified  BOOLEAN     NOT NULL DEFAULT false,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- ─── products ────────────────────────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS public.products (
+-- ─── listings ────────────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS public.listings (
   id             UUID           PRIMARY KEY DEFAULT gen_random_uuid(),
   -- seller_id is the Pi UID of the user who owns this listing.
   -- It references users.pi_uid so we can join without Supabase auth UUIDs.
   seller_id      TEXT           NOT NULL REFERENCES public.users(pi_uid) ON DELETE CASCADE,
   title          TEXT           NOT NULL,
-  description    TEXT,
-  price_pi       NUMERIC(20, 7) NOT NULL CHECK (price_pi > 0),
-  category       TEXT,
-  condition      TEXT           CHECK (condition IN ('new', 'like_new', 'good', 'fair', 'poor')),
-  images         TEXT[],
+  description    TEXT           NOT NULL,
+  price_in_pi    NUMERIC(20, 7) NOT NULL CHECK (price_in_pi > 0),
+  category       TEXT           NOT NULL,
+  condition      TEXT           CHECK (condition IN ('new', 'like_new', 'good', 'fair')),
+  images         TEXT[]         NOT NULL DEFAULT '{}',
+  location_lat   NUMERIC        NOT NULL DEFAULT 0,
+  location_lng   NUMERIC        NOT NULL DEFAULT 0,
+  city           TEXT           NOT NULL DEFAULT '',
+  country        TEXT           NOT NULL DEFAULT '',
+  allow_offers   BOOLEAN,
   status         TEXT           NOT NULL DEFAULT 'active'
                                 CHECK (status IN ('active', 'sold', 'removed')),
-  location_text  TEXT,
+  is_boosted     BOOLEAN        NOT NULL DEFAULT false,
+  deleted_at     TIMESTAMPTZ,
   created_at     TIMESTAMPTZ    NOT NULL DEFAULT now(),
   updated_at     TIMESTAMPTZ    NOT NULL DEFAULT now()
 );
@@ -44,8 +54,8 @@ CREATE TABLE IF NOT EXISTS public.escrow_transactions (
   id              UUID           PRIMARY KEY DEFAULT gen_random_uuid(),
   -- Keep both naming conventions for compatibility with existing application code.
   -- `listing_id` matches current API usage; `product_id` preserves the original schema contract.
-  listing_id      UUID           REFERENCES public.products(id) ON DELETE RESTRICT,
-  product_id      UUID           REFERENCES public.products(id) ON DELETE RESTRICT,
+  listing_id      UUID           REFERENCES public.listings(id) ON DELETE RESTRICT,
+  product_id      UUID           REFERENCES public.listings(id) ON DELETE RESTRICT,
   buyer_id        TEXT           NOT NULL,
   seller_id       TEXT           NOT NULL,
   amount_pi       NUMERIC(20, 7) NOT NULL CHECK (amount_pi > 0),
@@ -94,6 +104,7 @@ DROP TRIGGER IF EXISTS escrow_transactions_sync_listing_product_ids ON public.es
 CREATE TRIGGER escrow_transactions_sync_listing_product_ids
   BEFORE INSERT OR UPDATE ON public.escrow_transactions
   FOR EACH ROW EXECUTE FUNCTION public.sync_escrow_transaction_listing_product_ids();
+
 -- ─── updated_at triggers ─────────────────────────────────────────────────────
 CREATE OR REPLACE FUNCTION public.set_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
@@ -108,9 +119,9 @@ CREATE TRIGGER users_updated_at
   BEFORE UPDATE ON public.users
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
-DROP TRIGGER IF EXISTS products_updated_at ON public.products;
-CREATE TRIGGER products_updated_at
-  BEFORE UPDATE ON public.products
+DROP TRIGGER IF EXISTS listings_updated_at ON public.listings;
+CREATE TRIGGER listings_updated_at
+  BEFORE UPDATE ON public.listings
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 DROP TRIGGER IF EXISTS escrow_updated_at ON public.escrow_transactions;
@@ -137,12 +148,12 @@ CREATE POLICY "users_select_own"
 -- No INSERT / UPDATE / DELETE policies means the anon/authenticated role
 -- is implicitly denied those operations.
 
--- ─── products RLS ────────────────────────────────────────────────────────────
-ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
+-- ─── listings RLS ────────────────────────────────────────────────────────────
+ALTER TABLE public.listings ENABLE ROW LEVEL SECURITY;
 
 -- Any authenticated user can browse active listings.
-CREATE POLICY "products_select_active"
-  ON public.products FOR SELECT
+CREATE POLICY "listings_select_active"
+  ON public.listings FOR SELECT
   USING (
     auth.role() = 'authenticated'
     AND (
@@ -151,17 +162,17 @@ CREATE POLICY "products_select_active"
     )
   );
 
--- Sellers may insert their own products; seller_id must match their JWT pi_uid.
-CREATE POLICY "products_insert_own"
-  ON public.products FOR INSERT
+-- Sellers may insert their own listings; seller_id must match their JWT pi_uid.
+CREATE POLICY "listings_insert_own"
+  ON public.listings FOR INSERT
   WITH CHECK (
     auth.role() = 'authenticated'
     AND (auth.jwt() ->> 'pi_uid') = seller_id
   );
 
--- Sellers may update only their own products.
-CREATE POLICY "products_update_own"
-  ON public.products FOR UPDATE
+-- Sellers may update only their own listings.
+CREATE POLICY "listings_update_own"
+  ON public.listings FOR UPDATE
   USING (
     auth.role() = 'authenticated'
     AND (auth.jwt() ->> 'pi_uid') = seller_id
@@ -171,9 +182,9 @@ CREATE POLICY "products_update_own"
     AND (auth.jwt() ->> 'pi_uid') = seller_id
   );
 
--- Sellers may delete only their own products.
-CREATE POLICY "products_delete_own"
-  ON public.products FOR DELETE
+-- Sellers may delete only their own listings.
+CREATE POLICY "listings_delete_own"
+  ON public.listings FOR DELETE
   USING (
     auth.role() = 'authenticated'
     AND (auth.jwt() ->> 'pi_uid') = seller_id

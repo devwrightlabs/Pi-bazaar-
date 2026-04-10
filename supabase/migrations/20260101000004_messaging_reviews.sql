@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.messages (
   id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   sender_id    TEXT        NOT NULL,    -- Pi UID of sender
   receiver_id  TEXT        NOT NULL,    -- Pi UID of receiver
-  product_id   UUID        REFERENCES public.products(id) ON DELETE SET NULL,  -- optional context
+  listing_id   UUID        REFERENCES public.listings(id) ON DELETE SET NULL,  -- optional context
   content      TEXT        NOT NULL CHECK (char_length(content) > 0 AND char_length(content) <= 2000),
   is_read      BOOLEAN     NOT NULL DEFAULT false,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
