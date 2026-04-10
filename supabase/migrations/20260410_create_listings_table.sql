@@ -7,9 +7,10 @@
 -- Listing TypeScript type, the scoring/matching engine, and
 -- existing ALTER TABLE migrations (11_pro_marketplace_columns).
 --
--- Run this in the Supabase SQL Editor BEFORE the other
--- migrations that reference public.listings (11, 20260404_rls).
--- Uses IF NOT EXISTS / IF NOT EXISTS throughout for idempotency.
+-- Run this in the Supabase SQL Editor. This migration is
+-- idempotent (IF NOT EXISTS throughout) so it is safe to run
+-- even if earlier ALTER TABLE migrations (11, 20260404_rls)
+-- have not yet been applied — they will succeed afterwards.
 -- ============================================================
 
 -- ─── Extensions ──────────────────────────────────────────────────────────────

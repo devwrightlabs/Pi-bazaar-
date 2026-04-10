@@ -36,7 +36,7 @@ export function useMarketplace(initialListings: RecommendedListing[] = []) {
     async (reset = false) => {
       // Prevent infinite retry loops — stop after MAX_CONSECUTIVE_FAILURES
       if (consecutiveFailuresRef.current >= MAX_CONSECUTIVE_FAILURES) {
-        setError('Unable to load listings. Please try again later.')
+        setError('Unable to load listings after multiple attempts. Please try again later.')
         setHasMore(false)
         return
       }
