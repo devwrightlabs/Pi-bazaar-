@@ -22,7 +22,7 @@ import ShippingSelector from '@/components/ShippingSelector'
 const INITIAL_FORM: CreateListingForm = {
   title: '',
   description: '',
-  price_pi: 0,
+  price_in_pi: 0,
   category: '',
   condition: 'new',
   images: [],
@@ -85,7 +85,7 @@ export default function CreateListingPage() {
       ...prev,
       title: data.title ?? prev.title,
       description: data.description ?? prev.description,
-      price_pi: data.piPrice ?? prev.price_pi,
+      price_in_pi: data.piPrice ?? prev.price_in_pi,
       images: data.images && data.images.length > 0 ? data.images : prev.images,
     }))
     // Switch to manual tab so user can review/edit
@@ -94,7 +94,7 @@ export default function CreateListingPage() {
 
   const validate = (): string | null => {
     if (!form.title.trim()) return 'Title is required'
-    if (form.price_pi <= 0) return 'Price must be greater than 0'
+    if (form.price_in_pi <= 0) return 'Price must be greater than 0'
     if (!form.category) return 'Please select a category'
     if (!form.condition) return 'Please select a condition'
     if (!form.description.trim()) return 'Description is required'
@@ -131,7 +131,7 @@ export default function CreateListingPage() {
           seller_id: currentUser.id,
           title: form.title.trim(),
           description: form.description.trim(),
-          price_pi: form.price_pi,
+          price_in_pi: form.price_in_pi,
           category: form.category,
           condition: form.condition,
           images: form.images,
@@ -143,7 +143,7 @@ export default function CreateListingPage() {
           product_type: form.product_type,
           allow_offers: form.allow_offers,
           shipping_carrier: form.product_type === 'digital' ? null : form.shipping.carrier,
-          is_active: true,
+          status: 'active',
           is_boosted: false,
         })
         .select()
@@ -173,7 +173,7 @@ export default function CreateListingPage() {
 
   const canPublish =
     form.title.trim().length > 0 &&
-    form.price_pi > 0 &&
+    form.price_in_pi > 0 &&
     form.category.length > 0 &&
     form.description.trim().length > 0 &&
     form.images.length > 0 &&
@@ -261,8 +261,8 @@ export default function CreateListingPage() {
                   <div>
                     <FieldLabel>Price (Pi)</FieldLabel>
                     <PiPriceInput
-                      value={form.price_pi}
-                      onChange={(val) => update('price_pi', val)}
+                      value={form.price_in_pi}
+                      onChange={(val) => update('price_in_pi', val)}
                     />
                   </div>
 

@@ -10,12 +10,13 @@ export interface Product {
   seller_id: string
   title: string
   description: string | null
-  price_pi: number
+  price_in_pi: number
   category: string | null
   condition: 'new' | 'like_new' | 'good' | 'fair' | 'poor' | null
   images: string[] | null
   status: 'active' | 'sold' | 'removed'
   location_text: string | null
+  deleted_at: string | null
   created_at: string
   updated_at: string
 }
@@ -23,7 +24,7 @@ export interface Product {
 export interface CreateProductRequest {
   title: string
   description?: string
-  price_pi: number
+  price_in_pi: number
   category?: string
   condition?: 'new' | 'like_new' | 'good' | 'fair' | 'poor'
   images?: string[]

@@ -46,7 +46,8 @@ function BrowseContent() {
       let query = supabase
         .from('listings')
         .select('*')
-        .eq('is_active', true)
+        .eq('status', 'active')
+        .is('deleted_at', null)
         .order('is_boosted', { ascending: false })
         .order('created_at', { ascending: false })
 
@@ -165,7 +166,7 @@ function BrowseContent() {
                     {listing.title}
                   </h3>
                   <p className="font-bold mt-1" style={{ color: 'var(--color-gold)' }}>
-                    {listing.price_pi} Pi
+                    {listing.price_in_pi} Pi
                   </p>
                   <button
                     onClick={() => router.push(`/checkout/${listing.id}`)}

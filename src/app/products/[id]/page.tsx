@@ -16,7 +16,7 @@ interface ProductDetail {
   seller_id: string
   title: string
   description: string
-  price_pi: number
+  price_in_pi: number
   category: string
   condition?: string
   images: string[]
@@ -249,7 +249,7 @@ function ProductDetailContent({ productId }: { productId: string }) {
             {product.title}
           </h2>
           <p className="text-3xl font-bold" style={{ color: 'var(--color-gold)' }}>
-            π {product.price_pi}
+            π {product.price_in_pi}
           </p>
         </div>
 
@@ -436,7 +436,7 @@ function ProductDetailContent({ productId }: { productId: string }) {
           className="w-full rounded-xl"
           onClick={() => router.push(`/checkout/${product.id}`)}
         >
-          Buy with π {product.price_pi}
+          Buy with π {product.price_in_pi}
         </Button>
 
         {/* Message Seller */}

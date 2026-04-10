@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     // 3. Validate the product.
     const { data: product, error: productError } = await supabaseAdmin
       .from('products')
-      .select('id, seller_id, price_pi, status')
+      .select('id, seller_id, price_in_pi, status')
       .eq('id', product_id)
       .single()
 
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
 
       shippingCost = SHIPPING_COSTS[shipping_method]
     }
-    const amountPi = parseFloat((Number(product.price_pi) + shippingCost).toFixed(PI_AMOUNT_PRECISION))
+    const amountPi = parseFloat((Number(product.price_in_pi) + shippingCost).toFixed(PI_AMOUNT_PRECISION))
 
     // 5. Check for duplicate active escrow for this product.
     //    An escrow is considered active when its status is not a terminal state.

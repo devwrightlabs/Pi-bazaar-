@@ -30,7 +30,8 @@ async function FeedWithData() {
     const { data, error } = await supabase
       .from('listings')
       .select('*')
-      .eq('is_active', true)
+      .eq('status', 'active')
+      .is('deleted_at', null)
       .order('is_boosted', { ascending: false })
       .order('created_at', { ascending: false })
       .limit(20)

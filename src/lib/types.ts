@@ -3,7 +3,7 @@ export interface Listing {
   seller_id: string
   title: string
   description: string
-  price_pi: number
+  price_in_pi: number
   category: string
   condition?: 'new' | 'like_new' | 'good' | 'fair'
   images: string[]
@@ -13,10 +13,11 @@ export interface Listing {
   country: string
   origin_country?: string
   allow_offers?: boolean
-  is_active: boolean
+  status: 'active' | 'sold' | 'removed'
   is_boosted: boolean
   is_pro_seller?: boolean
   product_type?: 'physical' | 'digital' | 'service'
+  deleted_at: string | null
   created_at: string
   updated_at: string
 }
@@ -89,7 +90,7 @@ export interface ShippingConfig {
 export interface CreateListingForm {
   title: string
   description: string
-  price_pi: number
+  price_in_pi: number
   category: string
   condition: 'new' | 'like_new' | 'good' | 'fair'
   images: string[]

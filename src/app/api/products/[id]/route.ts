@@ -16,7 +16,8 @@ export async function GET(
       .from('listings')
       .select('*')
       .eq('id', id)
-      .eq('is_active', true)
+      .eq('status', 'active')
+      .is('deleted_at', null)
       .single()
 
     if (error || !data) {
