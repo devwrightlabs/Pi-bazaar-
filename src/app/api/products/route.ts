@@ -63,10 +63,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       )
     }
 
-    const price_pi = body.price_pi
-    if (typeof price_pi !== 'number' || !isFinite(price_pi) || price_pi <= 0) {
+    const price_in_pi = body.price_in_pi
+    if (typeof price_in_pi !== 'number' || !isFinite(price_in_pi) || price_in_pi <= 0) {
       return NextResponse.json(
-        { error: 'price_pi is required and must be a positive number' },
+        { error: 'price_in_pi is required and must be a positive number' },
         { status: 400 }
       )
     }
@@ -108,14 +108,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         seller_id: pi_uid,
         title,
         description,
-        price_pi,
+        price_in_pi,
         category,
         condition,
         images: images.length > 0 ? images : null,
         status: 'active',
         location_text,
       })
-      .select('id, seller_id, title, description, price_pi, category, condition, images, status, location_text, created_at, updated_at')
+      .select('id, seller_id, title, description, price_in_pi, category, condition, images, status, location_text, deleted_at, created_at, updated_at')
       .single()
 
     if (insertError || !product) {
@@ -164,10 +164,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     let query = supabaseAdmin
       .from('products')
       .select(
-        'id, seller_id, title, description, price_pi, category, condition, images, status, location_text, created_at, updated_at',
+        'id, seller_id, title, description, price_in_pi, category, condition, images, status, location_text, deleted_at, created_at, updated_at',
         { count: 'exact' }
       )
       .eq('status', 'active')
+      .is('deleted_at', null)
 
     if (category) {
       query = query.eq('category', category)
@@ -184,14 +185,14 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     if (minPrice !== null) {
       const min = parseFloat(minPrice)
       if (isFinite(min) && min >= 0) {
-        query = query.gte('price_pi', min)
+        query = query.gte('price_in_pi', min)
       }
     }
 
     if (maxPrice !== null) {
       const max = parseFloat(maxPrice)
       if (isFinite(max) && max >= 0) {
-        query = query.lte('price_pi', max)
+        query = query.lte('price_in_pi', max)
       }
     }
 
@@ -215,10 +216,10 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         query = query.order('created_at', { ascending: true })
         break
       case 'price_asc':
-        query = query.order('price_pi', { ascending: true })
+        query = query.order('price_in_pi', { ascending: true })
         break
       case 'price_desc':
-        query = query.order('price_pi', { ascending: false })
+        query = query.order('price_in_pi', { ascending: false })
         break
       case 'newest':
       default:

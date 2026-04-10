@@ -59,9 +59,9 @@ export default function ListingPreviewCard({ form, sellerName = 'You' }: Props) 
 
         <p
           className="text-lg font-bold"
-          style={{ color: form.price_pi > 0 ? 'var(--color-gold)' : 'var(--color-subtext)' }}
+          style={{ color: form.price_in_pi > 0 ? 'var(--color-gold)' : 'var(--color-subtext)' }}
         >
-          {form.price_pi > 0 ? `${form.price_pi.toFixed(2)} π` : '0.00 π'}
+          {form.price_in_pi > 0 ? `${form.price_in_pi.toFixed(2)} π` : '0.00 π'}
         </p>
 
         {form.allow_offers && (

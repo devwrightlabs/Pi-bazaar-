@@ -9,7 +9,7 @@ ALTER TABLE public.listings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Anyone can view listings"
   ON public.listings FOR SELECT
   USING (
-    is_active = true
+    status = 'active'
     OR auth.uid()::text = seller_id
   );
 

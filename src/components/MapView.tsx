@@ -93,7 +93,7 @@ function MapViewInner({ center, zoom, listings, radius, onError }: MapViewInnerP
           title.style.cssText = 'font-weight:600;font-size:13px;margin-bottom:3px;color:#fff;'
           popupContent.appendChild(title)
           const price = document.createElement('div')
-          price.textContent = `${listing.price_pi} Pi`
+          price.textContent = `${listing.price_in_pi} Pi`
           price.style.cssText = 'color:#F0C040;font-weight:700;font-size:15px;'
           popupContent.appendChild(price)
           const location = document.createElement('div')
@@ -163,7 +163,8 @@ export default function MapView() {
         const { data, error } = await supabase
           .from('listings')
           .select('*')
-          .eq('is_active', true)
+          .eq('status', 'active')
+          .is('deleted_at', null)
           .limit(100)
         if (error) throw error
         setListings((data as Listing[]) ?? [])

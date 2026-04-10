@@ -39,8 +39,8 @@ export function scoreListings(
 
     if (distanceKm > radiusKm) continue
 
-    if (priceMin !== undefined && listing.price_pi < priceMin) continue
-    if (priceMax !== undefined && listing.price_pi > priceMax) continue
+    if (priceMin !== undefined && listing.price_in_pi < priceMin) continue
+    if (priceMax !== undefined && listing.price_in_pi > priceMax) continue
 
     // Geo proximity: up to 40 points
     const geoScore = 40 * (1 - distanceKm / radiusKm)

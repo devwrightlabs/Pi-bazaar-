@@ -21,7 +21,7 @@ export default function ListingPinContent({ listing }: Props) {
         {listing.title}
       </div>
       <div style={{ color: '#F0C040', fontWeight: 700, fontSize: '16px' }}>
-        {listing.price_pi} Pi
+        {listing.price_in_pi} Pi
       </div>
       <div style={{ color: '#888', fontSize: '12px', marginTop: '2px' }}>
         {listing.city}, {listing.country}

@@ -88,7 +88,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
         listing_id: listing.id,
         buyer_id: currentUser.id,
         seller_id: listing.seller_id,
-        amount_pi: listing.price_pi,
+        amount_pi: listing.price_in_pi,
         product_type: isPhysical ? 'physical' : 'digital',
         pi_payment_id: 'pending',
         ...(savedAddressId ? { shipping_address_id: savedAddressId } : {}),
@@ -171,7 +171,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
                 {listing.title}
               </h2>
               <p className="font-bold mt-1" style={{ color: 'var(--color-gold)' }}>
-                {listing.price_pi} π
+                {listing.price_in_pi} π
               </p>
             </div>
           </div>
@@ -208,7 +208,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
         )}
 
         {/* Payment breakdown */}
-        <PaymentBreakdown amountPi={listing.price_pi} />
+        <PaymentBreakdown amountPi={listing.price_in_pi} />
 
         {/* Escrow protection info */}
         <div className="rounded-xl p-4" style={{ backgroundColor: '#0D1B2A', border: '1px solid rgba(240,192,64,0.2)' }}>
@@ -224,7 +224,7 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
         {currentUser ? (
           escrowId ? (
             <PiPayButton
-              amount={listing.price_pi}
+              amount={listing.price_in_pi}
               memo={`PiBazaar: ${listing.title}`}
               metadata={{ listing_id: listing.id, buyer_id: currentUser.id }}
               escrowId={escrowId}

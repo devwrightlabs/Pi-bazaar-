@@ -54,17 +54,18 @@ export async function POST(req: NextRequest) {
     let query = supabase
       .from('listings')
       .select('*')
-      .eq('is_active', true)
+      .eq('status', 'active')
+      .is('deleted_at', null)
       .gte('location_lat', minLat)
       .lte('location_lat', maxLat)
       .gte('location_lng', minLng)
       .lte('location_lng', maxLng)
 
     if (price_min !== undefined) {
-      query = query.gte('price_pi', price_min)
+      query = query.gte('price_in_pi', price_min)
     }
     if (price_max !== undefined) {
-      query = query.lte('price_pi', price_max)
+      query = query.lte('price_in_pi', price_max)
     }
 
     // Jurisdiction filter: when 'local', filter by origin_country

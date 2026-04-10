@@ -33,7 +33,7 @@ export type ListingRow = {
   seller_id: string
   title: string
   description: string
-  price_pi: number
+  price_in_pi: number
   category: string
   condition: 'new' | 'like_new' | 'good' | 'fair'
   images: string[]
@@ -43,18 +43,19 @@ export type ListingRow = {
   country: string
   origin_country: string | null
   allow_offers: boolean | null
-  is_active: boolean
+  status: 'active' | 'sold' | 'removed'
   is_boosted: boolean
   is_pro_seller: boolean | null
   product_type: 'physical' | 'digital' | 'service' | null
   shipping_carrier: string | null
+  deleted_at: string | null
   created_at: string
   updated_at: string
 }
 
 export type ListingInsert = Omit<
   ListingRow,
-  'id' | 'created_at' | 'updated_at' | 'allow_offers' | 'origin_country' | 'is_pro_seller' | 'product_type' | 'shipping_carrier'
+  'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'allow_offers' | 'origin_country' | 'is_pro_seller' | 'product_type' | 'shipping_carrier'
 > & {
   allow_offers?: boolean | null
   origin_country?: string | null

@@ -40,7 +40,7 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
       distanceKm !== null ? `${distanceKm.toFixed(1)} km away` : 'Unknown distance'
     const detailsParts = [
       item.description,
-      `Price: π ${item.price_pi}`,
+      `Price: π ${item.price_in_pi}`,
       conditionLabel ? `Condition: ${conditionLabel}` : null,
       `Location: ${item.city}, ${item.country}`,
       `Distance: ${distanceText}`,
@@ -109,7 +109,7 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
               {item.description}
             </p>
           )}
-          <p className="text-3xl font-bold text-gold">π {item.price_pi}</p>
+          <p className="text-3xl font-bold text-gold">π {item.price_in_pi}</p>
 
           {/* Seller row */}
           <div className="flex items-center gap-2 mt-1">
@@ -195,7 +195,7 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
             )}
           </div>
 
-          <p className="text-2xl font-bold text-gold mt-1">π {item.price_pi}</p>
+          <p className="text-2xl font-bold text-gold mt-1">π {item.price_in_pi}</p>
 
           <p className="text-xs text-text-sub">{item.city}</p>
 
@@ -292,7 +292,7 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
           {item.title}
         </h3>
 
-        <p className="font-bold text-lg text-gold">π {item.price_pi}</p>
+        <p className="font-bold text-lg text-gold">π {item.price_in_pi}</p>
 
         <p className="text-xs text-text-sub">{item.city}</p>
 

@@ -4,7 +4,7 @@ import type { Listing, Conversation, Message, UserProfile, CreateListingForm, Es
 const DEFAULT_FORM: CreateListingForm = {
   title: '',
   description: '',
-  price_pi: 0,
+  price_in_pi: 0,
   category: '',
   condition: 'new',
   images: [],
