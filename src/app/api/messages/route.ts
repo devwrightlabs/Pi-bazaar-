@@ -154,10 +154,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Receiver not found' }, { status: 404 })
     }
 
-    // 4. If product_id provided, verify the product exists.
+    // 4. If product_id provided, verify the listing exists.
     if (product_id) {
       const { data: product, error: productError } = await supabaseAdmin
-        .from('products')
+        .from('listings')
         .select('id')
         .eq('id', product_id)
         .single()

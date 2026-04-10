@@ -256,7 +256,7 @@ export async function POST(req: NextRequest) {
 
     const productUpdate = productId
       ? await supabaseAdmin
-          .from('products')
+          .from('listings')
           .update({ status: 'sold', updated_at: new Date().toISOString() })
           .eq('id', productId)
       : { error: null }

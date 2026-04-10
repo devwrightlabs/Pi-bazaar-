@@ -53,11 +53,12 @@ export async function GET(req: NextRequest) {
           .select('id', { count: 'exact', head: true })
           .eq('status', 'disputed'),
 
-        // Total active products
+        // Total active listings
         supabaseAdmin
-          .from('products')
+          .from('listings')
           .select('id', { count: 'exact', head: true })
-          .eq('status', 'active'),
+          .eq('status', 'active')
+          .is('deleted_at', null),
       ])
 
     if (revenueResult.error || disputesResult.error || productsResult.error) {

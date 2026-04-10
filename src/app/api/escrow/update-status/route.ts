@@ -178,7 +178,7 @@ export async function POST(req: NextRequest) {
       const productId = typedEscrow.product_id ?? typedEscrow.listing_id
       if (productId) {
         const { error: productError } = await supabaseAdmin
-          .from('products')
+          .from('listings')
           .update({ status: 'active', updated_at: now })
           .eq('id', productId)
 
