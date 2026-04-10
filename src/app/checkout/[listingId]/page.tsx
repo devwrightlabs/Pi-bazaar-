@@ -37,6 +37,8 @@ function CheckoutContent({ listingId }: CheckoutContentProps) {
           .from('listings')
           .select('*')
           .eq('id', listingId)
+          .eq('status', 'active')
+          .is('deleted_at', null)
           .single()
         if (error || !data) throw new Error('Listing not found')
         setListing(data as Listing)

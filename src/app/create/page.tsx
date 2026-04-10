@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import type { CreateListingForm, ScrapedListing } from '@/lib/types'
 import type { ProductType } from '@/lib/types'
 import { useStore } from '@/store/useStore'
@@ -125,31 +124,33 @@ export default function CreateListingPage() {
 
     setPublishing(true)
     try {
-      const { data, error } = await supabase
-        .from('listings')
-        .insert({
-          seller_id: currentUser.id,
+      const token = typeof window !== 'undefined' ? localStorage.getItem('pibazaar-token') : null
+      if (!token) {
+        throw new Error('Authentication token not found. Please sign in again.')
+      }
+
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
           title: form.title.trim(),
           description: form.description.trim(),
           price_in_pi: form.price_in_pi,
           category: form.category,
           condition: form.condition,
           images: form.images,
-          location_lat: 0,
-          location_lng: 0,
           city: form.location_city.trim(),
           country: form.location_country.trim(),
-          origin_country: form.location_country.trim(),
-          product_type: form.product_type,
-          allow_offers: form.allow_offers,
-          shipping_carrier: form.product_type === 'digital' ? null : form.shipping.carrier,
-          status: 'active',
-          is_boosted: false,
-        })
-        .select()
-        .single()
+        }),
+      })
 
-      if (error) throw error
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { error?: string }
+        throw new Error(data.error ?? `Server returned ${res.status}`)
+      }
 
       openModal({
         title: 'Listing published!',

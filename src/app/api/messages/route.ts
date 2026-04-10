@@ -160,6 +160,8 @@ export async function POST(req: NextRequest) {
         .from('listings')
         .select('id')
         .eq('id', product_id)
+        .eq('status', 'active')
+        .is('deleted_at', null)
         .single()
 
       if (productError || !product) {
