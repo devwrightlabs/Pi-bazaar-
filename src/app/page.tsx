@@ -27,6 +27,7 @@ export default function HomePage() {
       const piAuth = await authenticateWithPi()
       if (!piAuth) {
         setAuthError('Pi Browser is required to log in.')
+        setAuthLoading(false)
         return
       }
 
@@ -38,6 +39,7 @@ export default function HomePage() {
 
       if (!res.ok) {
         setAuthError('Verification failed. Please try again.')
+        setAuthLoading(false)
         return
       }
 
@@ -58,10 +60,10 @@ export default function HomePage() {
       if (typeof window !== 'undefined') {
         localStorage.setItem('pibazaar-token', data.token)
       }
+      setAuthLoading(false)
     } catch (err) {
       console.error('Pi login failed:', err)
       setAuthError('Login failed. Please try again.')
-    } finally {
       setAuthLoading(false)
     }
   }
