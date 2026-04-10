@@ -8,8 +8,8 @@
 CREATE TABLE IF NOT EXISTS public.orders (
   id                  UUID           PRIMARY KEY DEFAULT gen_random_uuid(),
   listing_id          UUID           NOT NULL REFERENCES public.listings(id) ON DELETE RESTRICT,
-  buyer_id            TEXT           NOT NULL REFERENCES public.users(pi_uid) ON DELETE CASCADE,
-  seller_id           TEXT           NOT NULL REFERENCES public.users(pi_uid) ON DELETE CASCADE,
+  buyer_id            TEXT           NOT NULL REFERENCES public.users(pi_uid) ON DELETE RESTRICT,
+  seller_id           TEXT           NOT NULL REFERENCES public.users(pi_uid) ON DELETE RESTRICT,
   amount_pi           NUMERIC(20, 7) NOT NULL CHECK (amount_pi > 0),
   status              TEXT           NOT NULL DEFAULT 'pending'
                                      CHECK (status IN (
