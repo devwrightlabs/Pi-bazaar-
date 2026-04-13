@@ -8,14 +8,19 @@ import { createServerSupabaseClient } from '@/lib/supabase-server'
  * Allows the buyer to release funds to the seller when satisfied with delivery.
  * Updates transaction status to 'completed_released'.
  */
-export async function releaseEscrow(transactionId: string) {
+export async function releaseEscrow(transactionId: string, accessToken: string) {
+  if (!accessToken) {
+    throw new Error('Unauthorized: Missing access token')
+  }
+
   const supabase = await createServerSupabaseClient()
 
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+    error: userError,
+  } = await supabase.auth.getUser(accessToken)
 
-  if (!user) {
+  if (userError || !user) {
     throw new Error('Unauthorized: User must be logged in')
   }
 
