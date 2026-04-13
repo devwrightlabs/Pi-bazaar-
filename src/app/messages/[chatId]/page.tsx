@@ -28,25 +28,66 @@ export default function ChatPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const getUserIdFromAppToken = () => {
+    if (typeof window === 'undefined') {
+      return null
+    }
+
+    const token = Object.values(localStorage).find((value) => {
+      if (typeof value !== 'string') {
+        return false
+      }
+
+      const parts = value.split('.')
+      return parts.length === 3
+    })
+
+    if (!token) {
+      return null
+    }
+
+    try {
+      const [, payload] = token.split('.')
+      const normalizedPayload = payload.replace(/-/g, '+').replace(/_/g, '/')
+      const decodedPayload = JSON.parse(window.atob(normalizedPayload))
+
+      return decodedPayload.sub ?? decodedPayload.user_id ?? decodedPayload.userId ?? null
+    } catch (error) {
+      console.error('Failed to parse app auth token:', error)
+      return null
+    }
+  }
+
   useEffect(() => {
     const initChat = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
+      const currentUserId = getUserIdFromAppToken()
 
-      if (!user) {
+      if (!currentUserId) {
         router.push('/login')
         return
       }
 
-      setUserId(user.id)
+      setUserId(currentUserId)
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      let { data, error } = await (supabase as any)
         .from('messages')
         .select('*')
-        .eq('thread_id', chatId)
+        .eq('conversation_id', chatId)
         .order('created_at', { ascending: true })
+
+      if (error) {
+        // Backward-compatible fallback for deployments that still expose `thread_id`.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const fallbackResult = await (supabase as any)
+          .from('messages')
+          .select('*')
+          .eq('thread_id', chatId)
+          .order('created_at', { ascending: true })
+
+        data = fallbackResult.data
+        error = fallbackResult.error
+      }
 
       if (error) {
         console.error('Failed to fetch messages:', error)
