@@ -5,10 +5,10 @@
  * It uses @supabase/ssr createServerClient for server-side data fetching.
  */
 
-import { createServerClient } from '@supabase/ssr'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import Link from 'next/link'
-import type { Database } from '@/types/database'
+import type { Database, ChatThreadRow } from '@/types/database'
 
 async function getServerSupabaseClient() {
   const cookieStore = await cookies()
@@ -20,7 +20,7 @@ async function getServerSupabaseClient() {
       getAll() {
         return cookieStore.getAll()
       },
-      setAll(cookiesToSet) {
+      setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
         try {
           cookiesToSet.forEach(({ name, value, options }) =>
             cookieStore.set(name, value, options)
@@ -70,7 +70,7 @@ export default async function MessagesPage() {
     console.error('[messages] Error fetching chat threads:', error)
   }
 
-  const threads = chatThreads || []
+  const threads = (chatThreads as unknown as ChatThreadRow[]) || []
 
   return (
     <main className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>

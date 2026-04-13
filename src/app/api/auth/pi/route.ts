@@ -15,7 +15,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import jwt from 'jsonwebtoken'
-import type { Database } from '@/types/database'
+import type { Database, ProfileRow } from '@/types/database'
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -73,26 +73,28 @@ export async function POST(req: NextRequest) {
     })
 
     // 4. Upsert profile in Supabase
-    const { data: profile, error: upsertError } = await supabase
+    const { data: profileData, error: upsertError } = await supabase
       .from('profiles')
       .upsert(
         {
           id: piUser.uid,
           username: piUser.username || 'Pioneer',
           avatar_url: '',
-        },
+        } as never,
         { onConflict: 'id' }
       )
       .select()
       .single()
 
-    if (upsertError || !profile) {
+    if (upsertError || !profileData) {
       console.error('[auth/pi] Profile upsert error:', upsertError)
       return NextResponse.json(
         { error: 'Failed to create/update profile' },
         { status: 500 }
       )
     }
+
+    const profile = profileData as unknown as ProfileRow
 
     // 5. Mint a custom JWT for Supabase
     if (!jwtSecret) {

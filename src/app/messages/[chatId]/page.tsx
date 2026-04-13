@@ -15,8 +15,12 @@ import { insertMessage } from '@/actions/chat'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-export default function ChatRoomPage({ params }: { params: { chatId: string } }) {
-  const { chatId } = params
+export default function ChatRoomPage({ params }: { params: Promise<{ chatId: string }> }) {
+  const [chatId, setChatId] = useState<string | null>(null)
+
+  useEffect(() => {
+    params.then(({ chatId: id }) => setChatId(id))
+  }, [params])
   const [messages, setMessages] = useState<MessageRow[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
@@ -32,6 +36,8 @@ export default function ChatRoomPage({ params }: { params: { chatId: string } })
   }
 
   useEffect(() => {
+    if (!chatId) return
+
     // Load initial messages
     const loadMessages = async () => {
       setLoading(true)
@@ -64,7 +70,7 @@ export default function ChatRoomPage({ params }: { params: { chatId: string } })
           // Mark messages as read
           await supabase
             .from('messages')
-            .update({ is_read: true })
+            .update({ is_read: true } as never)
             .eq('thread_id', chatId)
             .neq('sender_id', session.user.id)
             .eq('is_read', false)
@@ -110,7 +116,7 @@ export default function ChatRoomPage({ params }: { params: { chatId: string } })
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!newMessage.trim() || !userId) return
+    if (!newMessage.trim() || !userId || !chatId) return
 
     setSending(true)
     setError(null)
@@ -137,7 +143,7 @@ export default function ChatRoomPage({ params }: { params: { chatId: string } })
     }
   }
 
-  if (loading) {
+  if (loading || !chatId) {
     return (
       <main className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--color-background)' }}>
         <p style={{ color: 'var(--color-subtext)' }}>Loading...</p>

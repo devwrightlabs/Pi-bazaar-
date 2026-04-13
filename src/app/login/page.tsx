@@ -2,15 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-
-declare global {
-  interface Window {
-    Pi?: {
-      init: (config: { version: string; sandbox: boolean }) => void
-      authenticate: () => Promise<{ accessToken: string; user: { uid: string; username: string } }>
-    }
-  }
-}
+import { authenticateWithPi, initPiSdk } from '@/lib/pi-sdk'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -23,16 +15,10 @@ export default function LoginPage() {
 
     try {
       // Initialize Pi SDK
-      if (!window.Pi) {
-        setError('Pi Browser is required to log in.')
-        setLoading(false)
-        return
-      }
-
-      window.Pi.init({ version: "2.0", sandbox: true })
+      initPiSdk({ sandbox: true })
 
       // Authenticate with Pi
-      const auth = await window.Pi.authenticate()
+      const auth = await authenticateWithPi()
 
       if (!auth || !auth.accessToken) {
         setError('Pi authentication failed. Please try again.')
