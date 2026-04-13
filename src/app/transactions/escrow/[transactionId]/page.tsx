@@ -7,7 +7,7 @@
  * the transaction status and user role (buyer/seller).
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database, TransactionRow } from '@/types/database'
@@ -16,7 +16,7 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
 export default function EscrowTransactionPage({ params }: { params: Promise<{ transactionId: string }> }) {
-  const [transactionId, setTransactionId] = useState<string | null>(null)
+  const { transactionId } = use(params)
   const router = useRouter()
   const [transaction, setTransaction] = useState<TransactionRow | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
@@ -26,10 +26,6 @@ export default function EscrowTransactionPage({ params }: { params: Promise<{ tr
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonKey)
-
-  useEffect(() => {
-    params.then(({ transactionId: id }) => setTransactionId(id))
-  }, [params])
 
   useEffect(() => {
     if (!transactionId) return

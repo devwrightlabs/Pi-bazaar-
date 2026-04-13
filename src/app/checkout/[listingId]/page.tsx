@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import type { Listing, ShippingAddress, ShippingConfig } from '@/lib/types'
@@ -283,13 +283,7 @@ interface PageProps {
 }
 
 export default function CheckoutPage({ params }: PageProps) {
-  const [listingId, setListingId] = useState<string | null>(null)
-
-  useEffect(() => {
-    params.then(({ listingId: id }) => setListingId(id))
-  }, [params])
-
-  if (!listingId) return <LoadingSkeleton rows={6} variant="rows" />
+  const { listingId } = use(params)
 
   return (
     <ErrorBoundary>

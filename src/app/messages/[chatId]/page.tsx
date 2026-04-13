@@ -7,7 +7,7 @@
  * It subscribes to postgres_changes on the messages table.
  */
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, use } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database, MessageRow } from '@/types/database'
 import { insertMessage } from '@/actions/chat'
@@ -15,8 +15,8 @@ import { insertMessage } from '@/actions/chat'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-export default function ChatRoomPage({ params }: { params: { chatId: string } }) {
-  const [chatId] = useState<string | null>(params.chatId)
+export default function ChatRoomPage({ params }: { params: Promise<{ chatId: string }> }) {
+  const { chatId } = use(params)
   const [messages, setMessages] = useState<MessageRow[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
