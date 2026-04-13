@@ -49,14 +49,17 @@ export async function releaseEscrow(transactionId: string, accessToken: string) 
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error: updateError } = await (supabase as any)
+  const { data: updatedTransaction, error: updateError } = await (supabase as any)
     .from('transactions')
     .update(update)
     .eq('id', transactionId)
+    .eq('status', 'shipped')
+    .select('id')
+    .single()
 
-  if (updateError) {
+  if (updateError || !updatedTransaction) {
     console.error('Failed to release escrow:', updateError)
-    throw new Error('Failed to release funds')
+    throw new Error('Failed to release funds: transaction is no longer in shipped status')
   }
 
   return { success: true }
