@@ -8,8 +8,8 @@
  *   1. Receive accessToken from Pi SDK client
  *   2. Verify token with Pi Network API (server-to-server)
  *   3. Create/update profile in Supabase
- *   4. Create Supabase session using @supabase/ssr
- *   5. Return session token to client
+ *   4. Mint a JWT for authenticated Supabase-backed access
+ *   5. Return the token to the client
  */
 
 import { NextRequest, NextResponse } from 'next/server'
