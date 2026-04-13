@@ -21,6 +21,12 @@ interface UIState {
   jurisdictionMode: JurisdictionMode
   setJurisdictionMode: (mode: JurisdictionMode) => void
 
+  // Persistent map state
+  mapCenter: [number, number]
+  mapZoom: number
+  setMapCenter: (center: [number, number]) => void
+  setMapZoom: (zoom: number) => void
+
   // Hydration flag — true once client-side rehydration from localStorage completes
   _hasHydrated: boolean
   setHasHydrated: (state: boolean) => void
@@ -42,6 +48,12 @@ export const useUIStore = create<UIState>()(
       jurisdictionMode: 'global',
       setJurisdictionMode: (mode) => set({ jurisdictionMode: mode }),
 
+      // Default map center: Nassau, Bahamas
+      mapCenter: [25.0343, -77.3963],
+      mapZoom: 12,
+      setMapCenter: (center) => set({ mapCenter: center }),
+      setMapZoom: (zoom) => set({ mapZoom: zoom }),
+
       _hasHydrated: false,
       setHasHydrated: (state) => set({ _hasHydrated: state }),
     }),
@@ -54,6 +66,8 @@ export const useUIStore = create<UIState>()(
         viewMode: state.viewMode,
         themeMode: state.themeMode,
         jurisdictionMode: state.jurisdictionMode,
+        mapCenter: state.mapCenter,
+        mapZoom: state.mapZoom,
       }),
 
       // skipHydration: the store will NOT auto-rehydrate on creation.
