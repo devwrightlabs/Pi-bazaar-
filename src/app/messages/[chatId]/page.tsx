@@ -15,12 +15,8 @@ import { insertMessage } from '@/actions/chat'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-export default function ChatRoomPage({ params }: { params: Promise<{ chatId: string }> }) {
-  const [chatId, setChatId] = useState<string | null>(null)
-
-  useEffect(() => {
-    params.then(({ chatId: id }) => setChatId(id))
-  }, [params])
+export default function ChatRoomPage({ params }: { params: { chatId: string } }) {
+  const [chatId] = useState<string | null>(params.chatId)
   const [messages, setMessages] = useState<MessageRow[]>([])
   const [newMessage, setNewMessage] = useState('')
   const [loading, setLoading] = useState(true)
