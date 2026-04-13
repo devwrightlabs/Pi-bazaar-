@@ -31,28 +31,45 @@ export default function EscrowDashboardPage() {
 
       try {
         const {
-          data: { user },
-        } = await supabase.auth.getUser()
+          data: { session },
+          error: sessionError,
+        } = await supabase.auth.getSession()
 
-        if (!user) {
+        if (sessionError) {
+          throw sessionError
+        }
+
+        const user = session?.user
+        const accessToken = session?.access_token
+
+        if (!user || !accessToken) {
           router.push('/login')
           return
         }
 
         setUserId(user.id)
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data, error: fetchError } = await (supabase as any)
-          .from('transactions')
-          .select('*')
-          .eq('id', transactionId)
-          .single()
+        const response = await fetch(`/api/escrow/${encodeURIComponent(transactionId)}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
 
-        if (fetchError || !data) {
-          throw new Error('Transaction not found')
+        if (!response.ok) {
+          let message = 'Transaction not found'
+
+          try {
+            const errorBody = (await response.json()) as { error?: string; message?: string }
+            message = errorBody.error ?? errorBody.message ?? message
+          } catch {
+            // Ignore JSON parsing errors and fall back to the default message.
+          }
+
+          throw new Error(message)
         }
 
-        setTransaction(data as TransactionRow)
+        const data = (await response.json()) as TransactionRow
+        setTransaction(data)
       } catch (err) {
         console.error('Failed to fetch transaction:', err)
         setError(err instanceof Error ? err.message : 'Failed to load transaction')
