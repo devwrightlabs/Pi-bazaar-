@@ -41,12 +41,16 @@ export default function LoginPage() {
 
       const data = await response.json()
 
-      // Store session
+      // Store session and force a full app reload so authenticated UI state
+      // can be re-hydrated from persisted auth data instead of preserving
+      // stale in-memory client state across a SPA navigation.
       if (typeof window !== 'undefined' && data.token) {
         localStorage.setItem('pibazaar-token', data.token)
+        window.location.assign('/')
+        return
       }
 
-      // Redirect to home
+      // Fallback redirect
       router.push('/')
     } catch (err) {
       console.error('Login error:', err)
