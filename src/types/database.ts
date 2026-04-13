@@ -1,121 +1,38 @@
 /**
  * Database Schema TypeScript Interfaces
  *
- * Production-ready types for Pi Bazaar's core database tables.
- * These interfaces align with Supabase Row Level Security (RLS) enabled schema.
+ * Compatibility aliases over the centralized Supabase schema types.
+ * Keep this file as a thin wrapper so all database typings come from
+ * `src/lib/database.types.ts`, which is what the Supabase client uses.
  */
 
-// ─── Profiles Table ──────────────────────────────────────────────────────────
+import type { Database as SupabaseDatabase } from '../lib/database.types'
 
-export interface ProfileRow {
-  id: string
-  username: string
-  avatar_url: string | null
-  created_at?: string
-}
+type PublicTables = SupabaseDatabase['public']['Tables']
 
-export interface ProfileInsert extends Omit<ProfileRow, 'id' | 'created_at'> {
-  id?: string
-}
+export type Database = SupabaseDatabase
 
-export interface ProfileUpdate extends Partial<Omit<ProfileRow, 'id'>> {}
+// ─── Profiles / Users ────────────────────────────────────────────────────────
 
-// ─── Chat Threads Table ──────────────────────────────────────────────────────
+export type ProfileRow = PublicTables['users']['Row']
+export type ProfileInsert = PublicTables['users']['Insert']
+export type ProfileUpdate = PublicTables['users']['Update']
 
-export interface ChatThreadRow {
-  id: string
-  buyer_id: string
-  seller_id: string
-  listing_id: string | null
-  created_at?: string
-  updated_at?: string
-}
+// ─── Chat Threads / Conversations ────────────────────────────────────────────
 
-export interface ChatThreadInsert extends Omit<ChatThreadRow, 'id' | 'created_at' | 'updated_at'> {
-  id?: string
-}
-
-export interface ChatThreadUpdate extends Partial<Omit<ChatThreadRow, 'id'>> {}
+export type ChatThreadRow = PublicTables['conversations']['Row']
+export type ChatThreadInsert = PublicTables['conversations']['Insert']
+export type ChatThreadUpdate = PublicTables['conversations']['Update']
 
 // ─── Messages Table ──────────────────────────────────────────────────────────
 
-export interface MessageRow {
-  id: string
-  thread_id: string
-  sender_id: string
-  content: string
-  is_read: boolean
-  created_at: string
-}
+export type MessageRow = PublicTables['messages']['Row']
+export type MessageInsert = PublicTables['messages']['Insert']
+export type MessageUpdate = PublicTables['messages']['Update']
 
-export type MessageInsert = Omit<MessageRow, 'id' | 'created_at' | 'is_read'> & {
-  id?: string
-  is_read?: boolean
-}
+// ─── Transactions / Escrow Transactions ─────────────────────────────────────
 
-export interface MessageUpdate extends Partial<Omit<MessageRow, 'id' | 'thread_id' | 'sender_id'>> {}
-
-// ─── Transactions Table ──────────────────────────────────────────────────────
-
-export type TransactionStatus =
-  | 'pending'
-  | 'funded_in_escrow'
-  | 'shipped'
-  | 'completed_released'
-  | 'disputed'
-
-export interface TransactionRow {
-  id: string
-  listing_id: string
-  buyer_id: string
-  seller_id: string
-  price: number
-  status: TransactionStatus
-  created_at?: string
-  updated_at?: string
-}
-
-export interface TransactionInsert extends Omit<TransactionRow, 'id' | 'created_at' | 'updated_at'> {
-  id?: string
-}
-
-export interface TransactionUpdate extends Partial<Omit<TransactionRow, 'id'>> {}
-
-// ─── Aggregate Database Type ─────────────────────────────────────────────────
-
-export interface Database {
-  public: {
-    Tables: {
-      profiles: {
-        Row: ProfileRow
-        Insert: ProfileInsert
-        Update: ProfileUpdate
-        Relationships: []
-      }
-      chat_threads: {
-        Row: ChatThreadRow
-        Insert: ChatThreadInsert
-        Update: ChatThreadUpdate
-        Relationships: []
-      }
-      messages: {
-        Row: MessageRow
-        Insert: MessageInsert
-        Update: MessageUpdate
-        Relationships: []
-      }
-      transactions: {
-        Row: TransactionRow
-        Insert: TransactionInsert
-        Update: TransactionUpdate
-        Relationships: []
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-  }
-}
+export type TransactionRow = PublicTables['escrow_transactions']['Row']
+export type TransactionInsert = PublicTables['escrow_transactions']['Insert']
+export type TransactionUpdate = PublicTables['escrow_transactions']['Update']
+export type TransactionStatus = TransactionRow['status']
