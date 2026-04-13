@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useStore } from '@/store/useStore'
 import { authenticateWithPi } from '@/lib/pi-sdk'
 import { Button } from '@/components/ui/button'
@@ -73,12 +73,10 @@ export default function HomePage() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [pageReady, setPageReady] = useState(false)
 
-  // Mark page as ready after initial render
-  useState(() => {
-    if (typeof window !== 'undefined') {
-      setTimeout(() => setPageReady(true), 100)
-    }
-  })
+  useEffect(() => {
+    const timer = setTimeout(() => setPageReady(true), 100)
+    return () => clearTimeout(timer)
+  }, [])
 
   const handleRefresh = useCallback(async () => {
     setRefreshKey((k) => k + 1)

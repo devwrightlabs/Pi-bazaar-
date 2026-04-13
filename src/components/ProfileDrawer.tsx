@@ -68,7 +68,7 @@ export default function ProfileDrawer({ open, onClose }: ProfileDrawerProps) {
         try {
           await supabase
             .from('users')
-            .update({ theme_preference: next } as Record<string, string>)
+            .update({ theme_preference: next })
             .eq('pi_uid', currentUser.pi_uid)
         } catch {
           // Silently fail — optimistic update already applied
