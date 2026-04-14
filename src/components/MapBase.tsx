@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import type { Map as LeafletMap } from 'leaflet'
@@ -69,9 +69,14 @@ export default function MapBase({ radius = 50 }: MapBaseProps) {
   const [locating, setLocating] = useState(false)
 
   /* ── Read gold color from CSS variable for Leaflet SVG compatibility ── */
-  const goldColor = useMemo(() => {
-    if (typeof document === 'undefined') return '#F0C040'
-    return getComputedStyle(document.documentElement).getPropertyValue('--color-gold').trim() || '#F0C040'
+  const [goldColor, setGoldColor] = useState('#F0C040')
+  useEffect(() => {
+    // Defer to next frame so ThemeProvider's useEffect has updated data-theme
+    const raf = requestAnimationFrame(() => {
+      const val = getComputedStyle(document.documentElement).getPropertyValue('--color-gold').trim()
+      if (val) setGoldColor(val)
+    })
+    return () => cancelAnimationFrame(raf)
   }, [themeMode])
 
   /* ── Inject Leaflet CSS once ───────────────────────────────────────── */
