@@ -34,4 +34,4 @@ next-env.d.ts
 .next/
 
 # local validation key — never commit this file
-validation_key.tx
+Validation-key
