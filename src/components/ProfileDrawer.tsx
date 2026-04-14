@@ -188,7 +188,7 @@ export default function ProfileDrawer({ open, onClose }: ProfileDrawerProps) {
                 className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0"
                 style={{ backgroundColor: 'var(--color-gold)' }}
               >
-                <span className="font-bold text-xl" style={{ color: '#000' }}>
+                <span className="font-bold text-xl text-black">
                   {initials}
                 </span>
               </div>
@@ -238,7 +238,7 @@ export default function ProfileDrawer({ open, onClose }: ProfileDrawerProps) {
               <span
                 className="absolute top-0.5 w-5 h-5 rounded-full transition-transform duration-200"
                 style={{
-                  backgroundColor: themeMode === 'dark' ? '#000' : 'var(--color-text)',
+                  backgroundColor: themeMode === 'dark' ? 'var(--color-background)' : 'var(--color-text)',
                   transform: themeMode === 'dark' ? 'translateX(22px)' : 'translateX(2px)',
                 }}
               />

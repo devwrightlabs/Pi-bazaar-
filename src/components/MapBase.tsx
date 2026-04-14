@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet'
 import L from 'leaflet'
 import type { Map as LeafletMap } from 'leaflet'
@@ -23,7 +23,7 @@ function ensureLeafletCss() {
 /* ─── Custom gold pin icon ─────────────────────────────────────────────── */
 
 const GOLD_ICON = L.divIcon({
-  html: `<div style="width:24px;height:24px;background:var(--color-gold, #F0C040);border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #000;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>`,
+  html: `<div style="width:24px;height:24px;background:var(--color-gold, #F0C040);border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid var(--color-background);box-shadow:0 2px 8px var(--color-backdrop)"></div>`,
   className: '',
   iconSize: [24, 24],
   iconAnchor: [12, 24],
@@ -62,10 +62,17 @@ export default function MapBase({ radius = 50 }: MapBaseProps) {
   const mapCenter = useUIStore((s) => s.mapCenter)
   const mapZoom = useUIStore((s) => s.mapZoom)
   const hasHydrated = useUIStore((s) => s._hasHydrated)
+  const themeMode = useUIStore((s) => s.themeMode)
 
   const mapRef = useRef<LeafletMap | null>(null)
   const [listings, setListings] = useState<Listing[]>([])
   const [locating, setLocating] = useState(false)
+
+  /* ── Read gold color from CSS variable for Leaflet SVG compatibility ── */
+  const goldColor = useMemo(() => {
+    if (typeof document === 'undefined') return '#F0C040'
+    return getComputedStyle(document.documentElement).getPropertyValue('--color-gold').trim() || '#F0C040'
+  }, [themeMode])
 
   /* ── Inject Leaflet CSS once ───────────────────────────────────────── */
   useEffect(() => {
@@ -134,8 +141,8 @@ export default function MapBase({ radius = 50 }: MapBaseProps) {
           center={mapCenter}
           radius={radius * 1000}
           pathOptions={{
-            color: '#F0C040',
-            fillColor: '#F0C040',
+            color: goldColor,
+            fillColor: goldColor,
             fillOpacity: 0.05,
             weight: 1,
           }}
