@@ -10,8 +10,8 @@ export interface ProfileRow {
   id: string // uuid
   pi_uid: string
   username: string
-  avatar_url: string
-  last_login: string
+  avatar_url: string | null
+  last_login: string | null
 }
 
 export type ProfileInsert = Omit<ProfileRow, 'id'> & { id?: string }
