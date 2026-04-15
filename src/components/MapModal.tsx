@@ -37,13 +37,19 @@ export default function MapModal({ open, onClose }: MapModalProps) {
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col" style={{ backgroundColor: 'var(--color-background)' }}>
+    <div
+      className="fixed inset-0 z-50 flex flex-col"
+      style={{ backgroundColor: 'var(--color-background)' }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="map-modal-title"
+    >
       {/* Header */}
       <header
         className="flex items-center justify-between px-4 py-3 shrink-0"
         style={{ borderBottom: '1px solid var(--color-border)' }}
       >
-        <h2 className="text-lg font-bold font-heading" style={{ color: 'var(--color-text)' }}>
+        <h2 id="map-modal-title" className="text-lg font-bold font-heading" style={{ color: 'var(--color-text)' }}>
           Seller Map
         </h2>
         <button
