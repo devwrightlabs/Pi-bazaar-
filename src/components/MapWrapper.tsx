@@ -4,13 +4,13 @@ import dynamic from 'next/dynamic'
 
 /* ─── CSS-variable skeleton loader ─────────────────────────────────────── */
 
-function MapSkeleton() {
+export function MapSkeleton({ height }: { height?: string }) {
   return (
     <div
       className="w-full rounded-2xl overflow-hidden relative"
       style={{
-        height: '55vh',
-        minHeight: '340px',
+        height: height ?? '55vh',
+        minHeight: height ? undefined : '340px',
         backgroundColor: 'var(--color-card-bg)',
       }}
     >
@@ -19,7 +19,6 @@ function MapSkeleton() {
 
       {/* Fake map elements */}
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 z-10">
-        {/* Map icon placeholder */}
         <div
           className="w-12 h-12 rounded-full flex items-center justify-center"
           style={{ backgroundColor: 'var(--color-secondary-bg)' }}
@@ -30,7 +29,7 @@ function MapSkeleton() {
           </svg>
         </div>
         <p className="text-xs font-medium" style={{ color: 'var(--color-subtext)' }}>
-          Loading map...
+          Loading map…
         </p>
       </div>
 
@@ -56,10 +55,12 @@ const MapBase = dynamic(() => import('@/components/MapBase'), {
 
 interface MapWrapperProps {
   radius?: number
+  /** When provided, fixes the container height (e.g. "400px") */
+  height?: string
 }
 
 /* ─── Wrapper component ────────────────────────────────────────────────── */
 
-export default function MapWrapper({ radius }: MapWrapperProps) {
-  return <MapBase radius={radius} />
+export default function MapWrapper({ radius, height }: MapWrapperProps) {
+  return <MapBase radius={radius} height={height} />
 }

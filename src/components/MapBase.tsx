@@ -1,7 +1,14 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { MapContainer, TileLayer, Marker, Circle, useMapEvents } from 'react-leaflet'
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Circle,
+  LayersControl,
+  useMapEvents,
+} from 'react-leaflet'
 import L from 'leaflet'
 import type { Map as LeafletMap } from 'leaflet'
 import type { Listing } from '@/lib/types'
@@ -20,19 +27,38 @@ function ensureLeafletCss() {
   document.head.appendChild(link)
 }
 
-/* ─── Custom gold pin icon ─────────────────────────────────────────────── */
+/* ─── Custom gold pin icon (HTML/CSS divIcon) ──────────────────────────── */
 
 const GOLD_ICON = L.divIcon({
-  html: `<div style="width:24px;height:24px;background:var(--color-gold, #F0C040);border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid var(--color-background);box-shadow:0 2px 8px var(--color-backdrop)"></div>`,
+  html: `<div style="width:24px;height:24px;background:var(--color-accent, var(--color-gold, #F0C040));border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid var(--color-background);box-shadow:0 2px 8px var(--color-backdrop)"></div>`,
   className: '',
   iconSize: [24, 24],
   iconAnchor: [12, 24],
 })
 
+/* ─── Tile URLs ────────────────────────────────────────────────────────── */
+
+const TILES = {
+  street: {
+    url: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+  },
+  night: {
+    url: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
+  },
+  satellite: {
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: '&copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+  },
+} as const
+
 /* ─── Props ────────────────────────────────────────────────────────────── */
 
 interface MapBaseProps {
   radius?: number
+  /** When provided, fixes the container height (e.g. "400px") */
+  height?: string
 }
 
 /* ─── Persistent map events handler ────────────────────────────────────── */
@@ -58,7 +84,7 @@ function MapEventHandler() {
 
 /* ─── Component ────────────────────────────────────────────────────────── */
 
-export default function MapBase({ radius = 50 }: MapBaseProps) {
+export default function MapBase({ radius = 50, height }: MapBaseProps) {
   const mapCenter = useUIStore((s) => s.mapCenter)
   const mapZoom = useUIStore((s) => s.mapZoom)
   const hasHydrated = useUIStore((s) => s._hasHydrated)
@@ -71,7 +97,6 @@ export default function MapBase({ radius = 50 }: MapBaseProps) {
   /* ── Read gold color from CSS variable for Leaflet SVG compatibility ── */
   const [goldColor, setGoldColor] = useState('#F0C040')
   useEffect(() => {
-    // Defer to next frame so ThemeProvider's useEffect has updated data-theme
     const raf = requestAnimationFrame(() => {
       const val = getComputedStyle(document.documentElement).getPropertyValue('--color-gold').trim()
       if (val) setGoldColor(val)
@@ -117,27 +142,43 @@ export default function MapBase({ radius = 50 }: MapBaseProps) {
         console.error('Geolocation error:', err)
         setLocating(false)
       },
-      { timeout: 10000 }
+      { timeout: 10000 },
     )
   }, [])
 
   // Wait for Zustand hydration so we use persisted center/zoom
   if (!hasHydrated) return null
 
+  /* ── Determine which BaseLayer is checked by default based on theme ── */
+  const isDark = themeMode === 'dark'
+
   return (
-    <div className="relative w-full" style={{ height: '55vh', minHeight: '340px' }}>
+    <div
+      className="relative w-full"
+      style={{ height: height ?? '55vh', minHeight: height ? undefined : '340px' }}
+    >
       <MapContainer
         center={mapCenter}
         zoom={mapZoom}
         className="w-full h-full rounded-2xl"
-        zoomControl={true}
+        zoomControl={false}
         ref={mapRef}
         style={{ background: 'var(--color-card-bg)' }}
       >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; OpenStreetMap contributors"
-        />
+        {/* ── Layer toggle ───────────────────────────────────────────── */}
+        <LayersControl position="topright">
+          <LayersControl.BaseLayer name="Street View" checked={!isDark}>
+            <TileLayer url={TILES.street.url} attribution={TILES.street.attribution} />
+          </LayersControl.BaseLayer>
+
+          <LayersControl.BaseLayer name="Night View" checked={isDark}>
+            <TileLayer url={TILES.night.url} attribution={TILES.night.attribution} />
+          </LayersControl.BaseLayer>
+
+          <LayersControl.BaseLayer name="Satellite">
+            <TileLayer url={TILES.satellite.url} attribution={TILES.satellite.attribution} />
+          </LayersControl.BaseLayer>
+        </LayersControl>
 
         <MapEventHandler />
 
