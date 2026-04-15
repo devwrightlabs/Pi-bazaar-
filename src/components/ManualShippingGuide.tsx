@@ -135,7 +135,7 @@ export default function ManualShippingGuide({
       {/* Confirm Receipt button (buyer only, when applicable) */}
       {showConfirmButton && (
         <Button size="lg" className="w-full" onClick={onConfirmReceipt}>
-          Confirm Receipt &amp; Release Pi
+          Confirm Receipt & Release Pi
         </Button>
       )}
     </div>
