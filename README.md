@@ -1,13 +1,9 @@
-# Pi-bazaar
-Here is your complete README.md to copy and paste:
-
 # PiBazaar 🛒
-
+https://pibazaar-b6p9b2nc6-bee214lifes-projects.vercel.app
 **The first decentralized peer-to-peer marketplace built natively for Pi Network.**
 
 Buy and sell anything with Pi coin — physical products, digital goods, and services — with full escrow protection, real-time chat, and global shipping logistics.
-
----
+j
 
 ## 🚀 What is PiBazaar?
 
