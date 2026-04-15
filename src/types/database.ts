@@ -8,11 +8,13 @@
 
 export interface ProfileRow {
   id: string // uuid
+  pi_uid: string
   username: string
-  avatar_url: string
+  avatar_url: string | null
+  last_login: string | null
 }
 
-export type ProfileInsert = Omit<ProfileRow, 'id'>
+export type ProfileInsert = Omit<ProfileRow, 'id'> & { id?: string }
 export type ProfileUpdate = Partial<Omit<ProfileRow, 'id'>>
 
 // ─── chat_threads table ──────────────────────────────────────────────────────

@@ -161,14 +161,14 @@ export default function MainSidebar({ open, onClose }: MainSidebarProps) {
 
       const data = (await res.json()) as {
         token: string
-        user: { pi_uid: string; pi_username: string | null }
+        user: { pi_uid: string; username: string | null; avatar_url: string | null }
       }
 
       setCurrentUser({
         id: data.user.pi_uid,
         pi_uid: data.user.pi_uid,
-        username: data.user.pi_username ?? 'Pioneer',
-        avatar_url: null,
+        username: data.user.username ?? 'Pioneer',
+        avatar_url: data.user.avatar_url ?? null,
         bio: null,
         created_at: new Date().toISOString(),
       })
