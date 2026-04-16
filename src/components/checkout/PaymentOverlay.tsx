@@ -98,28 +98,42 @@ export default function PaymentOverlay({
         {
           onReadyForServerApproval: (paymentId) => {
             setStage('approving')
-            void approvePaymentOnServer(paymentId, escrowId).then((result) => {
-              if (!result.success) {
+            void approvePaymentOnServer(paymentId, escrowId)
+              .then((result) => {
+                if (!result.success) {
+                  setStage('error')
+                  const msg = result.error ?? 'Server could not approve the payment.'
+                  setErrorMessage(msg)
+                  onError?.(msg)
+                }
+              })
+              .catch((err: unknown) => {
                 setStage('error')
-                const msg = result.error ?? 'Server could not approve the payment.'
+                const msg = err instanceof Error ? err.message : 'Approval request failed.'
                 setErrorMessage(msg)
                 onError?.(msg)
-              }
-            })
+              })
           },
           onReadyForServerCompletion: (paymentId, txid) => {
             setStage('completing')
-            void completePaymentOnServer(paymentId, txid, escrowId).then((result) => {
-              if (result.success) {
-                setStage('success')
-                onSuccess?.(paymentId, txid, result.escrow_id ?? escrowId)
-              } else {
+            void completePaymentOnServer(paymentId, txid, escrowId)
+              .then((result) => {
+                if (result.success) {
+                  setStage('success')
+                  onSuccess?.(paymentId, txid, result.escrow_id ?? escrowId)
+                } else {
+                  setStage('error')
+                  const msg = result.error ?? 'Payment verification failed.'
+                  setErrorMessage(msg)
+                  onError?.(msg)
+                }
+              })
+              .catch((err: unknown) => {
                 setStage('error')
-                const msg = result.error ?? 'Payment verification failed.'
+                const msg = err instanceof Error ? err.message : 'Completion request failed.'
                 setErrorMessage(msg)
                 onError?.(msg)
-              }
-            })
+              })
           },
           onCancel: () => {
             setStage('idle')
@@ -194,7 +208,7 @@ export default function PaymentOverlay({
           style={{
             backgroundColor: 'var(--color-secondary-bg)',
             color: 'var(--color-subtext)',
-            border: '1px solid var(--color-gold)',
+            border: '1px solid',
             borderColor: 'color-mix(in srgb, var(--color-gold) 30%, transparent)',
           }}
         >
@@ -221,7 +235,7 @@ export default function PaymentOverlay({
           </div>
         ) : stage === 'error' ? (
           <div className="text-center space-y-3 py-2">
-            <p className="text-sm font-semibold" style={{ color: '#EF4444' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--color-error)' }}>
               {errorMessage}
             </p>
           </div>
