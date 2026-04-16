@@ -9,8 +9,8 @@ import ErrorBoundary from '@/components/ErrorBoundary'
 import MarketplaceFeed from '@/components/marketplace/MarketplaceFeed'
 import PullToRefresh from '@/components/marketplace/PullToRefresh'
 import MapWrapper, { MapSkeleton } from '@/components/MapWrapper'
-import MainSidebar from '@/components/MainSidebar'
 import MapModal from '@/components/MapModal'
+import LeftSidebar from '@/components/layout/LeftSidebar'
 
 /* ─── Unified feed skeleton ────────────────────────────────────────────── */
 
@@ -65,13 +65,14 @@ function FeedSkeleton() {
 /* ─── Home Page ─────────────────────────────────────────────────────────── */
 
 export default function HomePage() {
-  const { isAuthenticated, currentUser, setCurrentUser } = useStore()
+  const { isAuthenticated, currentUser, setCurrentUser, mapRadius, setMapRadius } = useStore()
   const [refreshKey, setRefreshKey] = useState(0)
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [mapModalOpen, setMapModalOpen] = useState(false)
   const [pageReady, setPageReady] = useState(false)
+  const [discoveryView, setDiscoveryView] = useState<'list' | 'map'>('list')
 
   useEffect(() => {
     const timer = setTimeout(() => setPageReady(true), 100)
@@ -136,7 +137,7 @@ export default function HomePage() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen min-w-[320px] bg-background">
       <PullToRefresh onRefresh={handleRefresh}>
         {/* ── Sticky header ────────────────────────────────────────────── */}
         <section
@@ -185,13 +186,70 @@ export default function HomePage() {
               </div>
             )}
           </div>
+          <div className="mt-3 max-w-7xl mx-auto flex items-center gap-2">
+            <button
+              onClick={() => setDiscoveryView('list')}
+              className="rounded-xl px-4 py-2 text-sm font-semibold"
+              style={{
+                color: discoveryView === 'list' ? 'var(--color-text)' : 'var(--color-subtext)',
+                backgroundColor: discoveryView === 'list' ? 'var(--color-secondary-bg)' : 'var(--color-control-bg)',
+              }}
+            >
+              List
+            </button>
+            <button
+              onClick={() => setDiscoveryView('map')}
+              className="rounded-xl px-4 py-2 text-sm font-semibold"
+              style={{
+                color: discoveryView === 'map' ? 'var(--color-text)' : 'var(--color-subtext)',
+                backgroundColor: discoveryView === 'map' ? 'var(--color-secondary-bg)' : 'var(--color-control-bg)',
+              }}
+            >
+              Map
+            </button>
+          </div>
         </section>
 
         {/* ── Main content ─────────────────────────────────────────────── */}
         {!pageReady ? (
           <FeedSkeleton />
+        ) : discoveryView === 'map' ? (
+          <div className="px-4 pb-24 max-w-7xl mx-auto">
+            <div className="mb-3 mt-1 flex items-center justify-between">
+              <label htmlFor="map-radius" className="text-sm font-semibold" style={{ color: 'var(--color-text)' }}>
+                Radius: {mapRadius} km
+              </label>
+              <button
+                onClick={() => setMapModalOpen(true)}
+                className="text-xs font-semibold"
+                style={{ color: 'var(--color-gold)' }}
+              >
+                Full Screen
+              </button>
+            </div>
+            <input
+              id="map-radius"
+              type="range"
+              min={5}
+              max={200}
+              value={mapRadius}
+              onChange={(event) => setMapRadius(Number(event.target.value))}
+              className="mb-3 w-full"
+            />
+            <ErrorBoundary>
+              <div className="rounded-2xl overflow-hidden">
+                <MapWidget
+                  isAuthenticated={isAuthenticated}
+                  onLogin={handleLogin}
+                  onExpand={() => setMapModalOpen(true)}
+                  height="calc(100dvh - 300px)"
+                  radius={mapRadius}
+                />
+              </div>
+            </ErrorBoundary>
+          </div>
         ) : (
-          <div className="flex flex-col lg:flex-row gap-6 px-4 max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row gap-6 px-4 pb-24 max-w-7xl mx-auto">
             {/* ── Left column: Listings ─────────────────────────────────── */}
             <div className="flex-1 min-w-0">
               {/* Trending section header */}
@@ -210,7 +268,8 @@ export default function HomePage() {
                   isAuthenticated={isAuthenticated}
                   onLogin={handleLogin}
                   onExpand={() => setMapModalOpen(true)}
-                  height="260px"
+                  height="clamp(260px, 42dvh, 420px)"
+                  radius={mapRadius}
                 />
               </div>
 
@@ -228,6 +287,7 @@ export default function HomePage() {
                   onLogin={handleLogin}
                   onExpand={() => setMapModalOpen(true)}
                   height="400px"
+                  radius={mapRadius}
                 />
               </div>
             </div>
@@ -236,7 +296,9 @@ export default function HomePage() {
       </PullToRefresh>
 
       {/* Left sidebar */}
-      <MainSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <ErrorBoundary>
+        <LeftSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      </ErrorBoundary>
 
       {/* Full-screen map modal */}
       <MapModal open={mapModalOpen} onClose={() => setMapModalOpen(false)} />
@@ -251,9 +313,10 @@ interface MapWidgetProps {
   onLogin: () => void
   onExpand: () => void
   height: string
+  radius: number
 }
 
-function MapWidget({ isAuthenticated, onLogin, onExpand, height }: MapWidgetProps) {
+function MapWidget({ isAuthenticated, onLogin, onExpand, height, radius }: MapWidgetProps) {
   if (!isAuthenticated) {
     /* ── UNAUTHENTICATED: blurred overlay lock screen ─────────────── */
     return (
@@ -261,7 +324,7 @@ function MapWidget({ isAuthenticated, onLogin, onExpand, height }: MapWidgetProp
         {/* Blurred map behind */}
         <div className="absolute inset-0" style={{ filter: 'blur(6px)' }}>
           <ErrorBoundary>
-            <MapWrapper height={height} />
+            <MapWrapper height={height} radius={radius} />
           </ErrorBoundary>
         </div>
 
@@ -310,10 +373,9 @@ function MapWidget({ isAuthenticated, onLogin, onExpand, height }: MapWidgetProp
       </div>
       <div className="rounded-2xl overflow-hidden" style={{ height }}>
         <ErrorBoundary>
-          <MapWrapper height={height} />
+          <MapWrapper height={height} radius={radius} />
         </ErrorBoundary>
       </div>
     </div>
   )
 }
-
