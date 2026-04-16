@@ -344,7 +344,7 @@ function ScheduledPublishing({
       </div>
       <div>
         <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--color-subtext)' }}>
-          Publish Date &amp; Time
+          Publish Date & Time
         </label>
         <input
           type="datetime-local"
@@ -760,7 +760,7 @@ export default function DashboardPage() {
     [sales, storeListings],
   )
 
-  // Click-through / conversion rate = completed / total sales
+  // Conversion rate = completed orders / total orders
   const conversionRate = useMemo(() => {
     if (sales.length === 0) return '0.0'
     const completed = sales.filter((t) =>
@@ -779,35 +779,51 @@ export default function DashboardPage() {
         const token =
           typeof window !== 'undefined' ? localStorage.getItem('pibazaar-token') : null
 
+        let succeeded = 0
+        let failed = 0
+
         for (const id of ids) {
-          const endpoint =
-            action === 'delete'
-              ? `/api/products?id=${encodeURIComponent(id)}`
-              : `/api/products`
+          try {
+            const endpoint =
+              action === 'delete'
+                ? `/api/products?id=${encodeURIComponent(id)}`
+                : `/api/products`
 
-          const method = action === 'delete' ? 'DELETE' : 'PATCH'
-          const body =
-            action === 'delete'
-              ? undefined
-              : JSON.stringify({
-                  id,
-                  status: action === 'activate' ? 'active' : 'removed',
-                })
+            const method = action === 'delete' ? 'DELETE' : 'PATCH'
+            const body =
+              action === 'delete'
+                ? undefined
+                : JSON.stringify({
+                    id,
+                    status: action === 'activate' ? 'active' : 'removed',
+                  })
 
-          await fetch(endpoint, {
-            method,
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
-            },
-            body,
-          })
+            const res = await fetch(endpoint, {
+              method,
+              headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              },
+              body,
+            })
+
+            if (res.ok) {
+              succeeded++
+            } else {
+              failed++
+            }
+          } catch {
+            failed++
+          }
         }
 
         openModal({
-          title: 'Done',
-          message: `${ids.length} listing(s) updated.`,
-          variant: 'info',
+          title: failed > 0 ? 'Partially Done' : 'Done',
+          message:
+            failed > 0
+              ? `${succeeded} listing(s) updated, ${failed} failed.`
+              : `${succeeded} listing(s) updated.`,
+          variant: failed > 0 ? 'alert' : 'info',
         })
 
         // Reload
