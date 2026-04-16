@@ -13,7 +13,7 @@ const DEBOUNCE_MS = 200
 const LOCAL_COUNTRY = 'BS'
 
 export function useMarketplace(initialListings: RecommendedListing[] = []) {
-  const { currentUser, userLocation, mapRadius } = useStore()
+  const { currentUser, userLocation, mapRadius, setListings: setStoreListings } = useStore()
   const jurisdictionMode = useUIStore((s) => s.jurisdictionMode)
 
   const [listings, setListings] = useState<RecommendedListing[]>(initialListings)
@@ -97,7 +97,7 @@ export function useMarketplace(initialListings: RecommendedListing[] = []) {
         isFetchingRef.current = false
       }
     },
-    [currentUser, userLocation, mapRadius, jurisdictionMode],
+    [currentUser, userLocation, mapRadius, jurisdictionMode, setStoreListings],
   )
 
   // Initial load if no SSR data provided
@@ -106,6 +106,10 @@ export function useMarketplace(initialListings: RecommendedListing[] = []) {
       void fetchRecommendations(true)
     }
   }, [initialListings.length, fetchRecommendations])
+
+  useEffect(() => {
+    setStoreListings(listings)
+  }, [listings, setStoreListings])
 
   // Re-fetch when jurisdiction changes
   const prevJurisdiction = useRef(jurisdictionMode)

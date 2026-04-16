@@ -13,7 +13,7 @@ import L from 'leaflet'
 import type { Map as LeafletMap } from 'leaflet'
 import type { Listing } from '@/lib/types'
 import { useUIStore } from '@/store/useUIStore'
-import { supabase } from '@/lib/supabase'
+import { useStore } from '@/store/useStore'
 
 /* ─── Leaflet CSS injection (idempotent) ───────────────────────────────── */
 
@@ -84,15 +84,19 @@ function MapEventHandler() {
 
 /* ─── Component ────────────────────────────────────────────────────────── */
 
-export default function MapBase({ radius = 50, height }: MapBaseProps) {
+export default function MapBase({ radius, height }: MapBaseProps) {
   const mapCenter = useUIStore((s) => s.mapCenter)
   const mapZoom = useUIStore((s) => s.mapZoom)
   const hasHydrated = useUIStore((s) => s._hasHydrated)
   const themeMode = useUIStore((s) => s.themeMode)
+  const listings = useStore((s) => s.listings)
+  const storeRadius = useStore((s) => s.mapRadius)
+  const userLocation = useStore((s) => s.userLocation)
 
   const mapRef = useRef<LeafletMap | null>(null)
-  const [listings, setListings] = useState<Listing[]>([])
   const [locating, setLocating] = useState(false)
+  const [visibleListings, setVisibleListings] = useState<Listing[]>([])
+  const effectiveRadius = radius ?? storeRadius
 
   /* ── Read gold color from CSS variable for Leaflet SVG compatibility ── */
   const [goldColor, setGoldColor] = useState('#F0C040')
@@ -109,24 +113,31 @@ export default function MapBase({ radius = 50, height }: MapBaseProps) {
     ensureLeafletCss()
   }, [])
 
-  /* ── Fetch active listings ─────────────────────────────────────────── */
+  /* ── Filter listings within current radius ─────────────────────────── */
   useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('listings')
-          .select('*')
-          .eq('status', 'active')
-          .is('deleted_at', null)
-          .limit(100)
-        if (error) throw error
-        setListings((data as Listing[]) ?? [])
-      } catch (err) {
-        console.error('MapBase: Failed to fetch listings:', err)
-      }
+    const center = userLocation ?? mapCenter
+    const toRadians = (deg: number) => (deg * Math.PI) / 180
+    const distanceKm = (aLat: number, aLng: number, bLat: number, bLng: number) => {
+      const earthRadiusKm = 6371
+      const dLat = toRadians(bLat - aLat)
+      const dLng = toRadians(bLng - aLng)
+      const p =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(toRadians(aLat)) *
+          Math.cos(toRadians(bLat)) *
+          Math.sin(dLng / 2) *
+          Math.sin(dLng / 2)
+      const c = 2 * Math.atan2(Math.sqrt(p), Math.sqrt(1 - p))
+      return earthRadiusKm * c
     }
-    void fetchListings()
-  }, [])
+
+    const inRange = listings.filter((listing) => {
+      if (listing.status !== 'active' || listing.deleted_at !== null) return false
+      if (typeof listing.location_lat !== 'number' || typeof listing.location_lng !== 'number') return false
+      return distanceKm(center[0], center[1], listing.location_lat, listing.location_lng) <= effectiveRadius
+    })
+    setVisibleListings(inRange)
+  }, [effectiveRadius, listings, mapCenter, userLocation])
 
   /* ── "Locate Me" handler ───────────────────────────────────────────── */
   const handleLocateMe = useCallback(() => {
@@ -151,14 +162,15 @@ export default function MapBase({ radius = 50, height }: MapBaseProps) {
 
   /* ── Determine which BaseLayer is checked by default based on theme ── */
   const isDark = themeMode === 'dark'
+  const effectiveCenter = userLocation ?? mapCenter
 
   return (
     <div
       className="relative w-full"
-      style={{ height: height ?? '55vh', minHeight: height ? undefined : '340px' }}
+      style={{ height: height ?? '55vh', minHeight: height ? undefined : '340px', minWidth: '320px' }}
     >
       <MapContainer
-        center={mapCenter}
+        center={effectiveCenter}
         zoom={mapZoom}
         className="w-full h-full rounded-2xl"
         zoomControl={false}
@@ -184,8 +196,8 @@ export default function MapBase({ radius = 50, height }: MapBaseProps) {
 
         {/* Radius circle */}
         <Circle
-          center={mapCenter}
-          radius={radius * 1000}
+          center={effectiveCenter}
+          radius={effectiveRadius * 1000}
           pathOptions={{
             color: goldColor,
             fillColor: goldColor,
@@ -195,7 +207,7 @@ export default function MapBase({ radius = 50, height }: MapBaseProps) {
         />
 
         {/* Listing markers */}
-        {listings.map((listing) => {
+        {visibleListings.map((listing) => {
           if (!listing.location_lat || !listing.location_lng) return null
           return (
             <Marker

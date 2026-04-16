@@ -64,6 +64,21 @@ export interface TransactionRow {
 export type TransactionInsert = Omit<TransactionRow, 'id'>
 export type TransactionUpdate = Partial<Omit<TransactionRow, 'id'>>
 
+// ─── reviews table ───────────────────────────────────────────────────────────
+
+export interface ReviewRow {
+  id: string // uuid
+  transaction_id: string // uuid
+  reviewer_id: string
+  reviewee_id: string
+  rating: number
+  comment: string
+  created_at: string
+}
+
+export type ReviewInsert = Omit<ReviewRow, 'id' | 'created_at'> & { id?: string; created_at?: string }
+export type ReviewUpdate = Partial<Omit<ReviewRow, 'id' | 'created_at'>>
+
 // ─── Database type ───────────────────────────────────────────────────────────
 
 export type Database = {
@@ -91,6 +106,12 @@ export type Database = {
         Row: TransactionRow
         Insert: TransactionInsert
         Update: TransactionUpdate
+        Relationships: []
+      }
+      reviews: {
+        Row: ReviewRow
+        Insert: ReviewInsert
+        Update: ReviewUpdate
         Relationships: []
       }
     }
