@@ -44,8 +44,12 @@ export default function LeftSidebar({ open, onClose }: LeftSidebarProps) {
 
   useEffect(() => {
     Object.entries(themeVars).forEach(([key, value]) => {
-      if (!value) return
-      document.documentElement.style.setProperty(key, value)
+      const nextValue = value.trim()
+      if (!nextValue) {
+        document.documentElement.style.removeProperty(key)
+        return
+      }
+      document.documentElement.style.setProperty(key, nextValue)
     })
   }, [themeVars])
 
