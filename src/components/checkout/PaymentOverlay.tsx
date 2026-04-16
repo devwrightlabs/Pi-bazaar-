@@ -183,7 +183,7 @@ export default function PaymentOverlay({
           {!isProcessing && (
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center rounded-full text-sm"
+              className="w-11 h-11 flex items-center justify-center rounded-full text-sm"
               style={{ backgroundColor: 'var(--color-secondary-bg)', color: 'var(--color-subtext)' }}
               aria-label="Close"
             >
