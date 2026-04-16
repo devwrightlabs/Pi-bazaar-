@@ -199,9 +199,6 @@ function BulkListingManager({
     }
   }
 
-  const activeListings = sellerListings.filter((l) => l.status === 'active')
-  const inactiveListings = sellerListings.filter((l) => l.status !== 'active')
-
   return (
     <div className="space-y-4">
       {/* Select all + bulk actions */}
