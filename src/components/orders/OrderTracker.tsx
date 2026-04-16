@@ -71,10 +71,35 @@ export default function OrderTracker({ orderId, onBack }: OrderTrackerProps) {
 
   useEffect(() => {
     if (!orderId) return
-    setLoading(true)
-    fetchOrderDetail(orderId)
-      .catch(() => showToast('Failed to load order details.', 'error'))
-      .finally(() => setLoading(false))
+
+    let isMounted = true
+
+    const loadOrderDetail = async () => {
+      setLoading(true)
+
+      try {
+        await fetchOrderDetail(orderId)
+
+        const { currentOrder: latestOrder } = useStore.getState()
+        if (isMounted && (!latestOrder || latestOrder.id !== orderId)) {
+          showToast('Failed to load order details.', 'error')
+        }
+      } catch {
+        if (isMounted) {
+          showToast('Failed to load order details.', 'error')
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadOrderDetail()
+
+    return () => {
+      isMounted = false
+    }
   }, [orderId, fetchOrderDetail, showToast])
 
   /* ── Actions ───────────────────────────────────────────────────────────── */
