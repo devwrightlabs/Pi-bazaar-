@@ -64,12 +64,13 @@ export default function LeftSidebar({ open, onClose }: LeftSidebarProps) {
   }, [open, themeVars])
 
   useEffect(() => {
+    if (!open) return
     const handleKeydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose()
     }
     window.addEventListener('keydown', handleKeydown)
     return () => window.removeEventListener('keydown', handleKeydown)
-  }, [onClose])
+  }, [open, onClose])
 
   if (!open) return null
 
