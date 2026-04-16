@@ -11,7 +11,7 @@
  *   • Error handling with user-friendly messages
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import { useMarketplace, type RecommendedListing } from '@/hooks/useMarketplace'
 import { useUIStore } from '@/store/useUIStore'
