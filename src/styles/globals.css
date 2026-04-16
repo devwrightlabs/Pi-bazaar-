@@ -62,6 +62,44 @@
 }
 
 /* ===================================================================
+   MIDNIGHT BLUE THEME
+   =================================================================== */
+[data-theme="midnight"] {
+  --color-background: #0B1120;
+  --color-secondary-bg: #111D3A;
+  --color-card-bg: #162040;
+  --color-gold: #5EADF2;
+  --color-royal-purple: #4B0082;
+  --color-text: #E1E8F0;
+  --color-subtext: #7B8FAD;
+  --color-success: #22C55E;
+  --color-error: #EF4444;
+  --color-border: rgba(94, 173, 242, 0.08);
+  --color-control-bg: rgba(94, 173, 242, 0.1);
+  --color-control-active: rgba(94, 173, 242, 0.18);
+  --color-backdrop: rgba(0, 0, 0, 0.6);
+}
+
+/* ===================================================================
+   FOREST THEME
+   =================================================================== */
+[data-theme="forest"] {
+  --color-background: #0A120A;
+  --color-secondary-bg: #162016;
+  --color-card-bg: #1A2E1A;
+  --color-gold: #4ADE80;
+  --color-royal-purple: #4B0082;
+  --color-text: #E0F0E0;
+  --color-subtext: #7DA07D;
+  --color-success: #22C55E;
+  --color-error: #EF4444;
+  --color-border: rgba(74, 222, 128, 0.08);
+  --color-control-bg: rgba(74, 222, 128, 0.1);
+  --color-control-active: rgba(74, 222, 128, 0.18);
+  --color-backdrop: rgba(0, 0, 0, 0.6);
+}
+
+/* ===================================================================
    GLOBAL RESETS
    =================================================================== */
 * {

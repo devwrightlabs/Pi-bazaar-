@@ -4,6 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStore } from '@/store/useStore'
 import { useUIStore } from '@/store/useUIStore'
 import { Skeleton } from '@/components/ui/skeleton'
+import StarRating from '@/components/ui/StarRating'
+import TrustStatusBadge from '@/components/ui/TrustStatusBadge'
+import BuyerProtectionBadge from '@/components/ui/BuyerProtectionBadge'
 import { supabase } from '@/lib/supabase'
 
 /* ─── Types ────────────────────────────────────────────────────────────── */
@@ -199,6 +202,11 @@ export default function ProfileDrawer({ open, onClose }: ProfileDrawerProps) {
                 <span className="text-xs truncate" style={{ color: 'var(--color-subtext)' }}>
                   {currentUser?.pi_uid ? `UID: ${currentUser.pi_uid.slice(0, 12)}...` : 'Pi Network User'}
                 </span>
+                {/* Trust score + KYC status */}
+                <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                  <StarRating score={4.2} size={12} showScore />
+                  <TrustStatusBadge status="trusted" />
+                </div>
               </div>
             </div>
           )}
@@ -282,19 +290,22 @@ export default function ProfileDrawer({ open, onClose }: ProfileDrawerProps) {
               <Skeleton shape="line" className="h-3 w-1/2 rounded" />
             </div>
           ) : (
-            <div className="flex flex-col gap-1">
-              <p className="text-xs font-semibold" style={{ color: 'var(--color-subtext)' }}>
-                Member since
-              </p>
-              <p className="text-sm" style={{ color: 'var(--color-text)' }}>
-                {currentUser?.created_at
-                  ? new Date(currentUser.created_at).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })
-                  : 'Unknown'}
-              </p>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <p className="text-xs font-semibold" style={{ color: 'var(--color-subtext)' }}>
+                  Member since
+                </p>
+                <p className="text-sm" style={{ color: 'var(--color-text)' }}>
+                  {currentUser?.created_at
+                    ? new Date(currentUser.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })
+                    : 'Unknown'}
+                </p>
+              </div>
+              <BuyerProtectionBadge tier="standard" />
             </div>
           )}
         </div>

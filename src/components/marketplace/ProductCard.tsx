@@ -7,6 +7,8 @@ import { useStore } from '@/store/useStore'
 import type { Listing, MatchScore } from '@/lib/types'
 import VerifiedBadge from '@/components/VerifiedBadge'
 import TrustBadge from '@/components/marketplace/TrustBadge'
+import BuyerProtectionBadge from '@/components/ui/BuyerProtectionBadge'
+import StarRating from '@/components/ui/StarRating'
 
 type RecommendedListing = Listing & { match_score: MatchScore }
 
@@ -297,21 +299,27 @@ export default function ProductCard({ item, layout = 'grid' }: ProductCardProps)
         <p className="text-xs text-text-sub">{item.city}</p>
 
         {/* Seller avatar */}
-        <div className="flex items-center justify-end gap-1.5 mt-1">
-          {item.is_pro_seller ? (
-            <TrustBadge size="sm" />
-          ) : (
-            <VerifiedBadge size="sm" />
-          )}
-          <div
-            className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-            style={{
-              backgroundColor: 'var(--color-gold)',
-              color: '#000',
-            }}
-          >
-            {sellerInitial}
+        <div className="flex items-center justify-between gap-1.5 mt-1">
+          <StarRating score={4.0} size={10} />
+          <div className="flex items-center gap-1.5">
+            {item.is_pro_seller ? (
+              <TrustBadge size="sm" />
+            ) : (
+              <VerifiedBadge size="sm" />
+            )}
+            <div
+              className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
+              style={{
+                backgroundColor: 'var(--color-gold)',
+                color: '#000',
+              }}
+            >
+              {sellerInitial}
+            </div>
           </div>
+        </div>
+        <div className="mt-1">
+          <BuyerProtectionBadge tier="standard" />
         </div>
       </div>
 
