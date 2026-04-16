@@ -157,8 +157,11 @@ export default function ChatInterface({
         },
         (payload) => {
           const row = payload.new as Record<string, unknown>
-          // Update read receipt in local state
-          const updatedMessages = (storeMessages[threadId] ?? []).map((m) =>
+          const latestStoreMessages =
+            (useStore.getState().messages as Record<string, Message[]> | undefined)?.[threadId] ??
+            []
+          // Update read receipt in local state using the latest store state
+          const updatedMessages = latestStoreMessages.map((m) =>
             m.id === (row.id as string) ? { ...m, is_read: row.is_read as boolean } : m,
           )
           setMessages(threadId, updatedMessages)
