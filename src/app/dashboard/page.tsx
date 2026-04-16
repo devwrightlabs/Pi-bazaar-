@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useStore } from '@/store/useStore'
 import { supabase } from '@/lib/supabase'
-import type { EscrowTransaction } from '@/lib/types'
+import type { EscrowTransaction, Listing } from '@/lib/types'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import ErrorBoundary from '@/components/ErrorBoundary'
@@ -13,12 +13,363 @@ import OrderCard from '@/components/OrderCard'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type DashboardTab = 'purchases' | 'shop'
+type DashboardTab = 'purchases' | 'shop' | 'analytics' | 'manage'
 
 interface ShopStats {
   totalPiEarned: number
   activeOrders: number
   pendingReviews: number
+}
+
+// ─── Revenue helpers ──────────────────────────────────────────────────────────
+
+interface MonthlySale {
+  month: string
+  revenue: number
+}
+
+function getMonthlyRevenue(sales: EscrowTransaction[]): MonthlySale[] {
+  const completed = sales.filter((t) =>
+    ['completed', 'auto_released'].includes(t.status),
+  )
+
+  const buckets: Record<string, number> = {}
+  for (const tx of completed) {
+    const d = new Date(tx.created_at)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    buckets[key] = (buckets[key] ?? 0) + tx.net_amount_pi
+  }
+
+  // Return last 6 months (most recent last)
+  const allKeys = Object.keys(buckets).sort()
+  const last6 = allKeys.slice(-6)
+  return last6.map((key) => ({
+    month: new Date(key + '-01').toLocaleDateString(undefined, { month: 'short' }),
+    revenue: buckets[key],
+  }))
+}
+
+function getTopProducts(
+  sales: EscrowTransaction[],
+  listings: Listing[],
+): Array<{ listingId: string; title: string; count: number; revenue: number }> {
+  const map = new Map<string, { count: number; revenue: number }>()
+  for (const tx of sales.filter((t) =>
+    ['completed', 'auto_released'].includes(t.status),
+  )) {
+    const prev = map.get(tx.listing_id) ?? { count: 0, revenue: 0 }
+    map.set(tx.listing_id, {
+      count: prev.count + 1,
+      revenue: prev.revenue + tx.net_amount_pi,
+    })
+  }
+
+  const arr = Array.from(map.entries()).map(([listingId, data]) => {
+    const listing = listings.find((l) => l.id === listingId)
+    return { listingId, title: listing?.title ?? `Listing #${listingId.slice(0, 8)}`, ...data }
+  })
+  arr.sort((a, b) => b.revenue - a.revenue)
+  return arr.slice(0, 5)
+}
+
+// ─── CSS Bar Chart ────────────────────────────────────────────────────────────
+
+function RevenueChart({ data }: { data: MonthlySale[] }) {
+  const max = Math.max(...data.map((d) => d.revenue), 1)
+
+  if (data.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-sm" style={{ color: 'var(--color-subtext)' }}>
+          No sales data yet
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex items-end gap-2" style={{ height: '160px' }}>
+      {data.map((d, i) => {
+        const pct = (d.revenue / max) * 100
+        return (
+          <div key={i} className="flex-1 flex flex-col items-center gap-1">
+            <span className="text-[10px] font-semibold" style={{ color: 'var(--color-gold)' }}>
+              {d.revenue.toFixed(1)}π
+            </span>
+            <div
+              className="w-full rounded-t-lg transition-all duration-500"
+              style={{
+                height: `${Math.max(pct, 4)}%`,
+                backgroundColor: 'var(--color-gold)',
+                opacity: 0.8 + (i / data.length) * 0.2,
+              }}
+            />
+            <span className="text-[10px]" style={{ color: 'var(--color-subtext)' }}>
+              {d.month}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── Top Products Table ───────────────────────────────────────────────────────
+
+function TopProductsTable({
+  products,
+}: {
+  products: Array<{ listingId: string; title: string; count: number; revenue: number }>
+}) {
+  if (products.length === 0) {
+    return (
+      <p className="text-sm text-center py-4" style={{ color: 'var(--color-subtext)' }}>
+        No completed sales yet
+      </p>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      {products.map((p, idx) => (
+        <div
+          key={p.listingId}
+          className="flex items-center gap-3 p-3 rounded-xl"
+          style={{ backgroundColor: 'var(--color-card-bg)' }}
+        >
+          <span
+            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+            style={{
+              backgroundColor: idx === 0 ? 'var(--color-gold)' : 'var(--color-control-bg)',
+              color: idx === 0 ? '#000' : 'var(--color-text)',
+            }}
+          >
+            {idx + 1}
+          </span>
+          <div className="flex-1 min-w-0">
+            <p
+              className="text-sm font-semibold truncate"
+              style={{ color: 'var(--color-text)' }}
+            >
+              {p.title}
+            </p>
+            <p className="text-xs" style={{ color: 'var(--color-subtext)' }}>
+              {p.count} sale{p.count > 1 ? 's' : ''}
+            </p>
+          </div>
+          <span
+            className="text-sm font-bold flex-shrink-0"
+            style={{ color: 'var(--color-gold)' }}
+          >
+            {p.revenue.toFixed(2)} π
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─── Bulk Listing Manager ─────────────────────────────────────────────────────
+
+function BulkListingManager({
+  sellerListings,
+  onBulkAction,
+  loading,
+}: {
+  sellerListings: Listing[]
+  onBulkAction: (ids: string[], action: 'activate' | 'deactivate' | 'delete') => void
+  loading: boolean
+}) {
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+
+  const toggle = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleAll = () => {
+    if (selected.size === sellerListings.length) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(sellerListings.map((l) => l.id)))
+    }
+  }
+
+  const activeListings = sellerListings.filter((l) => l.status === 'active')
+  const inactiveListings = sellerListings.filter((l) => l.status !== 'active')
+
+  return (
+    <div className="space-y-4">
+      {/* Select all + bulk actions */}
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <button
+          onClick={toggleAll}
+          className="text-xs font-semibold px-3 py-1.5 rounded-lg"
+          style={{ backgroundColor: 'var(--color-control-bg)', color: 'var(--color-text)' }}
+        >
+          {selected.size === sellerListings.length ? 'Deselect All' : 'Select All'}
+        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onBulkAction(Array.from(selected), 'activate')}
+            disabled={selected.size === 0 || loading}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-40"
+            style={{ backgroundColor: 'var(--color-success)', color: '#fff' }}
+          >
+            Activate
+          </button>
+          <button
+            onClick={() => onBulkAction(Array.from(selected), 'deactivate')}
+            disabled={selected.size === 0 || loading}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-40"
+            style={{ backgroundColor: 'var(--color-control-bg)', color: 'var(--color-text)' }}
+          >
+            Deactivate
+          </button>
+          <button
+            onClick={() => onBulkAction(Array.from(selected), 'delete')}
+            disabled={selected.size === 0 || loading}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg disabled:opacity-40"
+            style={{ backgroundColor: 'var(--color-error)', color: '#fff' }}
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+
+      {sellerListings.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-sm" style={{ color: 'var(--color-subtext)' }}>
+            No listings to manage
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {sellerListings.map((listing) => (
+            <div
+              key={listing.id}
+              className="flex items-center gap-3 p-3 rounded-xl"
+              style={{
+                backgroundColor: 'var(--color-card-bg)',
+                border: selected.has(listing.id)
+                  ? '2px solid var(--color-gold)'
+                  : '2px solid transparent',
+              }}
+            >
+              <button
+                onClick={() => toggle(listing.id)}
+                className="w-5 h-5 rounded border flex-shrink-0 flex items-center justify-center transition-colors"
+                style={{
+                  borderColor: selected.has(listing.id) ? 'var(--color-gold)' : 'var(--color-border)',
+                  backgroundColor: selected.has(listing.id) ? 'var(--color-gold)' : 'transparent',
+                }}
+                aria-label={`Select ${listing.title}`}
+              >
+                {selected.has(listing.id) && (
+                  <span className="text-xs font-bold" style={{ color: '#000' }}>✓</span>
+                )}
+              </button>
+              <div className="flex-1 min-w-0">
+                <p
+                  className="text-sm font-semibold truncate"
+                  style={{ color: 'var(--color-text)' }}
+                >
+                  {listing.title}
+                </p>
+                <p className="text-xs" style={{ color: 'var(--color-subtext)' }}>
+                  {listing.price_in_pi} π · {listing.category}
+                </p>
+              </div>
+              <span
+                className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                style={{
+                  backgroundColor:
+                    listing.status === 'active'
+                      ? 'rgba(34, 197, 94, 0.15)'
+                      : 'rgba(136, 136, 136, 0.15)',
+                  color: listing.status === 'active' ? 'var(--color-success)' : 'var(--color-subtext)',
+                }}
+              >
+                {listing.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <p className="text-xs text-center" style={{ color: 'var(--color-subtext)' }}>
+        {selected.size} of {sellerListings.length} selected
+      </p>
+    </div>
+  )
+}
+
+// ─── Scheduled Publishing Placeholder ─────────────────────────────────────────
+
+function ScheduledPublishing({
+  onSchedule,
+}: {
+  onSchedule: (listingId: string, date: string) => void
+}) {
+  const [draftId, setDraftId] = useState('')
+  const [scheduledDate, setScheduledDate] = useState('')
+
+  const inputStyle: React.CSSProperties = {
+    backgroundColor: 'var(--color-background)',
+    color: 'var(--color-text)',
+    border: '1px solid var(--color-border)',
+  }
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm" style={{ color: 'var(--color-subtext)' }}>
+        Schedule a listing to go live at a specific date and time.
+      </p>
+      <div>
+        <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--color-subtext)' }}>
+          Listing ID
+        </label>
+        <input
+          type="text"
+          placeholder="Paste listing ID…"
+          value={draftId}
+          onChange={(e) => setDraftId(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+          style={inputStyle}
+        />
+      </div>
+      <div>
+        <label className="text-xs font-semibold mb-1 block" style={{ color: 'var(--color-subtext)' }}>
+          Publish Date &amp; Time
+        </label>
+        <input
+          type="datetime-local"
+          value={scheduledDate}
+          onChange={(e) => setScheduledDate(e.target.value)}
+          className="w-full px-4 py-3 rounded-xl text-sm outline-none"
+          style={inputStyle}
+        />
+      </div>
+      <button
+        onClick={() => {
+          if (draftId.trim() && scheduledDate) {
+            onSchedule(draftId.trim(), scheduledDate)
+            setDraftId('')
+            setScheduledDate('')
+          }
+        }}
+        disabled={!draftId.trim() || !scheduledDate}
+        className="w-full py-3 rounded-xl font-semibold text-sm disabled:opacity-40 transition-all active:scale-[0.98]"
+        style={{ backgroundColor: 'var(--color-gold)', color: '#000' }}
+      >
+        Schedule Publish
+      </button>
+    </div>
+  )
 }
 
 // ─── Dashboard Skeleton ───────────────────────────────────────────────────────
@@ -395,6 +746,98 @@ export default function DashboardPage() {
     pendingReviews: sales.filter((t) => t.status === 'delivered').length,
   }
 
+  // Analytics derived data
+  const { listings: storeListings } = useStore()
+
+  const sellerListings = useMemo(
+    () => storeListings.filter((l) => l.seller_id === currentUser?.id),
+    [storeListings, currentUser?.id],
+  )
+
+  const monthlyRevenue = useMemo(() => getMonthlyRevenue(sales), [sales])
+  const topProducts = useMemo(
+    () => getTopProducts(sales, storeListings),
+    [sales, storeListings],
+  )
+
+  // Click-through / conversion rate = completed / total sales
+  const conversionRate = useMemo(() => {
+    if (sales.length === 0) return '0.0'
+    const completed = sales.filter((t) =>
+      ['completed', 'auto_released'].includes(t.status),
+    ).length
+    return ((completed / sales.length) * 100).toFixed(1)
+  }, [sales])
+
+  // ─── Bulk actions ──────────────────────────────────────────────────────
+
+  const handleBulkAction = useCallback(
+    async (ids: string[], action: 'activate' | 'deactivate' | 'delete') => {
+      if (ids.length === 0) return
+      setActionLoading(true)
+      try {
+        const token =
+          typeof window !== 'undefined' ? localStorage.getItem('pibazaar-token') : null
+
+        for (const id of ids) {
+          const endpoint =
+            action === 'delete'
+              ? `/api/products?id=${encodeURIComponent(id)}`
+              : `/api/products`
+
+          const method = action === 'delete' ? 'DELETE' : 'PATCH'
+          const body =
+            action === 'delete'
+              ? undefined
+              : JSON.stringify({
+                  id,
+                  status: action === 'activate' ? 'active' : 'removed',
+                })
+
+          await fetch(endpoint, {
+            method,
+            headers: {
+              'Content-Type': 'application/json',
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            body,
+          })
+        }
+
+        openModal({
+          title: 'Done',
+          message: `${ids.length} listing(s) updated.`,
+          variant: 'info',
+        })
+
+        // Reload
+        if (currentUser) await fetchOrders(currentUser.id)
+      } catch {
+        openModal({
+          title: 'Error',
+          message: 'Bulk action failed. Please try again.',
+          variant: 'alert',
+        })
+      } finally {
+        setActionLoading(false)
+      }
+    },
+    [currentUser, fetchOrders, openModal],
+  )
+
+  const handleSchedulePublish = useCallback(
+    (listingId: string, date: string) => {
+      // In a full implementation this would call an API endpoint.
+      // For now, show a confirmation via the global modal.
+      openModal({
+        title: 'Scheduled',
+        message: `Listing ${listingId.slice(0, 8)}… will publish on ${new Date(date).toLocaleString()}.`,
+        variant: 'info',
+      })
+    },
+    [openModal],
+  )
+
   // ─── Seller actions ─────────────────────────────────────────────────────
 
   const handleShip = async (tracking: string, carrier: string) => {
@@ -563,26 +1006,30 @@ export default function DashboardPage() {
             </div>
 
             {/* ── Tabs ───────────────────────────────────────────── */}
-            <div className="flex gap-2 mb-5">
-              {(
-                [
-                  { key: 'purchases', label: 'My Purchases' },
-                  { key: 'shop', label: 'My Shop' },
-                ] as { key: DashboardTab; label: string }[]
-              ).map((t) => (
-                <button
-                  key={t.key}
-                  onClick={() => setTab(t.key)}
-                  className="px-5 py-2 rounded-full text-sm font-medium transition-all active:scale-95"
-                  style={{
-                    backgroundColor:
-                      tab === t.key ? '#F0C040' : 'var(--color-card-bg)',
-                    color: tab === t.key ? '#000' : 'var(--color-text)',
-                  }}
-                >
-                  {t.label}
-                </button>
-              ))}
+            <div className="overflow-x-auto scrollbar-hide mb-5">
+              <div className="flex gap-2" style={{ minWidth: 'max-content' }}>
+                {(
+                  [
+                    { key: 'purchases', label: 'Purchases' },
+                    { key: 'shop', label: 'My Shop' },
+                    { key: 'analytics', label: 'Analytics' },
+                    { key: 'manage', label: 'Manage' },
+                  ] as { key: DashboardTab; label: string }[]
+                ).map((t) => (
+                  <button
+                    key={t.key}
+                    onClick={() => setTab(t.key)}
+                    className="px-5 py-2 rounded-full text-sm font-medium transition-all active:scale-95"
+                    style={{
+                      backgroundColor:
+                        tab === t.key ? 'var(--color-gold)' : 'var(--color-card-bg)',
+                      color: tab === t.key ? '#000' : 'var(--color-text)',
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* ── Error ──────────────────────────────────────────── */}
@@ -737,6 +1184,107 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* ── Analytics Tab ──────────────────────────────────── */}
+            {tab === 'analytics' && !error && (
+              <div className="space-y-6">
+                {/* Revenue Chart */}
+                <div
+                  className="rounded-xl p-4"
+                  style={{ backgroundColor: 'var(--color-card-bg)' }}
+                >
+                  <h2
+                    className="font-bold text-base mb-4"
+                    style={{ fontFamily: 'Sora, sans-serif', color: 'var(--color-text)' }}
+                  >
+                    Revenue (π)
+                  </h2>
+                  <RevenueChart data={monthlyRevenue} />
+                </div>
+
+                {/* Quick stats row */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div
+                    className="rounded-xl p-3 text-center"
+                    style={{ backgroundColor: 'var(--color-card-bg)' }}
+                  >
+                    <p className="text-xl font-bold" style={{ color: 'var(--color-gold)' }}>
+                      {stats.totalPiEarned.toFixed(1)}
+                    </p>
+                    <p className="text-[10px]" style={{ color: 'var(--color-subtext)' }}>
+                      Total π Earned
+                    </p>
+                  </div>
+                  <div
+                    className="rounded-xl p-3 text-center"
+                    style={{ backgroundColor: 'var(--color-card-bg)' }}
+                  >
+                    <p className="text-xl font-bold" style={{ color: 'var(--color-success)' }}>
+                      {conversionRate}%
+                    </p>
+                    <p className="text-[10px]" style={{ color: 'var(--color-subtext)' }}>
+                      Conversion Rate
+                    </p>
+                  </div>
+                  <div
+                    className="rounded-xl p-3 text-center"
+                    style={{ backgroundColor: 'var(--color-card-bg)' }}
+                  >
+                    <p className="text-xl font-bold" style={{ color: 'var(--color-royal-purple)' }}>
+                      {sales.length}
+                    </p>
+                    <p className="text-[10px]" style={{ color: 'var(--color-subtext)' }}>
+                      Total Orders
+                    </p>
+                  </div>
+                </div>
+
+                {/* Top Products */}
+                <div>
+                  <h2
+                    className="font-bold text-base mb-3"
+                    style={{ fontFamily: 'Sora, sans-serif', color: 'var(--color-text)' }}
+                  >
+                    Top Products
+                  </h2>
+                  <TopProductsTable products={topProducts} />
+                </div>
+              </div>
+            )}
+
+            {/* ── Manage Tab ─────────────────────────────────────── */}
+            {tab === 'manage' && !error && (
+              <div className="space-y-6">
+                {/* Bulk Listing Manager */}
+                <div>
+                  <h2
+                    className="font-bold text-base mb-3"
+                    style={{ fontFamily: 'Sora, sans-serif', color: 'var(--color-text)' }}
+                  >
+                    Bulk Listing Management
+                  </h2>
+                  <BulkListingManager
+                    sellerListings={sellerListings}
+                    onBulkAction={handleBulkAction}
+                    loading={actionLoading}
+                  />
+                </div>
+
+                {/* Scheduled Publishing */}
+                <div
+                  className="rounded-xl p-4"
+                  style={{ backgroundColor: 'var(--color-card-bg)' }}
+                >
+                  <h2
+                    className="font-bold text-base mb-3"
+                    style={{ fontFamily: 'Sora, sans-serif', color: 'var(--color-text)' }}
+                  >
+                    Scheduled Publishing
+                  </h2>
+                  <ScheduledPublishing onSchedule={handleSchedulePublish} />
+                </div>
               </div>
             )}
           </div>
