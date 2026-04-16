@@ -154,9 +154,13 @@ export const useStore = create<AppState>((set) => ({
 
   createEscrow: async (payload) => {
     try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('pibazaar-token') : null
       const res = await fetch('/api/escrow/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error('Failed to create escrow')
