@@ -208,7 +208,7 @@ export default function MapBase({ radius, height }: MapBaseProps) {
 
         {/* Listing markers */}
         {visibleListings.map((listing) => {
-          if (!listing.location_lat || !listing.location_lng) return null
+          if (listing.location_lat == null || listing.location_lng == null) return null
           return (
             <Marker
               key={listing.id}
