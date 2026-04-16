@@ -1,5 +1,7 @@
 'use client'
 
+import { useId } from 'react'
+
 interface StarRatingProps {
   /** Trust score from 0 to 5 (supports half-stars via decimal values) */
   score: number
@@ -26,6 +28,7 @@ export default function StarRating({
   className = '',
   showScore = false,
 }: StarRatingProps) {
+  const instanceId = useId()
   const clamped = Math.max(0, Math.min(score, max))
 
   return (
@@ -33,6 +36,7 @@ export default function StarRating({
       <div className="flex items-center gap-0.5">
         {Array.from({ length: max }, (_, i) => {
           const fill = Math.min(1, Math.max(0, clamped - i))
+          const clipId = `star-${instanceId}-${i}`
           return (
             <svg
               key={i}
@@ -49,14 +53,14 @@ export default function StarRating({
               />
               {/* Filled portion via clipPath */}
               <defs>
-                <clipPath id={`star-clip-${i}-${size}`}>
+                <clipPath id={clipId}>
                   <rect x="0" y="0" width={`${fill * 100}%`} height="100%" />
                 </clipPath>
               </defs>
               <path
                 d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"
                 fill="var(--color-gold)"
-                clipPath={`url(#star-clip-${i}-${size})`}
+                clipPath={`url(#${clipId})`}
               />
             </svg>
           )
