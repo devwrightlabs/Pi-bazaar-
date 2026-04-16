@@ -222,14 +222,82 @@ export default function ChatInterface({
 
   /* ── Typing broadcast ──────────────────────────────────────────────────── */
 
+  const typingChannelRef = useRef<
+    ReturnType<ReturnType<typeof getSupabaseClient>['channel']> | null
+  >(null)
+  const typingChannelKeyRef = useRef<string | null>(null)
+
+  const clearTypingChannel = useCallback(() => {
+    if (!typingChannelRef.current) return
+
+    const supabase = getSupabaseClient()
+    void supabase.removeChannel(typingChannelRef.current)
+    typingChannelRef.current = null
+    typingChannelKeyRef.current = null
+  }, [])
+
+  const getTypingChannel = useCallback(async () => {
+    if (!threadId) return null
+
+    const channelKey = `chat-${threadId}`
+
+    if (
+      typingChannelRef.current &&
+      typingChannelKeyRef.current === channelKey
+    ) {
+      return typingChannelRef.current
+    }
+
+    clearTypingChannel()
+
+    const supabase = getSupabaseClient()
+    const channel = supabase.channel(channelKey)
+
+    await new Promise<void>((resolve, reject) => {
+      channel.subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          resolve()
+          return
+        }
+
+        if (
+          status === 'CLOSED' ||
+          status === 'CHANNEL_ERROR' ||
+          status === 'TIMED_OUT'
+        ) {
+          reject(new Error(`Typing channel failed with status: ${status}`))
+        }
+      })
+    })
+
+    typingChannelRef.current = channel
+    typingChannelKeyRef.current = channelKey
+
+    return channel
+  }, [clearTypingChannel, threadId])
+
+  useEffect(() => {
+    return () => {
+      clearTypingChannel()
+    }
+  }, [clearTypingChannel, threadId])
+
   const handleTyping = useCallback(
     (isTyping: boolean) => {
       if (!currentUser || !threadId) return
-      const supabase = getSupabaseClient()
-      const channel = supabase.channel(`chat-${threadId}`)
-      void channel.track({ user_id: currentUser.id, is_typing: isTyping })
+
+      void (async () => {
+        try {
+          const channel = await getTypingChannel()
+          if (!channel) return
+
+          await channel.track({ user_id: currentUser.id, is_typing: isTyping })
+        } catch (err) {
+          console.error('[ChatInterface] typing presence error:', err)
+        }
+      })()
     },
-    [currentUser, threadId],
+    [currentUser, getTypingChannel, threadId],
   )
 
   /* ── Render ────────────────────────────────────────────────────────────── */
