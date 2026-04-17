@@ -2,33 +2,46 @@
 
 import { useEffect } from 'react'
 import { useUIStore } from '@/store/useUIStore'
+import { useStore } from '@/store/useStore'
 
 /**
  * ThemeProvider
  * ─────────────
- * Syncs the Zustand `themeMode` value to `document.documentElement` via the
- * `data-theme` attribute. Runs inside a useEffect so the server render is
- * always clean (no data-theme attribute → :root dark defaults apply).
+ * Syncs the Zustand `themePreset` value to `document.documentElement` via the
+ * `data-theme` attribute, and applies any custom CSS variable overrides from
+ * `themeVars` in the app store.
  *
- * On mount (after StoreHydration triggers rehydrate), this component reads
- * the persisted themeMode and applies `data-theme="dark"` or `"light"`,
- * which swaps all CSS custom properties defined in globals.css.
+ * Runs inside a useEffect so the server render is always clean (no data-theme
+ * attribute → :root dark defaults apply).
  */
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const themeMode = useUIStore((state) => state.themeMode)
+  const themePreset = useUIStore((state) => state.themePreset)
   const hasHydrated = useUIStore((state) => state._hasHydrated)
+  const themeVars = useStore((state) => state.themeVars)
 
   // On very first render (before hydration), apply the safe default
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', 'dark')
   }, [])
 
-  // After hydration, sync the persisted preference
+  // After hydration, sync the persisted preset
   useEffect(() => {
     if (hasHydrated) {
-      document.documentElement.setAttribute('data-theme', themeMode)
+      document.documentElement.setAttribute('data-theme', themePreset)
     }
-  }, [themeMode, hasHydrated])
+  }, [themePreset, hasHydrated])
+
+  // Apply custom CSS variable overrides from themeVars store
+  useEffect(() => {
+    Object.entries(themeVars).forEach(([key, value]) => {
+      const trimmed = value.trim()
+      if (!trimmed) {
+        document.documentElement.style.removeProperty(key)
+        return
+      }
+      document.documentElement.style.setProperty(key, trimmed)
+    })
+  }, [themeVars])
 
   return <>{children}</>
 }

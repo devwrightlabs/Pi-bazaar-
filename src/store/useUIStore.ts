@@ -6,6 +6,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 // ---------------------------------------------------------------------------
 export type ViewMode = 'grid' | 'list' | 'swipe'
 export type ThemeMode = 'dark' | 'light'
+export type ThemePreset = 'dark' | 'light' | 'midnight' | 'forest'
 export type JurisdictionMode = 'local' | 'global'
 
 interface UIState {
@@ -16,6 +17,10 @@ interface UIState {
   // Theme
   themeMode: ThemeMode
   setThemeMode: (mode: ThemeMode) => void
+
+  // Theme preset (extends themeMode with additional presets)
+  themePreset: ThemePreset
+  setThemePreset: (preset: ThemePreset) => void
 
   // Jurisdiction
   jurisdictionMode: JurisdictionMode
@@ -43,7 +48,14 @@ export const useUIStore = create<UIState>()(
       setViewMode: (mode) => set({ viewMode: mode }),
 
       themeMode: 'dark',
-      setThemeMode: (mode) => set({ themeMode: mode }),
+      setThemeMode: (mode) => set({ themeMode: mode, themePreset: mode }),
+
+      themePreset: 'dark',
+      setThemePreset: (preset) => {
+        // Sync themeMode for components that still read it
+        const mode: ThemeMode = preset === 'light' ? 'light' : 'dark'
+        set({ themePreset: preset, themeMode: mode })
+      },
 
       jurisdictionMode: 'global',
       setJurisdictionMode: (mode) => set({ jurisdictionMode: mode }),
@@ -65,6 +77,7 @@ export const useUIStore = create<UIState>()(
       partialize: (state) => ({
         viewMode: state.viewMode,
         themeMode: state.themeMode,
+        themePreset: state.themePreset,
         jurisdictionMode: state.jurisdictionMode,
         mapCenter: state.mapCenter,
         mapZoom: state.mapZoom,

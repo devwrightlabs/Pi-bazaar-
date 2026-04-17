@@ -2,8 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { useStore } from '@/store/useStore'
 import ErrorBoundary from '@/components/ErrorBoundary'
+import ThemeSwitcher from '@/components/ui/ThemeSwitcher'
 
 interface LeftSidebarProps {
   open: boolean
@@ -19,19 +19,8 @@ const NAV_ITEMS: { key: SectionKey; label: string }[] = [
   { key: 'theme', label: 'Theme Customization' },
 ]
 
-const THEME_KEYS = [
-  '--color-background',
-  '--color-card-bg',
-  '--color-text',
-  '--color-subtext',
-  '--color-gold',
-] as const
-
 export default function LeftSidebar({ open, onClose }: LeftSidebarProps) {
-  const themeVars = useStore((s) => s.themeVars)
-  const setThemeVars = useStore((s) => s.setThemeVars)
   const [activeSection, setActiveSection] = useState<SectionKey>('dashboard')
-  const [draftThemeVars, setDraftThemeVars] = useState<Record<string, string>>({})
   const touchStartX = useRef<number | null>(null)
 
   useEffect(() => {
@@ -41,27 +30,6 @@ export default function LeftSidebar({ open, onClose }: LeftSidebarProps) {
       document.body.style.overflow = ''
     }
   }, [open])
-
-  useEffect(() => {
-    Object.entries(themeVars).forEach(([key, value]) => {
-      const nextValue = value.trim()
-      if (!nextValue) {
-        document.documentElement.style.removeProperty(key)
-        return
-      }
-      document.documentElement.style.setProperty(key, nextValue)
-    })
-  }, [themeVars])
-
-  useEffect(() => {
-    if (!open) return
-    const computed = getComputedStyle(document.documentElement)
-    const next = THEME_KEYS.reduce<Record<string, string>>((acc, key) => {
-      acc[key] = themeVars[key] || computed.getPropertyValue(key).trim()
-      return acc
-    }, {})
-    setDraftThemeVars(next)
-  }, [open, themeVars])
 
   useEffect(() => {
     if (!open) return
@@ -165,31 +133,7 @@ export default function LeftSidebar({ open, onClose }: LeftSidebarProps) {
               )}
 
               {activeSection === 'theme' && (
-                <div className="space-y-3">
-                  {THEME_KEYS.map((key) => (
-                    <label key={key} className="block">
-                      <span className="mb-1 block text-xs font-semibold" style={{ color: 'var(--color-subtext)' }}>
-                        {key.replace('--color-', '').replace('-', ' ')}
-                      </span>
-                      <input
-                        type="text"
-                        value={draftThemeVars[key] ?? ''}
-                        onChange={(event) =>
-                          setDraftThemeVars((prev) => ({
-                            ...prev,
-                            [key]: event.target.value,
-                          }))
-                        }
-                        onBlur={() => {
-                          const next = { ...themeVars, [key]: draftThemeVars[key] ?? '' }
-                          setThemeVars(next)
-                        }}
-                        className="h-10 w-full rounded-lg border px-3 text-sm"
-                        style={{ borderColor: 'var(--color-border)', backgroundColor: 'var(--color-card-bg)' }}
-                      />
-                    </label>
-                  ))}
-                </div>
+                <ThemeSwitcher />
               )}
             </div>
           </div>

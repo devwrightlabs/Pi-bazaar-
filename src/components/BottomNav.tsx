@@ -74,7 +74,7 @@ export default function BottomNav() {
       <Link
         key={item.href}
         href={item.href}
-        className="flex flex-col items-center gap-1 min-w-[56px] py-1 transition-colors active:scale-95"
+        className="flex flex-col items-center gap-1 min-w-[56px] min-h-[44px] py-1 transition-colors active:scale-95"
       >
         <div className="relative">
           <item.Icon active={isActive} />
@@ -102,12 +102,13 @@ export default function BottomNav() {
       style={{
         backgroundColor: 'var(--color-secondary-bg)',
         borderColor: 'var(--color-border)',
+        minWidth: '320px',
       }}
     >
       {LEFT_ITEMS.map(renderItem)}
 
       {/* Center Sell button */}
-      <Link href="/create" className="flex flex-col items-center gap-0.5 -mt-4">
+      <Link href="/create" className="flex flex-col items-center gap-0.5 -mt-4 min-h-[44px]">
         <div
           className="w-14 h-14 rounded-full flex items-center justify-center text-2xl shadow-lg border-4 transition-transform active:scale-90"
           style={{

@@ -8,7 +8,7 @@ function RootFallback() {
       className="flex flex-col items-center justify-center min-h-screen px-6 text-center"
       style={{ backgroundColor: '#0A0A0F' }}
     >
-      <div className="text-6xl mb-6">{'\u26A0\uFE0F'}</div>
+      <div className="text-6xl mb-6">⚠️</div>
       <h1
         className="text-2xl font-bold mb-3"
         style={{ fontFamily: 'Sora, sans-serif', color: '#FFFFFF' }}
