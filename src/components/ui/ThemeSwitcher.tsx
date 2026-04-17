@@ -54,10 +54,11 @@ export default function ThemeSwitcher() {
   const handleColorChange = useCallback(
     (cssVar: string, value: string) => {
       setDraftVars((prev) => ({ ...prev, [cssVar]: value }))
-      const next = { ...themeVars, [cssVar]: value }
+      const currentThemeVars = useStore.getState().themeVars
+      const next = { ...currentThemeVars, [cssVar]: value }
       setThemeVars(next)
     },
-    [themeVars, setThemeVars],
+    [setThemeVars],
   )
 
   const handleReset = useCallback(() => {
