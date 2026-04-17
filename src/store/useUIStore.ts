@@ -48,7 +48,7 @@ export const useUIStore = create<UIState>()(
       setViewMode: (mode) => set({ viewMode: mode }),
 
       themeMode: 'dark',
-      setThemeMode: (mode) => set({ themeMode: mode }),
+      setThemeMode: (mode) => set({ themeMode: mode, themePreset: mode }),
 
       themePreset: 'dark',
       setThemePreset: (preset) => {
