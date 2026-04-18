@@ -80,7 +80,7 @@ export function initPiSdk({ sandbox = false }: { sandbox?: boolean } = {}): bool
 
   try {
     // Explicitly initialize the Pi SDK with version and sandbox mode
-    window.Pi.init({ version: "2.0", sandbox })
+    window.Pi.init({ version: '2.0', sandbox })
     piSdkInitialised = true
     console.info(`[pi-sdk] Initialized successfully (sandbox: ${sandbox})`)
     return true
