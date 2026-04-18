@@ -7,6 +7,7 @@ declare global {
 }
 
 interface PiSDK {
+  init: (config: { version: string; sandbox: boolean }) => void
   authenticate: (scopes: string[], onIncompletePaymentFound: (payment: PiPayment) => void) => Promise<PiAuthResult>
   createPayment: (paymentData: PiPaymentData, callbacks: PiPaymentCallbacks) => void
   openShareDialog: (title: string, message: string) => void
@@ -66,6 +67,9 @@ let piSdkInitialised = false
  * The `sandbox` flag controls whether the SDK operates in test mode.
  * The Pi SDK script (`https://sdk.minepi.com/pi-sdk.js`) must already be
  * loaded via a `<script>` tag before calling this function.
+ *
+ * CRITICAL: This function explicitly calls window.Pi.init() with the proper
+ * configuration. This MUST happen before any authentication or wallet operations.
  */
 export function initPiSdk({ sandbox = false }: { sandbox?: boolean } = {}): boolean {
   if (piSdkInitialised) return true
@@ -74,14 +78,16 @@ export function initPiSdk({ sandbox = false }: { sandbox?: boolean } = {}): bool
     return false
   }
 
-  // The Pi SDK auto-initialises when the script is loaded; the sandbox flag
-  // is communicated via the `sandbox` query parameter on the script src.
-  // We expose this helper so callers have a single, documented init path.
-  piSdkInitialised = true
-  if (sandbox) {
-    console.info('[pi-sdk] Running in sandbox/testnet mode')
+  try {
+    // Explicitly initialize the Pi SDK with version and sandbox mode
+    window.Pi.init({ version: "2.0", sandbox })
+    piSdkInitialised = true
+    console.info(`[pi-sdk] Initialized successfully (sandbox: ${sandbox})`)
+    return true
+  } catch (error) {
+    console.error('[pi-sdk] Initialization failed:', error)
+    return false
   }
-  return true
 }
 
 // ─── Authentication ───────────────────────────────────────────────────────────

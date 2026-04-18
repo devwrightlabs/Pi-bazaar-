@@ -134,6 +134,9 @@ export async function middleware(request: NextRequest) {
   // will be surfaced when a Server Component or Route Handler calls getUser().
   await supabase.auth.getUser()
 
+  // Ensure iframe-friendly headers from next.config.js are not overridden
+  supabaseResponse.headers.delete('X-Frame-Options')
+
   return supabaseResponse
 }
 
