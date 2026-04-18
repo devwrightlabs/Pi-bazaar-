@@ -24,6 +24,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
         <Script src="https://sdk.minepi.com/pi-sdk.js" strategy="beforeInteractive" />
+        <Script id="pi-sdk-init" strategy="beforeInteractive">
+          {`
+            (function() {
+              if (typeof window !== 'undefined' && window.Pi) {
+                try {
+                  window.Pi.init({ version: "2.0", sandbox: true });
+                  console.log('[Pi SDK] Initialized in sandbox mode');
+                } catch (err) {
+                  console.error('[Pi SDK] Initialization failed:', err);
+                }
+              } else {
+                console.error('[Pi SDK] SDK not available during initialization');
+              }
+            })();
+          `}
+        </Script>
       </head>
       <body className="bg-background pb-20">
         <StoreHydration />

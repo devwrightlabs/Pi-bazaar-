@@ -19,6 +19,28 @@ const nextConfig = {
     // Keep TypeScript checking enabled during builds
     ignoreBuildErrors: false,
   },
+  async headers() {
+    return [
+      {
+        // Apply these headers to all routes
+        source: '/:path*',
+        headers: [
+          {
+            // Remove X-Frame-Options to allow iframe embedding
+            key: 'X-Frame-Options',
+            value: 'ALLOWALL',
+          },
+          {
+            // Configure CSP to allow framing by Pi Network domains
+            key: 'Content-Security-Policy',
+            value: [
+              "frame-ancestors 'self' https://app-cdn.minepi.com https://sandbox.minepi.com https://*.minepi.com",
+            ].join('; '),
+          },
+        ],
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig

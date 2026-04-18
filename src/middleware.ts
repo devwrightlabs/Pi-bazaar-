@@ -134,6 +134,7 @@ export async function middleware(request: NextRequest) {
   // will be surfaced when a Server Component or Route Handler calls getUser().
   await supabase.auth.getUser()
 
+  // Preserve response headers as configured by the rest of the application.
   return supabaseResponse
 }
 
