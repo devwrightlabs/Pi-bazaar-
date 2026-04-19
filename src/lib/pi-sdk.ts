@@ -60,6 +60,16 @@ interface PiPaymentCallbacks {
 
 let piSdkInitialised = false
 
+function getPiSdk(): PiSDK | null {
+  if (typeof window === 'undefined') {
+    return null
+  }
+  if (!window.Pi) {
+    return null
+  }
+  return window.Pi
+}
+
 /**
  * Initialise the Pi SDK.
  *
@@ -73,14 +83,15 @@ let piSdkInitialised = false
  */
 export function initPiSdk({ sandbox = false }: { sandbox?: boolean } = {}): boolean {
   if (piSdkInitialised) return true
-  if (typeof window === 'undefined' || !window.Pi) {
+  const pi = getPiSdk()
+  if (!pi) {
     console.warn('[pi-sdk] Pi SDK script is not loaded')
     return false
   }
 
   try {
     // Explicitly initialize the Pi SDK with version and sandbox mode
-    window.Pi.init({ version: '2.0', sandbox })
+    pi.init({ version: '2.0', sandbox })
     piSdkInitialised = true
     console.info(`[pi-sdk] Initialized successfully (sandbox: ${sandbox})`)
     return true
@@ -94,11 +105,12 @@ export function initPiSdk({ sandbox = false }: { sandbox?: boolean } = {}): bool
 
 export async function authenticateWithPi(): Promise<PiAuthResult | null> {
   try {
-    if (typeof window === 'undefined' || !window.Pi) {
+    const pi = getPiSdk()
+    if (!pi) {
       console.warn('Pi SDK not available')
       return null
     }
-    const result = await window.Pi.authenticate(
+    const result = await pi.authenticate(
       ['username', 'payments', 'wallet_address'],
       (payment: PiPayment) => {
         console.log('Incomplete payment found:', payment.identifier)
@@ -118,12 +130,13 @@ export function createPiPayment(
   callbacks: PiPaymentCallbacks
 ): void {
   try {
-    if (typeof window === 'undefined' || !window.Pi) {
+    const pi = getPiSdk()
+    if (!pi) {
       console.warn('Pi SDK not available')
       callbacks.onError(new Error('Pi SDK not available'))
       return
     }
-    window.Pi.createPayment(paymentData, callbacks)
+    pi.createPayment(paymentData, callbacks)
   } catch (error) {
     console.error('Pi payment creation failed:', error)
     callbacks.onError(error instanceof Error ? error : new Error('Unknown error'))

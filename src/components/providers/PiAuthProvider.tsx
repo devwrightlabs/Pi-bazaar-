@@ -31,7 +31,9 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
 
   // Initialise the Pi SDK once on mount (sandbox mode for testnet).
   useEffect(() => {
-    initPiSdk({ sandbox: true })
+    if (typeof window !== 'undefined') {
+      initPiSdk({ sandbox: true })
+    }
   }, [])
 
   const handleLogin = useCallback(async () => {
