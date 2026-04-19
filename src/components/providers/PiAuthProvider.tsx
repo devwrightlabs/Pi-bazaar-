@@ -39,11 +39,19 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
     setError(null)
 
     try {
-      // 1. Authenticate with the Pi SDK.
-      const piAuth = await authenticateWithPi()
+      // 1. Authenticate with the Pi SDK with a 10-second timeout.
+      // This prevents infinite loading if the Pi SDK hangs or fails silently.
+      const timeoutPromise = new Promise<null>((_, reject) => {
+        setTimeout(() => reject(new Error('Authentication timed out after 10 seconds')), 10000)
+      })
+
+      const piAuth = await Promise.race([
+        authenticateWithPi(),
+        timeoutPromise,
+      ])
+
       if (!piAuth) {
         setError('Pi Browser is required to log in.')
-        setLoading(false)
         return
       }
 
@@ -60,7 +68,6 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
 
       if (!res.ok) {
         setError('Verification failed. Please try again.')
-        setLoading(false)
         return
       }
 
@@ -87,11 +94,11 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
         bio: null,
         created_at: new Date().toISOString(),
       })
-
-      setLoading(false)
     } catch (err) {
       console.error('[PiAuthProvider] Login failed:', err)
-      setError('Login failed. Please try again.')
+      setError(err instanceof Error ? err.message : 'Login failed. Please try again.')
+    } finally {
+      // CRITICAL: Always reset loading state, even if the SDK hangs or times out.
       setLoading(false)
     }
   }, [setCurrentUser])
