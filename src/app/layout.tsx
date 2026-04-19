@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=DM+Sans:wght@400;500;600&display=swap"
           rel="stylesheet"
         />
-        <Script src="https://sdk.minepi.com/pi-sdk.js" strategy="beforeInteractive" />
+        <Script src="https://sdk.minepi.com/pi-sdk.js?sandbox=true" strategy="beforeInteractive" />
         <Script id="pi-sdk-init" strategy="beforeInteractive">
           {`
             (function() {
