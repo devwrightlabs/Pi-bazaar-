@@ -40,10 +40,20 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Verify token with Pi Network API (server-to-server)
+    //    The PI_API_KEY is required for this handler to verify Pi access tokens.
+    const piApiKey: string | undefined = process.env.PI_API_KEY
+    if (!piApiKey) {
+      console.error('[auth/pi] PI_API_KEY is not configured')
+      return NextResponse.json(
+        { error: 'Server Configuration Error: Missing API Key' },
+        { status: 500 }
+      )
+    }
+
     const piResponse = await fetch('https://api.minepi.com/v2/me', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        ...(process.env.PI_API_KEY ? { 'X-Api-Key': process.env.PI_API_KEY } : {}),
+        'X-Api-Key': piApiKey,
       },
     })
 
