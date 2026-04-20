@@ -153,7 +153,10 @@ export async function POST(req: NextRequest) {
     const apiKey = getPiApiKey()
     if (!apiKey) {
       console.error('[pi/verify] PI_API_KEY is not configured')
-      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
+      return NextResponse.json(
+        { error: 'Server Configuration Error: Missing API Key' },
+        { status: 500 }
+      )
     }
 
     let piPayment: PiPaymentResponse
