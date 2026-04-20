@@ -6,7 +6,10 @@ interface GlobalErrorPageProps {
 }
 
 export default function GlobalErrorPage({ error, reset }: GlobalErrorPageProps) {
-  const details = [error.message, error.stack].filter(Boolean).join('\n\n')
+  const isDevelopment = process.env.NODE_ENV !== 'production'
+  const details = isDevelopment
+    ? [error.message, error.stack].filter(Boolean).join('\n\n')
+    : 'Something went wrong. Please try again.'
 
   return (
     <html lang="en">
