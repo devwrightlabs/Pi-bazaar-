@@ -12,21 +12,43 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
+import { isSupabaseConfigured, supabaseAnonKey, supabaseUrl } from './env'
 
-function getRequiredEnv(name: string): string {
-  const value = process.env[name]?.trim()
-
-  if (!value) {
-    throw new Error(`Missing required Supabase environment variable: ${name}`)
+function assertSupabaseEnvConfigured(): void {
+  if (!isSupabaseConfigured) {
+    const message =
+      '[PiBazaar] Missing or invalid environment variable(s): NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY. ' +
+      'All Supabase queries will fail until these are configured in your deployment.'
+    throw new Error(message)
   }
-
-  return value
 }
 
-const supabaseUrl = getRequiredEnv('NEXT_PUBLIC_SUPABASE_URL')
-const supabaseAnonKey = getRequiredEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY')
+function createSupabaseBrowserClient(authToken?: string): SupabaseClient {
+  assertSupabaseEnvConfigured()
+  return createClient(supabaseUrl, supabaseAnonKey, authToken
+    ? {
+        global: {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        },
+      }
+    : undefined)
+}
+
 // Singleton client instance — may be replaced by setSupabaseAuth().
-let supabaseInstance: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey)
+let supabaseInstance: SupabaseClient
+
+try {
+  supabaseInstance = createSupabaseBrowserClient()
+} catch (error) {
+  console.error(
+    '[PiBazaar] Supabase client initialization failed. All Supabase queries will fail until the environment variables are configured.',
+    error
+  )
+  // Fallback client keeps the app from crashing but will not succeed without valid env vars.
+  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey)
+}
 
 /**
  * Returns the current Supabase client instance.
@@ -45,13 +67,14 @@ export function getSupabaseClient(): SupabaseClient {
  * Call this immediately after receiving the custom JWT from /api/auth/verify.
  */
 export function setSupabaseAuth(token: string): void {
-  supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-    global: {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  })
+  try {
+    supabaseInstance = createSupabaseBrowserClient(token)
+  } catch (error) {
+    console.error(
+      '[PiBazaar] Unable to set Supabase auth because required environment variables are missing or invalid.',
+      error
+    )
+  }
 }
 
 /**
