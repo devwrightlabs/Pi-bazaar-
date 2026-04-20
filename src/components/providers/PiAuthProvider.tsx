@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { initPiSdk, authenticateWithPi } from '@/lib/pi-sdk'
+import { authenticateWithPi } from '@/lib/pi-sdk'
 import { useStore } from '@/store/useStore'
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -32,39 +32,27 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
 
   // Initialise the Pi SDK once on mount (sandbox mode for testnet).
   useEffect(() => {
-    let cancelled = false
-    let retries = 0
-    const maxRetries = 20
-    const retryDelayMs = 250
-
-    const initialise = () => {
-      if (cancelled) return
-
-      if (typeof window !== 'undefined' && window.Pi) {
-        const initialized = initPiSdk({ sandbox: true })
-        setIsPiSdkReady(initialized)
-        if (!initialized) {
-          console.error('[PiAuthProvider] Pi SDK init failed')
-          setError('Pi SDK failed to initialize. Please refresh and try again.')
-        }
-        return
-      }
-
-      retries += 1
-      if (retries >= maxRetries) {
+    const initialisePiSdk = () => {
+      if (!(typeof window !== 'undefined' && window.Pi)) {
         setIsPiSdkReady(false)
         console.error('[PiAuthProvider] Pi SDK not found on window')
+        setError('Pi SDK failed to initialize. Please refresh and try again.')
         return
       }
 
-      window.setTimeout(initialise, retryDelayMs)
+      try {
+        console.log("[PiBazaar] Attempting to initialize Pi SDK...")
+        window.Pi.init({ version: "2.0", sandbox: true })
+        console.log("[PiBazaar] Pi SDK Initialized successfully.")
+        setIsPiSdkReady(true)
+      } catch (err) {
+        console.error('[PiAuthProvider] Pi SDK init failed', err)
+        setIsPiSdkReady(false)
+        setError('Pi SDK failed to initialize. Please refresh and try again.')
+      }
     }
 
-    initialise()
-
-    return () => {
-      cancelled = true
-    }
+    initialisePiSdk()
   }, [])
 
   const handleLogin = useCallback(async () => {
@@ -77,7 +65,7 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
         return
       }
 
-      if (!isPiSdkReady && !initPiSdk({ sandbox: true })) {
+      if (!isPiSdkReady) {
         setError('Pi SDK failed to initialize. Please refresh and try again.')
         return
       }
