@@ -71,7 +71,7 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
         const errorMessage = data.error ?? 'Verification failed. Please try again.'
         setError(errorMessage)
 
-        // Log server configuration errors for debugging
+        // Log internal server errors during verification for debugging
         if (res.status === 500) {
           console.error('[PiAuthProvider] Server error during verification:', errorMessage)
         }
