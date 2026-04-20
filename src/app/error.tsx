@@ -5,60 +5,37 @@ interface ErrorPageProps {
   reset: () => void
 }
 
-/**
- * Next.js App Router error boundary — catches errors in the root layout's
- * children. Never exposes raw error messages to users; shows a branded
- * fallback UI instead.
- */
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
+  const isDevelopment = process.env.NODE_ENV === 'development'
+  const details = isDevelopment
+    ? [error.message, error.stack].filter(Boolean).join('\n\n')
+    : 'Something went wrong. Please try again.'
+
   return (
     <div
-      className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center"
-      style={{ backgroundColor: 'var(--color-background)' }}
+      className="min-h-screen p-4"
+      style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-text)' }}
     >
-      <div className="text-5xl mb-4">⚠️</div>
-      <h2
-        className="text-xl font-bold mb-2"
-        style={{ fontFamily: 'Sora, sans-serif', color: 'var(--color-text)' }}
-      >
-        Something went wrong
-      </h2>
-      <p
-        className="text-sm mb-6 max-w-sm"
-        style={{ fontFamily: 'DM Sans, sans-serif', color: 'var(--color-subtext)' }}
-      >
-        We hit an unexpected error. Please try again or go back to the home page.
-      </p>
-      <div className="flex gap-3">
+      <div className="mx-auto max-w-4xl">
+        <h1 className="text-lg font-semibold mb-3">Application Error</h1>
         <button
           onClick={reset}
-          className="px-5 py-3 rounded-xl font-semibold text-sm min-h-[44px] transition-all active:scale-95"
+          className="mb-4 rounded-md px-4 py-2 text-sm font-semibold"
           style={{ backgroundColor: 'var(--color-gold)', color: '#000' }}
         >
-          Try Again
+          Retry
         </button>
-        <a
-          href="/"
-          className="px-5 py-3 rounded-xl font-semibold text-sm min-h-[44px] transition-all active:scale-95 inline-flex items-center"
-          style={{
-            backgroundColor: 'var(--color-control-bg)',
-            color: 'var(--color-text)',
-          }}
-        >
-          Go Home
-        </a>
-      </div>
-      {process.env.NODE_ENV === 'development' && error.message && (
         <pre
-          className="mt-6 text-xs text-left max-w-md overflow-auto p-3 rounded-lg"
+          className="whitespace-pre-wrap break-words rounded-md border p-4 text-xs"
           style={{
-            backgroundColor: 'var(--color-card-bg)',
-            color: 'var(--color-error)',
+            borderColor: '#000',
+            backgroundColor: 'var(--color-error)',
+            color: '#000',
           }}
         >
-          {error.message}
+          {details || 'Unknown error'}
         </pre>
-      )}
+      </div>
     </div>
   )
 }
