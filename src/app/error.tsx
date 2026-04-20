@@ -6,7 +6,10 @@ interface ErrorPageProps {
 }
 
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
-  const details = [error.message, error.stack].filter(Boolean).join('\n\n')
+  const isDevelopment = process.env.NODE_ENV === 'development'
+  const details = isDevelopment
+    ? [error.message, error.stack].filter(Boolean).join('\n\n')
+    : 'Something went wrong. Please try again.'
 
   return (
     <div
