@@ -26,16 +26,16 @@ const nextConfig = {
         source: '/:path*',
         headers: [
           {
-            // Remove X-Frame-Options to allow iframe embedding
-            key: 'X-Frame-Options',
-            value: 'ALLOWALL',
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
           },
           {
-            // Configure CSP to allow framing by Pi Network domains
+            key: 'X-Frame-Options',
+            value: 'ALLOW-FROM https://app-cdn.minepi.com',
+          },
+          {
             key: 'Content-Security-Policy',
-            value: [
-              "frame-ancestors 'self' https://app-cdn.minepi.com https://sandbox.minepi.com https://*.minepi.com",
-            ].join('; '),
+            value: "frame-ancestors 'self' https://*.minepi.com https://app-cdn.minepi.com;",
           },
         ],
       },
