@@ -39,6 +39,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    if (!supabaseUrl || !supabaseServiceKey || !jwtSecret) {
+      console.error('[auth/pi] Missing required Supabase server environment variables')
+      return NextResponse.json(
+        { error: 'Server configuration error' },
+        { status: 500 }
+      )
+    }
+
     // 2. Verify token with Pi Network API (server-to-server)
     //    The PI_API_KEY is required for this handler to verify Pi access tokens.
     const piApiKey: string | undefined = process.env.PI_API_KEY
@@ -107,14 +115,6 @@ export async function POST(req: NextRequest) {
     const profile = profileData as unknown as ProfileRow
 
     // 5. Mint a custom JWT for Supabase
-    if (!jwtSecret) {
-      console.error('[auth/pi] SUPABASE_JWT_SECRET is not set')
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      )
-    }
-
     const now = Math.floor(Date.now() / 1000)
     const token = jwt.sign(
       {

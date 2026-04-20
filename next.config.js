@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  trailingSlash: false,
   images: {
     loader: 'custom',
     loaderFile: './src/lib/supabase-image-loader.ts',
