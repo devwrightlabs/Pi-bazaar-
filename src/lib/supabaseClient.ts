@@ -19,7 +19,6 @@ function assertSupabaseEnvConfigured(): void {
     const message =
       '[PiBazaar] Missing or invalid environment variable(s): NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY. ' +
       'All Supabase queries will fail until these are configured in your deployment.'
-    console.error(message)
     throw new Error(message)
   }
 }
