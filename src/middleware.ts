@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
-  void request
+// Intentionally pass-through only to avoid protocol/header interference with
+// Vercel edge SSL termination in Pi Sandbox.
+export function middleware(_request: NextRequest) {
   return NextResponse.next()
 }
 
