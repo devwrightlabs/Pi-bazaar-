@@ -61,10 +61,7 @@ interface PiPaymentCallbacks {
 let piSdkInitialised = false
 
 function getPiSdk(): PiSDK | null {
-  if (typeof window === 'undefined') {
-    return null
-  }
-  if (!window.Pi) {
+  if (!(typeof window !== 'undefined' && window.Pi)) {
     return null
   }
   return window.Pi
@@ -83,11 +80,11 @@ function getPiSdk(): PiSDK | null {
  */
 export function initPiSdk({ sandbox = false }: { sandbox?: boolean } = {}): boolean {
   if (piSdkInitialised) return true
-  const pi = getPiSdk()
-  if (!pi) {
+  if (!(typeof window !== 'undefined' && window.Pi)) {
     console.warn('[pi-sdk] Pi SDK script is not loaded')
     return false
   }
+  const pi = window.Pi
 
   try {
     // Explicitly initialize the Pi SDK with version and sandbox mode
@@ -105,11 +102,11 @@ export function initPiSdk({ sandbox = false }: { sandbox?: boolean } = {}): bool
 
 export async function authenticateWithPi(): Promise<PiAuthResult | null> {
   try {
-    const pi = getPiSdk()
-    if (!pi) {
+    if (!(typeof window !== 'undefined' && window.Pi)) {
       console.warn('Pi SDK not available')
       return null
     }
+    const pi = window.Pi
     const result = await pi.authenticate(
       ['username', 'payments', 'wallet_address'],
       (payment: PiPayment) => {
@@ -130,12 +127,12 @@ export function createPiPayment(
   callbacks: PiPaymentCallbacks
 ): void {
   try {
-    const pi = getPiSdk()
-    if (!pi) {
+    if (!(typeof window !== 'undefined' && window.Pi)) {
       console.warn('Pi SDK not available')
       callbacks.onError(new Error('Pi SDK not available'))
       return
     }
+    const pi = window.Pi
     pi.createPayment(paymentData, callbacks)
   } catch (error) {
     console.error('Pi payment creation failed:', error)

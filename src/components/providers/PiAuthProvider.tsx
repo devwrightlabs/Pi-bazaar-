@@ -28,10 +28,43 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
   const { setCurrentUser } = useStore()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isPiSdkReady, setIsPiSdkReady] = useState(false)
 
   // Initialise the Pi SDK once on mount (sandbox mode for testnet).
   useEffect(() => {
-    initPiSdk({ sandbox: true })
+    let cancelled = false
+    let retries = 0
+    const maxRetries = 20
+    const retryDelayMs = 250
+
+    const initialise = () => {
+      if (cancelled) return
+
+      if (typeof window !== 'undefined' && window.Pi) {
+        const initialized = initPiSdk({ sandbox: true })
+        setIsPiSdkReady(initialized)
+        if (!initialized) {
+          console.error('[PiAuthProvider] Pi SDK init failed')
+          setError('Pi SDK failed to initialize. Please refresh and try again.')
+        }
+        return
+      }
+
+      retries += 1
+      if (retries >= maxRetries) {
+        setIsPiSdkReady(false)
+        console.error('[PiAuthProvider] Pi SDK not found on window')
+        return
+      }
+
+      window.setTimeout(initialise, retryDelayMs)
+    }
+
+    initialise()
+
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const handleLogin = useCallback(async () => {
@@ -39,6 +72,16 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
     setError(null)
 
     try {
+      if (!(typeof window !== 'undefined' && window.Pi)) {
+        setError('Pi Browser is required to log in.')
+        return
+      }
+
+      if (!isPiSdkReady && !initPiSdk({ sandbox: true })) {
+        setError('Pi SDK failed to initialize. Please refresh and try again.')
+        return
+      }
+
       // 1. Authenticate with the Pi SDK with a 10-second timeout.
       // This prevents infinite loading if the Pi SDK hangs or fails silently.
       const timeoutPromise = new Promise<null>((_, reject) => {
@@ -108,7 +151,7 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
       // CRITICAL: Always reset loading state, even if the SDK hangs or times out.
       setLoading(false)
     }
-  }, [setCurrentUser])
+  }, [isPiSdkReady, setCurrentUser])
 
   return (
     <PiAuthContext.Provider value={{ handleLogin, loading, error }}>
