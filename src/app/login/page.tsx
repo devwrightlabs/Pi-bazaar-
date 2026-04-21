@@ -8,6 +8,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const isSandbox = process.env.NEXT_PUBLIC_PI_ENV !== 'production'
 
   const handleLoginWithPi = async () => {
     setLoading(true)
@@ -15,14 +16,14 @@ export default function LoginPage() {
 
     try {
       // Initialize Pi SDK
-      initPiSdk({ sandbox: true })
+      initPiSdk({ sandbox: isSandbox })
 
       // Authenticate with Pi
       const auth = await authenticateWithPi()
 
       if (!auth || !auth.accessToken) {
+        console.warn('Authentication returned null. Handshake failed.')
         setError('Pi authentication failed. Please try again.')
-        setLoading(false)
         return
       }
 
@@ -35,7 +36,6 @@ export default function LoginPage() {
 
       if (!response.ok) {
         setError('Authentication failed. Please try again.')
-        setLoading(false)
         return
       }
 
@@ -55,6 +55,7 @@ export default function LoginPage() {
     } catch (err) {
       console.error('Login error:', err)
       setError('Login failed. Please try again.')
+    } finally {
       setLoading(false)
     }
   }
