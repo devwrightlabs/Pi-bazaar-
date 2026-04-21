@@ -29,6 +29,7 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPiSdkReady, setIsPiSdkReady] = useState(false)
+  const isSandbox = process.env.NEXT_PUBLIC_PI_ENV !== 'production'
 
   // Initialise the Pi SDK once on mount (sandbox mode for testnet).
   useEffect(() => {
@@ -41,7 +42,7 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
       }
 
       try {
-        const initialised = initPiSdk({ sandbox: true })
+        const initialised = initPiSdk({ sandbox: isSandbox })
         setIsPiSdkReady(initialised)
         if (!initialised) {
           setError('Pi SDK failed to initialize. Please refresh and try again.')
@@ -83,7 +84,8 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
       ])
 
       if (!piAuth) {
-        setError('Pi Browser is required to log in.')
+        console.warn('Authentication returned null. Handshake failed.')
+        setError('Pi authentication failed. Please try again.')
         return
       }
 
