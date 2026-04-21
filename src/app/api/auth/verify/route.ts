@@ -24,7 +24,6 @@
  *   SUPABASE_URL            — Supabase project URL
  *   SUPABASE_SERVICE_ROLE_KEY — Service role key
  *   SUPABASE_JWT_SECRET     — Supabase JWT signing secret
- *   PI_API_KEY              — Pi Network Developer API key (if required by Pi API)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -60,21 +59,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // 2. Verify the token with the Pi Network Developer API (server-to-server).
-    //    The PI_API_KEY is REQUIRED for production use.
-    const piApiKey: string | undefined = process.env.PI_API_KEY
-    if (!piApiKey) {
-      console.error('[auth/verify] PI_API_KEY is not configured')
-      return NextResponse.json(
-        { error: 'Server Configuration Error: Missing API Key' },
-        { status: 500 }
-      )
-    }
-
     //    The Pi API returns the user's verified uid and username.
     const piResponse = await fetch('https://api.minepi.com/v2/me', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
-        'X-Api-Key': piApiKey,
       },
     })
 

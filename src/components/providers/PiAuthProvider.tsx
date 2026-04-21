@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
-import { authenticateWithPi } from '@/lib/pi-sdk'
+import { authenticateWithPi, initPiSdk } from '@/lib/pi-sdk'
 import { useStore } from '@/store/useStore'
 
 // ─── Context ──────────────────────────────────────────────────────────────────
@@ -41,10 +41,11 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
       }
 
       try {
-        console.log("[PiBazaar] Attempting to initialize Pi SDK...")
-        window.Pi.init({ version: "2.0", sandbox: true })
-        console.log("[PiBazaar] Pi SDK Initialized successfully.")
-        setIsPiSdkReady(true)
+        const initialised = initPiSdk({ sandbox: true })
+        setIsPiSdkReady(initialised)
+        if (!initialised) {
+          setError('Pi SDK failed to initialize. Please refresh and try again.')
+        }
       } catch (err) {
         console.error('[PiAuthProvider] Pi SDK init failed', err)
         setIsPiSdkReady(false)
