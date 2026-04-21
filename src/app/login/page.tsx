@@ -8,7 +8,6 @@ export default function LoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const isSandbox = process.env.NEXT_PUBLIC_PI_ENV !== 'production'
 
   const handleLoginWithPi = async () => {
     setLoading(true)
@@ -16,7 +15,7 @@ export default function LoginPage() {
 
     try {
       // Initialize Pi SDK
-      initPiSdk({ sandbox: isSandbox })
+      initPiSdk()
 
       // Authenticate with Pi
       const auth = await authenticateWithPi()

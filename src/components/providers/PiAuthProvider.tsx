@@ -41,7 +41,7 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
       }
 
       try {
-        const initialised = initPiSdk({ sandbox: false })
+        const initialised = initPiSdk()
         setIsPiSdkReady(initialised)
         if (!initialised) {
           setError('Pi SDK failed to initialize. Please refresh and try again.')

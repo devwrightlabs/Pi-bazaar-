@@ -78,7 +78,7 @@ function getPiSdk(): PiSDK | null {
  * CRITICAL: This function explicitly calls window.Pi.init() with the proper
  * configuration. This MUST happen before any authentication or wallet operations.
  */
-export function initPiSdk(_options: { sandbox?: boolean } = {}): boolean {
+export function initPiSdk(): boolean {
   if (piSdkInitialised) return true
   if (!(typeof window !== 'undefined' && window.Pi)) {
     console.warn('[pi-sdk] Pi SDK script is not loaded')
