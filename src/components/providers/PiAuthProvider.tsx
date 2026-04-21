@@ -55,7 +55,7 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
     }
 
     initialisePiSdk()
-  }, [isSandbox])
+  }, [])
 
   const handleLogin = useCallback(async () => {
     setLoading(true)
