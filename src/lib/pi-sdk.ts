@@ -78,7 +78,7 @@ function getPiSdk(): PiSDK | null {
  * CRITICAL: This function explicitly calls window.Pi.init() with the proper
  * configuration. This MUST happen before any authentication or wallet operations.
  */
-export function initPiSdk({ sandbox = false }: { sandbox?: boolean } = {}): boolean {
+export function initPiSdk(): boolean {
   if (piSdkInitialised) return true
   if (!(typeof window !== 'undefined' && window.Pi)) {
     console.warn('[pi-sdk] Pi SDK script is not loaded')
@@ -87,10 +87,10 @@ export function initPiSdk({ sandbox = false }: { sandbox?: boolean } = {}): bool
   const pi = window.Pi
 
   try {
-    // Explicitly initialize the Pi SDK with version and sandbox mode
-    pi.init({ version: '2.0', sandbox })
+    // Explicitly initialize the Pi SDK in production mode
+    pi.init({ version: '2.0', sandbox: false })
     piSdkInitialised = true
-    console.info(`[pi-sdk] Initialized successfully (sandbox: ${sandbox})`)
+    console.info('[pi-sdk] Initialized successfully (sandbox: false)')
     return true
   } catch (error) {
     console.error('[pi-sdk] Initialization failed:', error)
@@ -103,19 +103,18 @@ export function initPiSdk({ sandbox = false }: { sandbox?: boolean } = {}): bool
 export async function authenticateWithPi(): Promise<PiAuthResult | null> {
   try {
     if (!(typeof window !== 'undefined' && window.Pi)) {
-      console.warn('Pi SDK not available')
+      alert('Wallet Connection Failed: Pi SDK not available')
       return null
     }
-    const pi = window.Pi
-    const result = await pi.authenticate(
-      ['username', 'payments', 'wallet_address'],
-      (payment: PiPayment) => {
-        console.log('Incomplete payment found:', payment.identifier)
-      }
-    )
-    return result
-  } catch (error) {
-    console.error('Pi authentication failed:', error)
+
+    alert('Attempting to wake up Pi Wallet...')
+    const scopes = ['username', 'payments']
+    const onIncompletePaymentFound = () => {}
+    const authResult = await window.Pi.authenticate(scopes, onIncompletePaymentFound)
+    alert('Wallet Connected! Welcome: ' + authResult.user.username)
+    return authResult
+  } catch (error: any) {
+    alert('Wallet Connection Failed: ' + (error.message || JSON.stringify(error)))
     return null
   }
 }

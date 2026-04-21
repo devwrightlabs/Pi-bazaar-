@@ -29,9 +29,8 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPiSdkReady, setIsPiSdkReady] = useState(false)
-  const isSandbox = process.env.NEXT_PUBLIC_PI_ENV !== 'production'
 
-  // Initialise the Pi SDK once on mount (sandbox mode for testnet).
+  // Initialise the Pi SDK once on mount in production mode.
   useEffect(() => {
     const initialisePiSdk = () => {
       if (!(typeof window !== 'undefined' && window.Pi)) {
@@ -42,7 +41,7 @@ export default function PiAuthProvider({ children }: { children: React.ReactNode
       }
 
       try {
-        const initialised = initPiSdk({ sandbox: isSandbox })
+        const initialised = initPiSdk()
         setIsPiSdkReady(initialised)
         if (!initialised) {
           setError('Pi SDK failed to initialize. Please refresh and try again.')
