@@ -24,6 +24,11 @@
  *   SUPABASE_URL            — Supabase project URL
  *   SUPABASE_SERVICE_ROLE_KEY — Service role key
  *   SUPABASE_JWT_SECRET     — Supabase JWT signing secret
+ *
+ * Pi token verification is performed by sending the client-provided access token
+ * as a Bearer token to `https://api.minepi.com/v2/me`.
+ * The token originates from the client, but trust is established only after Pi's
+ * server validates it and returns the authoritative user identity.
  */
 
 import { NextRequest, NextResponse } from 'next/server'
