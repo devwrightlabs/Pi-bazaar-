@@ -16,6 +16,24 @@ import { verifyAuthToken } from '@/lib/authHelper'
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const MAX_CURRENCY_LENGTH = 5
+const VALID_THEMES = ['dark', 'light', 'sepia', 'custom'] as const
+type Theme = typeof VALID_THEMES[number]
+
+/** Returns true for a valid 6-digit CSS hex colour string, e.g. '#F0C040'. */
+function isValidHex(value: unknown): value is string {
+  return typeof value === 'string' && /^#[0-9A-Fa-f]{6}$/.test(value)
+}
+
+/** Validates and returns a nullable hex colour from a request body field. */
+function parseHexField(
+  body: Record<string, unknown>,
+  key: string,
+): { value: string | null; error?: string } {
+  const raw = body[key]
+  if (raw === undefined || raw === null) return { value: null }
+  if (!isValidHex(raw)) return { error: `${key} must be a valid 6-digit hex colour (e.g. #F0C040)` }
+  return { value: raw }
+}
 
 // ─── GET /api/users/settings ──────────────────────────────────────────────────
 
@@ -45,6 +63,12 @@ export async function GET(req: NextRequest) {
           user_id: piUid,
           preferred_currency: 'USD',
           email_notifications: true,
+          theme: 'dark',
+          custom_bg: null,
+          custom_accent: null,
+          custom_card_bg: null,
+          custom_text: null,
+          custom_subtext: null,
         },
       })
     }
@@ -85,6 +109,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'preferred_currency is too long' }, { status: 400 })
     }
 
+    // Validate theme.
+    const themeRaw = body.theme
+    const theme: Theme =
+      themeRaw !== undefined && VALID_THEMES.includes(themeRaw as Theme)
+        ? (themeRaw as Theme)
+        : 'dark'
+
+    // Validate hex colour fields.
+    const hexFields = ['custom_bg', 'custom_accent', 'custom_card_bg', 'custom_text', 'custom_subtext'] as const
+    const hexValues: Record<string, string | null> = {}
+    for (const key of hexFields) {
+      const result = parseHexField(body, key)
+      if (result.error) {
+        return NextResponse.json({ error: result.error }, { status: 400 })
+      }
+      hexValues[key] = result.value
+    }
+
     // Check if settings already exist.
     const { data: existing, error: existingError } = await supabaseAdmin
       .from('user_settings')
@@ -106,6 +148,8 @@ export async function POST(req: NextRequest) {
         user_id: piUid,
         preferred_currency,
         email_notifications,
+        theme,
+        ...hexValues,
       })
       .select()
       .single()
@@ -164,6 +208,28 @@ export async function PUT(req: NextRequest) {
         return NextResponse.json({ error: 'email_notifications must be a boolean' }, { status: 400 })
       }
       updates.email_notifications = body.email_notifications
+    }
+
+    if (body.theme !== undefined) {
+      if (!VALID_THEMES.includes(body.theme as Theme)) {
+        return NextResponse.json(
+          { error: `theme must be one of: ${VALID_THEMES.join(', ')}` },
+          { status: 400 }
+        )
+      }
+      updates.theme = body.theme
+    }
+
+    // Validate and apply hex colour fields.
+    const hexFields = ['custom_bg', 'custom_accent', 'custom_card_bg', 'custom_text', 'custom_subtext'] as const
+    for (const key of hexFields) {
+      if (body[key] !== undefined) {
+        const result = parseHexField(body, key)
+        if (result.error) {
+          return NextResponse.json({ error: result.error }, { status: 400 })
+        }
+        updates[key] = result.value
+      }
     }
 
     if (Object.keys(updates).length === 0) {
