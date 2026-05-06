@@ -103,18 +103,17 @@ export function initPiSdk(): boolean {
 export async function authenticateWithPi(): Promise<PiAuthResult | null> {
   try {
     if (!(typeof window !== 'undefined' && window.Pi)) {
-      alert('Wallet Connection Failed: Pi SDK not available')
+      console.error('[pi-sdk] Wallet Connection Failed: Pi SDK not available')
       return null
     }
 
-    alert('Attempting to wake up Pi Wallet...')
     const scopes = ['username', 'payments']
     const onIncompletePaymentFound = () => {}
     const authResult = await window.Pi.authenticate(scopes, onIncompletePaymentFound)
-    alert('Wallet Connected! Welcome: ' + authResult.user.username)
+    console.info('[pi-sdk] Wallet Connected! Welcome: ' + authResult.user.username)
     return authResult
   } catch (error: any) {
-    alert('Wallet Connection Failed: ' + (error.message || JSON.stringify(error)))
+    console.error('[pi-sdk] Wallet Connection Failed: ' + (error.message || JSON.stringify(error)))
     return null
   }
 }

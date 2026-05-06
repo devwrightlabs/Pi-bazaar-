@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import ErrorBoundary from '@/components/ErrorBoundary'
 import TrustBadge from '@/components/marketplace/TrustBadge'
+import MakeOfferModal from '@/components/MakeOfferModal'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -55,6 +56,7 @@ function ProductDetailContent({ productId }: { productId: string }) {
   const [imgError, setImgError] = useState(false)
   const [currentStep, setCurrentStep] = useState<EscrowStep>('payment_held')
   const [reviewLoading, setReviewLoading] = useState(false)
+  const [offerOpen, setOfferOpen] = useState(false)
 
   const fetchProduct = useCallback(async () => {
     setLoading(true)
@@ -439,6 +441,16 @@ function ProductDetailContent({ productId }: { productId: string }) {
           Buy with π {product.price_in_pi}
         </Button>
 
+        {/* Make Offer Button — only for buyers */}
+        {isBuyer && (
+          <button
+            onClick={() => setOfferOpen(true)}
+            className="w-full border border-[#F0C040] text-[#F0C040] bg-transparent rounded-xl px-4 py-3 font-semibold text-sm transition-all duration-150 active:scale-95"
+          >
+            💰 Make an Offer
+          </button>
+        )}
+
         {/* Message Seller */}
         <button
           onClick={() => router.push('/chat')}
@@ -452,6 +464,21 @@ function ProductDetailContent({ productId }: { productId: string }) {
           💬 Message Seller
         </button>
       </div>
+
+      {/* Make Offer Modal */}
+      <MakeOfferModal
+        listing={{
+          id: product.id,
+          title: product.title,
+          price_in_pi: product.price_in_pi,
+          seller_id: product.seller_id,
+        }}
+        isOpen={offerOpen}
+        onClose={() => setOfferOpen(false)}
+        onSuccess={() => {
+          setOfferOpen(false)
+        }}
+      />
     </main>
   )
 }
