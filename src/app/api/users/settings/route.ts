@@ -31,7 +31,7 @@ function parseHexField(
 ): { value: string | null; error?: string } {
   const raw = body[key]
   if (raw === undefined || raw === null) return { value: null }
-  if (!isValidHex(raw)) return { error: `${key} must be a valid 6-digit hex colour (e.g. #F0C040)` }
+  if (!isValidHex(raw)) return { value: null, error: `${key} must be a valid 6-digit hex colour (e.g. #F0C040)` }
   return { value: raw }
 }
 
