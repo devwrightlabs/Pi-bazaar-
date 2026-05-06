@@ -21,6 +21,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { verifyAuthToken } from '@/lib/authHelper'
 import type { VerifyPaymentRequest, VerifyPaymentResponse, PiPaymentResponse, EscrowRecord } from '@/types/escrow'
+import { rateLimit } from '@/lib/rateLimit'
+
+const verifyPaymentRateLimit = rateLimit({ windowMs: 60_000, max: 5 })
 
 // Floating-point tolerance for comparing Pi payment amounts.
 const PAYMENT_AMOUNT_TOLERANCE = 0.0000001
@@ -92,6 +95,18 @@ async function completePiPayment(paymentId: string, txid: string, apiKey: string
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting: 5 req / 60s per IP
+    const rl = verifyPaymentRateLimit(req)
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+        }
+      )
+    }
+
     // 1. Authenticate buyer.
     const auth = verifyAuthToken(req)
     if (!auth) {

@@ -16,6 +16,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import jwt from 'jsonwebtoken'
 import type { Database, ProfileRow } from '@/types/database'
+import { rateLimit } from '@/lib/rateLimit'
+
+const authRateLimit = rateLimit({ windowMs: 60_000, max: 10 })
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
@@ -28,6 +31,18 @@ interface PiUserResponse {
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limiting: 10 req / 60s per IP
+    const rl = authRateLimit(req)
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+        }
+      )
+    }
+
     // 1. Parse request body
     const body = await req.json() as { accessToken?: string }
     const { accessToken } = body

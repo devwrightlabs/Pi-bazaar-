@@ -60,13 +60,20 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     const totalSales = salesCount ?? 0
     const badge = computeBadge(totalSales)
 
-    return NextResponse.json({
-      badge,
-      total_sales: totalSales,
-      positive_feedback: totalSales, // placeholder: use total_sales for now
-      response_rate: 100,            // hardcoded for now
-      listing_count: listingCount ?? 0,
-    })
+    return NextResponse.json(
+      {
+        badge,
+        total_sales: totalSales,
+        positive_feedback: totalSales, // placeholder: use total_sales for now
+        response_rate: 100,            // hardcoded for now
+        listing_count: listingCount ?? 0,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, max-age=60, stale-while-revalidate=300',
+        },
+      }
+    )
   } catch (err) {
     console.error('[GET /api/users/badges] Unhandled error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

@@ -13,6 +13,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
 import { verifyAuthToken } from '@/lib/authHelper'
+import { rateLimit } from '@/lib/rateLimit'
+
+const listingsPostRateLimit = rateLimit({ windowMs: 60_000, max: 20 })
 
 const MAX_TITLE_LENGTH = 200
 const MAX_DESCRIPTION_LENGTH = 2000
@@ -20,6 +23,18 @@ const VALID_CONDITIONS = ['new', 'like_new', 'good', 'fair', 'poor'] as const
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
+    // Rate limiting: 20 req / 60s per IP
+    const rl = listingsPostRateLimit(req)
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests' },
+        {
+          status: 429,
+          headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+        }
+      )
+    }
+
     // 1. Authenticate the seller
     const auth = verifyAuthToken(req)
     if (!auth) {

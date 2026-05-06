@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAuthToken } from '@/lib/authHelper'
 import { supabaseAdmin } from '@/lib/supabaseAdmin'
+import { rateLimit } from '@/lib/rateLimit'
+
+const offersPostRateLimit = rateLimit({ windowMs: 60_000, max: 10 })
 
 // ─── POST /api/offers — Create an offer ──────────────────────────────────────
 
 export async function POST(request: NextRequest) {
+  // Rate limiting: 10 req / 60s per IP
+  const rl = offersPostRateLimit(request)
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(Math.ceil((rl.resetAt - Date.now()) / 1000)) },
+      }
+    )
+  }
+
   const auth = verifyAuthToken(request)
   if (!auth) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

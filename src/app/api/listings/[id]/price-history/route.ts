@@ -41,7 +41,14 @@ export async function GET(
       date: row.created_at as string,
     }))
 
-    return NextResponse.json({ history })
+    return NextResponse.json(
+      { history },
+      {
+        headers: {
+          'Cache-Control': 'public, max-age=120, stale-while-revalidate=600',
+        },
+      }
+    )
   } catch (err) {
     console.error('[GET /api/listings/[id]/price-history] Unhandled error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
