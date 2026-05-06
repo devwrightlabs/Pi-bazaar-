@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { authenticateWithPi } from '@/lib/pi-sdk'
 import { useState } from 'react'
+import NotificationBell from '@/components/NotificationBell'
 
 export default function Navbar() {
   const { currentUser, isAuthenticated, setCurrentUser } = useStore()
@@ -96,6 +97,7 @@ export default function Navbar() {
 
         {/* Auth area */}
         <div className="flex items-center gap-3">
+          <NotificationBell />
           {connecting ? (
             <Skeleton shape="line" className="h-9 w-28 rounded-xl" />
           ) : isAuthenticated && currentUser ? (
